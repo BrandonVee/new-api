@@ -63,3 +63,28 @@ func TestTaskPluginDisabledFactoryKeysBadJSONReturnsEmpty(t *testing.T) {
 		})
 	}
 }
+
+func TestTaskPluginMarketplaceSourcesOnlyUseIndependentSources(t *testing.T) {
+	setupTaskPluginDisabledFactoryKeysTest(t)
+	custom := TaskPluginMarketplaceSource{Name: "Private", IndexURL: "https://plugins.gateway.example/index.json"}
+	for _, testCase := range []struct {
+		name string
+		raw  string
+		want []TaskPluginMarketplaceSource
+	}{
+		{name: "unset", raw: "", want: []TaskPluginMarketplaceSource{}},
+		{name: "invalid", raw: "{", want: []TaskPluginMarketplaceSource{}},
+		{name: "null", raw: "null", want: []TaskPluginMarketplaceSource{}},
+		{name: "legacy defaults", raw: `[{"name":"Official","index_url":"https://www.newapi.ai/api/v1/plugins/index.json"},{"name":"GitHub","index_url":"https://raw.githubusercontent.com/QuantumNous/new-api-plugins/main/index.json"}]`, want: []TaskPluginMarketplaceSource{}},
+		{name: "custom alongside legacy", raw: `[{"name":"Official","index_url":"https://www.newapi.ai/api/v1/plugins/index.json"},{"name":"Private","index_url":"https://plugins.gateway.example/index.json"}]`, want: []TaskPluginMarketplaceSource{custom}},
+		{name: "independent source", raw: `[{"name":"Private","index_url":"https://plugins.gateway.example/index.json"}]`, want: []TaskPluginMarketplaceSource{custom}},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			common.OptionMapRWMutex.Lock()
+			common.OptionMap[TaskPluginMarketplaceSourcesKey] = testCase.raw
+			common.OptionMapRWMutex.Unlock()
+
+			assert.Equal(t, testCase.want, GetTaskPluginMarketplaceSources())
+		})
+	}
+}

@@ -1,21 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import * as React from 'react'
 import type { SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -62,8 +44,8 @@ interface Props {
 }
 
 const PANCAKE_DASHBOARD_URL = 'https://pancake.waffo.ai/merchant/dashboard'
-const DEFAULT_NEW_STORE_NAME = 'new-api-store'
-const DEFAULT_NEW_PRODUCT_NAME = 'new-api-charge-product'
+const DEFAULT_NEW_STORE_NAME = 'ai-gateway-store'
+const DEFAULT_NEW_PRODUCT_NAME = 'ai-gateway-charge-product'
 const DEFAULT_NEW_PAIR_NAME = `${DEFAULT_NEW_STORE_NAME} + ${DEFAULT_NEW_PRODUCT_NAME}`
 
 export function WaffoPancakeSettingsSection({
@@ -484,12 +466,12 @@ export function WaffoPancakeSettingsSection({
             <ul className='list-inside list-disc space-y-1'>
               <li>
                 {t(
-                  'The bound Store is the parent container for every Pancake product new-api creates from this admin — both the wallet top-up product and any subscription-plan products. One store is enough; pin a different one only if you genuinely run separate Pancake catalogs.'
+                  'The bound Store is the parent container for every Pancake product Ai-Gateway creates from this admin — both the wallet top-up product and any subscription-plan products. One store is enough; pin a different one only if you genuinely run separate Pancake catalogs.'
                 )}
               </li>
               <li>
                 {t(
-                  'The bound Product powers wallet top-ups: when a user enters any amount, new-api runs the checkout against this single Pancake product and overrides the price per session — no need to pre-create $1 / $5 / $10 SKUs.'
+                  'The bound Product powers wallet top-ups: when a user enters any amount, Ai-Gateway runs the checkout against this single Pancake product and overrides the price per session — no need to pre-create $1 / $5 / $10 SKUs.'
                 )}
               </li>
               <li>

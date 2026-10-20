@@ -1,7 +1,11 @@
 package middleware
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,6 +15,32 @@ import (
 	"github.com/QuantumNous/new-api/service"
 	"github.com/gin-gonic/gin"
 )
+
+func OfficialPaymentSettingsVerificationRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if _, ok := GetSessionAuthIdentity(c); !ok {
+			securityProofError(c, "SECURITY_PROOF_INVALID", "Security verification is no longer valid. Please verify again.")
+			return
+		}
+		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 64<<10)
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"success": false, "message": "Invalid parameters"})
+			return
+		}
+		c.Request.Body = io.NopCloser(bytes.NewReader(body))
+		digest := sha256.Sum256(body)
+		context, err := common.Marshal(service.PaymentMerchantContext{SettingsDigest: hex.EncodeToString(digest[:])})
+		if err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if RequireSecurityProof(c, service.VerificationOperation{Scope: service.VerificationScopePaymentMerchantUpdate, Context: context}) == nil {
+			return
+		}
+		c.Next()
+	}
+}
 
 // SecureVerificationRequired protects channel key disclosure. Other sensitive
 // operations validate their narrower proof scopes in their controller.

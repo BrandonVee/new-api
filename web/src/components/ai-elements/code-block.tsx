@@ -1,21 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 /* eslint-disable react-refresh/only-export-components */
 'use client'
 
@@ -59,6 +41,10 @@ import {
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
+import { CodeBlockFrame } from './code-block-frame'
+
+export { CodeBlockFrame } from './code-block-frame'
+
 type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
   code: string
   collapsedLines?: number
@@ -101,16 +87,6 @@ type CodeMirrorCodeViewProps = {
   rows?: number
   showLineNumbers?: boolean
   value: string
-}
-
-type CodeBlockFrameProps = Omit<HTMLAttributes<HTMLDivElement>, 'title'> & {
-  bodyClassName?: string
-  bodyMaxHeight?: string
-  bodyOverlay?: ReactNode
-  children: ReactNode
-  endActions?: ReactNode
-  showToolbar?: boolean
-  title?: ReactNode
 }
 
 type CodeBlockContextType = {
@@ -420,51 +396,6 @@ function CodeMirrorCodeView({
     />
   )
 }
-
-export const CodeBlockFrame = ({
-  bodyClassName,
-  bodyMaxHeight,
-  bodyOverlay,
-  children,
-  className,
-  endActions,
-  showToolbar = false,
-  title,
-  ...props
-}: CodeBlockFrameProps) => (
-  <div
-    className={cn(
-      'group/code-block bg-muted/20 text-foreground my-3 w-full max-w-full overflow-hidden rounded-lg border shadow-xs',
-      className
-    )}
-    {...props}
-  >
-    {showToolbar && (
-      <div className='bg-muted/35 border-border/70 flex min-h-10 items-center gap-2 border-b px-2 py-1.5'>
-        <div className='min-w-0 flex-1'>
-          <div className='text-muted-foreground truncate font-mono text-[11px] font-medium tracking-wide uppercase'>
-            {title}
-          </div>
-        </div>
-        {endActions && (
-          <div className='flex shrink-0 items-center gap-1'>{endActions}</div>
-        )}
-      </div>
-    )}
-    <div className='relative min-w-0'>
-      <div
-        className={cn(
-          'code-block-scroll max-w-full overflow-auto transition-[max-height] duration-200 ease-out',
-          bodyClassName
-        )}
-        style={{ maxHeight: bodyMaxHeight }}
-      >
-        {children}
-      </div>
-      {bodyOverlay}
-    </div>
-  </div>
-)
 
 export const CodeBlock = ({
   code,

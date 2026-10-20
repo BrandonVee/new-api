@@ -2,6 +2,7 @@ package service
 
 import (
 	"crypto/hmac"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"slices"
@@ -16,26 +17,27 @@ import (
 )
 
 const (
-	VerificationMethodTwoFA              = "2fa"
-	VerificationMethodPasskey            = "passkey"
-	VerificationMethodPassword           = "password"
-	VerificationMethodOAuth              = "oauth"
-	VerificationMethodSession            = "session"
-	VerificationScopeChannelKeyRead      = "channel.key.read"
-	VerificationScopePasskeyRegister     = "passkey.register"
-	VerificationScopePasskeyDelete       = "passkey.delete"
-	VerificationScopeTwoFASetup          = "2fa.setup"
-	VerificationScopeTwoFADisable        = "2fa.disable"
-	VerificationScopeTwoFABackupCodes    = "2fa.backup_codes.regenerate"
-	VerificationScopeLogin               = "auth.login"
-	VerificationScopeAccessTokenGenerate = "access_token.generate"
-	VerificationScopeAccessTokenRevoke   = "access_token.revoke"
-	VerificationScopeAccessTokenUpdate   = "access_token.update"
-	VerificationScopeAccountBind         = "account.binding.bind"
-	VerificationScopeAccountUnbind       = "account.binding.unbind"
-	VerificationScopePasswordSet         = "account.password.set"
-	VerificationScopePasswordChange      = "account.password.change"
-	VerificationScopeAccountDelete       = "account.delete"
+	VerificationMethodTwoFA                = "2fa"
+	VerificationMethodPasskey              = "passkey"
+	VerificationMethodPassword             = "password"
+	VerificationMethodOAuth                = "oauth"
+	VerificationMethodSession              = "session"
+	VerificationScopeChannelKeyRead        = "channel.key.read"
+	VerificationScopePaymentMerchantUpdate = "payment.merchant.update"
+	VerificationScopePasskeyRegister       = "passkey.register"
+	VerificationScopePasskeyDelete         = "passkey.delete"
+	VerificationScopeTwoFASetup            = "2fa.setup"
+	VerificationScopeTwoFADisable          = "2fa.disable"
+	VerificationScopeTwoFABackupCodes      = "2fa.backup_codes.regenerate"
+	VerificationScopeLogin                 = "auth.login"
+	VerificationScopeAccessTokenGenerate   = "access_token.generate"
+	VerificationScopeAccessTokenRevoke     = "access_token.revoke"
+	VerificationScopeAccessTokenUpdate     = "access_token.update"
+	VerificationScopeAccountBind           = "account.binding.bind"
+	VerificationScopeAccountUnbind         = "account.binding.unbind"
+	VerificationScopePasswordSet           = "account.password.set"
+	VerificationScopePasswordChange        = "account.password.change"
+	VerificationScopeAccountDelete         = "account.delete"
 	// Administrative step-up scopes bind the managed user into the proof so a
 	// proof issued for one account cannot be replayed against another.
 	VerificationScopeAdminUserCreate       = "admin.user.create"
@@ -70,6 +72,12 @@ type VerificationOperation struct {
 
 type ChannelKeyReadContext struct {
 	ChannelID int `json:"channel_id"`
+}
+
+// Bind merchant changes to a digest rather than retaining credentials in the
+// verification flow or its audit metadata.
+type PaymentMerchantContext struct {
+	SettingsDigest string `json:"settings_digest"`
 }
 
 type AccountBindingContext struct {
@@ -163,6 +171,16 @@ func BindVerificationOperation(operation VerificationOperation) (VerificationBin
 	}
 	var normalized any
 	switch operation.Scope {
+	case VerificationScopePaymentMerchantUpdate:
+		var context PaymentMerchantContext
+		if len(fields) != 1 || common.Unmarshal(fields["settings_digest"], &context.SettingsDigest) != nil || len(context.SettingsDigest) != 64 {
+			return VerificationBinding{}, ErrVerificationContextInvalid
+		}
+		if _, err := hex.DecodeString(context.SettingsDigest); err != nil {
+			return VerificationBinding{}, ErrVerificationContextInvalid
+		}
+		context.SettingsDigest = strings.ToLower(context.SettingsDigest)
+		normalized = context
 	case VerificationScopeChannelKeyRead:
 		var context ChannelKeyReadContext
 		if len(fields) != 1 || common.Unmarshal(fields["channel_id"], &context.ChannelID) != nil || context.ChannelID <= 0 {
@@ -311,6 +329,9 @@ type VerificationRequirements struct {
 // securityVerificationPolicy is the only operation-to-method policy. Device
 // support and disabled providers never turn an enrolled factor into an absent one.
 func securityVerificationPolicy(scope string, state model.UserVerificationState) ([]VerificationMethodOption, error) {
+	if scope == VerificationScopePaymentMerchantUpdate && state.Role != common.RoleRootUser {
+		return nil, ErrVerificationForbidden
+	}
 	var methods []string
 	if state.HasTwoFA {
 		methods = append(methods, VerificationMethodTwoFA)
@@ -325,6 +346,7 @@ func securityVerificationPolicy(scope string, state model.UserVerificationState)
 			return nil, model.ErrTwoFANotEnabled
 		}
 	case VerificationScopePasskeyRegister, VerificationScopeTwoFASetup,
+		VerificationScopePaymentMerchantUpdate,
 		VerificationScopeAccessTokenGenerate, VerificationScopeAccessTokenUpdate, VerificationScopeAccessTokenRevoke,
 		VerificationScopeAccountBind, VerificationScopeAccountUnbind,
 		VerificationScopePasswordSet, VerificationScopePasswordChange, VerificationScopeAccountDelete,
@@ -393,6 +415,7 @@ func GetVerificationRequirements(identity AuthIdentity, scope string) (*Verifica
 		if methods[i].Method == VerificationMethodPassword && !common.PasswordLoginEnabled {
 			switch scope {
 			case VerificationScopeAccountBind, VerificationScopeAccountUnbind, VerificationScopePasswordSet, VerificationScopePasswordChange, VerificationScopeAccountDelete,
+				VerificationScopePaymentMerchantUpdate,
 				VerificationScopeAdminUserCreate, VerificationScopeAdminUserUpdate, VerificationScopeAdminUserDelete,
 				VerificationScopeAdminUserManage, VerificationScopeAdminUserPasskeyReset,
 				VerificationScopeAdminUserTwoFADisable, VerificationScopeAdminUserBindingClear:

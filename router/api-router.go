@@ -62,6 +62,8 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/ratio_config", middleware.CriticalRateLimit(), controller.GetRatioConfig)
 
 		apiRouter.POST("/stripe/webhook", anonymousRequestBodyLimit, controller.StripeWebhook)
+		apiRouter.POST("/payment/official/wechat/notify", anonymousRequestBodyLimit, controller.WeChatOfficialPaymentNotify)
+		apiRouter.POST("/payment/official/alipay/notify", anonymousRequestBodyLimit, controller.AlipayOfficialPaymentNotify)
 		apiRouter.POST("/creem/webhook", anonymousRequestBodyLimit, controller.CreemWebhook)
 		apiRouter.POST("/waffo/webhook", anonymousRequestBodyLimit, controller.WaffoWebhook)
 		// :env separates test vs prod URLs so the operator can register each
@@ -123,6 +125,10 @@ func SetApiRouter(router *gin.Engine) {
 				selfRoute.GET("/topup/self", controller.GetUserTopUps)
 				selfRoute.POST("/topup", middleware.CriticalRateLimit(), controller.TopUp)
 				selfRoute.POST("/pay", middleware.CriticalRateLimit(), controller.RequestEpay)
+				selfRoute.POST("/official/pay", middleware.CriticalRateLimit(), controller.RequestOfficialPayment)
+				selfRoute.POST("/official/amount", controller.RequestOfficialPaymentAmount)
+				selfRoute.GET("/official/orders/:trade_no", controller.GetOfficialPaymentOrder)
+				selfRoute.POST("/official/orders/:trade_no/check", middleware.UserCriticalRateLimit("official-payment-check"), controller.CheckOfficialPaymentOrder)
 				selfRoute.POST("/amount", controller.RequestAmount)
 				selfRoute.POST("/stripe/pay", middleware.CriticalRateLimit(), controller.RequestStripePay)
 				selfRoute.POST("/stripe/amount", controller.RequestStripeAmount)
@@ -182,6 +188,7 @@ func SetApiRouter(router *gin.Engine) {
 			subscriptionRoute.PUT("/self/preference", controller.UpdateSubscriptionPreference)
 			subscriptionRoute.POST("/balance/pay", middleware.CriticalRateLimit(), controller.SubscriptionRequestBalancePay)
 			subscriptionRoute.POST("/epay/pay", middleware.CriticalRateLimit(), controller.SubscriptionRequestEpay)
+			subscriptionRoute.POST("/official/pay", middleware.CriticalRateLimit(), controller.SubscriptionRequestOfficialPayment)
 			subscriptionRoute.POST("/stripe/pay", middleware.CriticalRateLimit(), controller.SubscriptionRequestStripePay)
 			subscriptionRoute.POST("/creem/pay", middleware.CriticalRateLimit(), controller.SubscriptionRequestCreemPay)
 			subscriptionRoute.POST("/waffo-pancake/pay", middleware.CriticalRateLimit(), controller.SubscriptionRequestWaffoPancakePay)
@@ -213,6 +220,8 @@ func SetApiRouter(router *gin.Engine) {
 		optionRoute.Use(middleware.RootAuth())
 		{
 			optionRoute.GET("/", controller.GetOptions)
+			optionRoute.GET("/official_payment", middleware.DisableCache(), controller.GetOfficialPaymentSettings)
+			optionRoute.PUT("/official_payment", middleware.CriticalRateLimit(), middleware.OfficialPaymentSettingsVerificationRequired(), controller.UpdateOfficialPaymentSettings)
 			optionRoute.GET("/request_policy", controller.GetRequestPolicy)
 			optionRoute.PATCH("/request_policy", controller.UpdateRequestPolicy)
 			optionRoute.PUT("/", controller.UpdateOption)

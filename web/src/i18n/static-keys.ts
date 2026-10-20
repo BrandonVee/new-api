@@ -1,24 +1,18 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 // Static translation keys that don't get picked up by the t('...') regex.
 // These cover dynamic labels (e.g. constants, configs) that are passed into t at runtime.
 export const STATIC_I18N_KEYS = [
+  'Official Payments',
+  'WeChat App ID',
+  'WeChat Merchant ID',
+  'Merchant certificate serial number',
+  'WeChat Pay public key ID',
+  'WeChat Pay API v3 key',
+  'WeChat merchant private key (PEM)',
+  'WeChat Pay public key (PEM)',
+  'Alipay App ID',
+  'Alipay Seller ID',
+  'Alipay application private key (PEM)',
+  'Alipay public key (PEM)',
   'Task usage metadata is unavailable. Pricing details cannot be displayed.',
   'This expression cannot be expanded into a price table. View the original expression below.',
   'This operation is only supported for vLLM or SGLang channels',
@@ -79,7 +73,7 @@ export const STATIC_I18N_KEYS = [
   'Access hosted model predictions through Replicate',
   'Access Codex using ChatGPT subscription credentials',
   'Configure endpoint routing, authentication and protocol conversion for different upstream services',
-  "New API's flexible channel lets you configure upstream addresses and authentication per endpoint, choose native forwarding or supported protocol conversions, and configure model listing and balance queries independently",
+  "Ai-Gateway's flexible channel lets you configure upstream addresses and authentication per endpoint, choose native forwarding or supported protocol conversions, and configure model listing and balance queries independently",
   'Flexible integration',
   'Connect to model services through a Sub2API gateway',
   'Connect to New API model services with support for multiple task plugins',

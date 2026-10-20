@@ -1,21 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { Resolver } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -32,6 +14,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { DEFAULT_SYSTEM_NAME, resolveDocsLink } from '@/lib/constants'
 
 import { FormDirtyIndicator } from '../components/form-dirty-indicator'
 import { FormNavigationGuard } from '../components/form-navigation-guard'
@@ -87,7 +70,7 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
     About: normalizeValue(defaultValues.About),
     HomePageContent: normalizeValue(defaultValues.HomePageContent),
     general_setting: {
-      docs_link: normalizeValue(defaultValues.general_setting?.docs_link),
+      docs_link: resolveDocsLink(defaultValues.general_setting?.docs_link),
     },
     legal: {
       user_agreement: normalizeValue(defaultValues.legal?.user_agreement),
@@ -163,7 +146,7 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                   <FormItem>
                     <FormLabel>{t('System Name')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('New API')} {...field} />
+                      <Input placeholder={DEFAULT_SYSTEM_NAME} {...field} />
                     </FormControl>
                     <FormDescription>
                       {t('The name displayed across the application')}
@@ -241,13 +224,12 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                   <FormItem>
                     <FormLabel>{t('Documentation Link')}</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder={t('https://docs.example.com')}
-                        {...field}
-                      />
+                      <Input placeholder='/' {...field} />
                     </FormControl>
                     <FormDescription>
-                      {t('Link to your documentation site')}
+                      {t(
+                        'Link to your documentation site. Defaults to the home page.'
+                      )}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -311,7 +293,7 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                       <FormLabel>{t('Home Page Content')}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder={t('Welcome to our New API...')}
+                          placeholder={t('Welcome to Ai-Gateway...')}
                           rows={6}
                           {...field}
                         />

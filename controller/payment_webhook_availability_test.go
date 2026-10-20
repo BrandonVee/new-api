@@ -1,21 +1,225 @@
 package controller
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Calcium-Ion/go-epay/epay"
+	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/middleware"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/system_setting"
 	"github.com/gin-gonic/gin"
+	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
+
+func TestOfficialMerchantSettingsRequireBoundSingleUseProof(t *testing.T) {
+	user, identity := setupSecurityEnrollmentTest(t)
+	require.NoError(t, model.DB.Model(user).Update("role", common.RoleRootUser).Error)
+	common.OptionMapRWMutex.Lock()
+	previousOptions := common.OptionMap
+	common.OptionMap = make(map[string]string)
+	common.OptionMapRWMutex.Unlock()
+	t.Cleanup(func() {
+		common.OptionMapRWMutex.Lock()
+		common.OptionMap = previousOptions
+		common.OptionMapRWMutex.Unlock()
+	})
+	const body = `{"callback_url":"https://gateway.example.com","alipay_app_id":"verified-app"}`
+	digest := sha256.Sum256([]byte(body))
+	context, err := common.Marshal(service.PaymentMerchantContext{SettingsDigest: hex.EncodeToString(digest[:])})
+	require.NoError(t, err)
+	operation := service.VerificationOperation{Scope: service.VerificationScopePaymentMerchantUpdate, Context: context}
+	guard := middleware.OfficialPaymentSettingsVerificationRequired()
+	handler := func(c *gin.Context) {
+		guard(c)
+		if !c.IsAborted() {
+			UpdateOfficialPaymentSettings(c)
+		}
+	}
+	request := func(payload, proof string) *httptest.ResponseRecorder {
+		return securityEnrollmentRequest(http.MethodPut, "/api/option/official_payment", payload, proof, identity, handler)
+	}
+	missing := request(body, "")
+	assert.Equal(t, http.StatusForbidden, missing.Code)
+	assert.Contains(t, missing.Body.String(), "SECURITY_PROOF_REQUIRED")
+	assert.Empty(t, operation_setting.GetOfficialPaymentSettings().AlipayAppID)
+
+	proof, err := service.VerifySecurityInput(identity, service.VerificationInput{Method: "password", Password: "enrollment-password", Scope: operation.Scope, Context: operation.Context})
+	require.NoError(t, err)
+	mismatch := request(strings.ReplaceAll(body, "verified-app", "unapproved-app"), proof.ProofToken)
+	assert.Equal(t, http.StatusForbidden, mismatch.Code)
+	assert.Contains(t, mismatch.Body.String(), "SECURITY_PROOF_CONTEXT_MISMATCH")
+	assert.Empty(t, operation_setting.GetOfficialPaymentSettings().AlipayAppID)
+
+	saved := request(body, proof.ProofToken)
+	assert.Equal(t, http.StatusOK, saved.Code)
+	assert.Contains(t, saved.Body.String(), `"success":true`)
+	assert.Equal(t, "verified-app", operation_setting.GetOfficialPaymentSettings().AlipayAppID)
+	replayed := request(body, proof.ProofToken)
+	assert.Equal(t, http.StatusForbidden, replayed.Code)
+	assert.Contains(t, replayed.Body.String(), "SECURITY_PROOF_CONSUMED")
+
+	expiredProof := issueSecurityEnrollmentProof(t, identity, operation, "password")
+	require.NoError(t, model.DB.Model(&model.AuthFlow{}).Where("purpose = ?", model.AuthFlowPurposeSecurityProof).Update("expires_at", time.Now().Add(-time.Minute)).Error)
+	expired := request(body, expiredProof)
+	assert.Equal(t, http.StatusForbidden, expired.Code)
+	assert.Contains(t, expired.Body.String(), "SECURITY_PROOF_EXPIRED")
+
+	require.NoError(t, model.DB.Model(user).Update("role", common.RoleCommonUser).Error)
+	_, err = service.GetVerificationRequirements(identity, operation.Scope)
+	assert.ErrorIs(t, err, service.ErrVerificationForbidden)
+}
+
+func TestOfficialWalletQuotePreservesCentsAndQuotaUnits(t *testing.T) {
+	user, _ := setupSecurityEnrollmentTest(t)
+	oldPrice, oldMin, oldQuota := operation_setting.Price, operation_setting.MinTopUp, common.QuotaPerUnit
+	oldDisplay := operation_setting.GetGeneralSetting().QuotaDisplayType
+	oldDiscounts := operation_setting.GetPaymentSetting().AmountDiscount
+	oldRatios := common.TopupGroupRatio2JSONString()
+	t.Cleanup(func() {
+		operation_setting.Price, operation_setting.MinTopUp, common.QuotaPerUnit = oldPrice, oldMin, oldQuota
+		operation_setting.GetGeneralSetting().QuotaDisplayType = oldDisplay
+		operation_setting.GetPaymentSetting().AmountDiscount = oldDiscounts
+		require.NoError(t, common.UpdateTopupGroupRatioByJSONString(oldRatios))
+	})
+	operation_setting.Price, operation_setting.MinTopUp, common.QuotaPerUnit = 2.675, 1, 500000
+	operation_setting.GetGeneralSetting().QuotaDisplayType = operation_setting.QuotaDisplayTypeUSD
+	operation_setting.GetPaymentSetting().AmountDiscount = map[int]float64{}
+	require.NoError(t, common.UpdateTopupGroupRatioByJSONString(`{"default":1}`))
+	units, cents, err := officialWalletQuote(user.Id, 1)
+	require.NoError(t, err)
+	assert.EqualValues(t, 1, units)
+	assert.EqualValues(t, 268, cents, "confirmation and checkout must use the same decimal cent rounding")
+	operation_setting.GetGeneralSetting().QuotaDisplayType = operation_setting.QuotaDisplayTypeTokens
+	units, cents, err = officialWalletQuote(user.Id, 500000)
+	require.NoError(t, err)
+	assert.EqualValues(t, 1, units)
+	assert.EqualValues(t, 268, cents)
+	_, _, err = officialWalletQuote(user.Id, 750000)
+	assert.ErrorIs(t, err, model.ErrInvalidTopUpQuota, "fractional stored units cannot silently discard paid quota")
+}
+
+func TestOfficialPaymentSettingsAndOwnedOrderStatus(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	sqlDB.SetMaxOpenConns(1)
+	require.NoError(t, db.AutoMigrate(&model.Option{}, &model.TopUp{}, &model.SubscriptionOrder{}))
+	previousDB := model.DB
+	model.DB = db
+	common.OptionMapRWMutex.Lock()
+	previousOptions := common.OptionMap
+	common.OptionMap = maps.Clone(previousOptions)
+	if common.OptionMap == nil {
+		common.OptionMap = make(map[string]string)
+	}
+	common.OptionMapRWMutex.Unlock()
+	t.Cleanup(func() {
+		model.DB = previousDB
+		common.OptionMapRWMutex.Lock()
+		common.OptionMap = previousOptions
+		common.OptionMapRWMutex.Unlock()
+		require.NoError(t, sqlDB.Close())
+	})
+	stored := operation_setting.OfficialPaymentSettings{CallbackURL: "https://gateway.example.com", WeChatPrivateKey: "wechat-private-sentinel", WeChatAPIv3Key: "0123456789abcdef0123456789abcdef", AlipayPrivateKey: "alipay-private-sentinel", AlipayAppID: "test-app"}
+	raw, err := common.Marshal(stored)
+	require.NoError(t, err)
+	require.NoError(t, model.UpdateOptionsBulk(map[string]string{operation_setting.OfficialPaymentOptionKey: string(raw)}))
+	router := gin.New()
+	router.GET("/settings", GetOfficialPaymentSettings)
+	router.PUT("/settings", UpdateOfficialPaymentSettings)
+	router.GET("/general", GetOptions)
+	router.PUT("/general", UpdateOption)
+	router.GET("/orders/:trade_no", func(c *gin.Context) { c.Set("id", 42); GetOfficialPaymentOrder(c) })
+	router.POST("/orders/:trade_no/check", func(c *gin.Context) { c.Set("id", 42); CheckOfficialPaymentOrder(c) })
+	router.POST("/wechat", WeChatOfficialPaymentNotify)
+	router.POST("/alipay", AlipayOfficialPaymentNotify)
+
+	t.Run("settings never return usable secrets", func(t *testing.T) {
+		for _, path := range []string{"/settings", "/general"} {
+			recorder := httptest.NewRecorder()
+			router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, path, nil))
+			assert.Equal(t, http.StatusOK, recorder.Code)
+			for _, secret := range []string{stored.WeChatPrivateKey, stored.WeChatAPIv3Key, stored.AlipayPrivateKey} {
+				assert.NotContains(t, recorder.Body.String(), secret)
+			}
+			if path == "/general" {
+				assert.NotContains(t, recorder.Body.String(), operation_setting.OfficialPaymentOptionKey)
+			}
+		}
+	})
+	t.Run("blank secrets retain stored keys", func(t *testing.T) {
+		request := httptest.NewRequest(http.MethodPut, "/settings", strings.NewReader(`{"callback_url":"https://new.example.com/","alipay_app_id":"new-app"}`))
+		request.Header.Set("Content-Type", "application/json")
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, request)
+		var result struct {
+			Success bool `json:"success"`
+		}
+		require.NoError(t, common.Unmarshal(recorder.Body.Bytes(), &result))
+		require.True(t, result.Success)
+		updated := operation_setting.GetOfficialPaymentSettings()
+		assert.Equal(t, stored.WeChatPrivateKey, updated.WeChatPrivateKey)
+		assert.Equal(t, stored.WeChatAPIv3Key, updated.WeChatAPIv3Key)
+		assert.Equal(t, stored.AlipayPrivateKey, updated.AlipayPrivateKey)
+		assert.Equal(t, "https://new.example.com", updated.CallbackURL)
+		assert.NotContains(t, recorder.Body.String(), stored.AlipayPrivateKey)
+	})
+	t.Run("general options cannot bypass merchant validation", func(t *testing.T) {
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPut, "/general", strings.NewReader(`{"key":"OfficialPaymentSecret","value":"{}"}`)))
+		assert.Contains(t, recorder.Body.String(), `"success":false`)
+		assert.Equal(t, "new-app", operation_setting.GetOfficialPaymentSettings().AlipayAppID)
+	})
+	t.Run("invalid enabled settings do not replace credentials", func(t *testing.T) {
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPut, "/settings", strings.NewReader(`{"callback_url":"http://localhost","alipay_enabled":true,"alipay_app_id":"bad-app"}`)))
+		assert.Contains(t, recorder.Body.String(), `"success":false`)
+		assert.Equal(t, "new-app", operation_setting.GetOfficialPaymentSettings().AlipayAppID)
+	})
+	t.Run("status query only exposes the authenticated user's orders", func(t *testing.T) {
+		require.NoError(t, db.Create(&model.TopUp{UserId: 42, TradeNo: "GWowned", Status: common.TopUpStatusPending, PaymentProvider: model.PaymentProviderAlipayOfficial}).Error)
+		require.NoError(t, db.Create(&model.TopUp{UserId: 7, TradeNo: "GWforeign", Status: common.TopUpStatusSuccess, PaymentProvider: model.PaymentProviderAlipayOfficial}).Error)
+		require.NoError(t, db.Create(&model.SubscriptionOrder{UserId: 42, TradeNo: "GSowned", Status: common.TopUpStatusSuccess, PaymentProvider: model.PaymentProviderWeChatOfficial}).Error)
+		for _, tc := range []struct {
+			tradeNo string
+			status  int
+		}{{"GWowned", 200}, {"GSowned", 200}, {"GWforeign", 404}, {"GWmissing", 404}} {
+			recorder := httptest.NewRecorder()
+			router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/orders/"+tc.tradeNo, nil))
+			assert.Equal(t, tc.status, recorder.Code)
+		}
+	})
+	t.Run("unsigned callbacks receive failure acknowledgements", func(t *testing.T) {
+		for _, tradeNo := range []string{"GWforeign", "GWmissing"} {
+			recorder := httptest.NewRecorder()
+			router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/orders/"+tradeNo+"/check", nil))
+			assert.Equal(t, http.StatusNotFound, recorder.Code)
+		}
+		for _, path := range []string{"/wechat", "/alipay"} {
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodPost, path, strings.NewReader("{}"))
+			request.Header.Set("Content-Type", "application/json")
+			router.ServeHTTP(recorder, request)
+			assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+		}
+	})
+}
 
 func confirmPaymentComplianceForTest(t *testing.T) {
 	t.Helper()
@@ -28,6 +232,51 @@ func confirmPaymentComplianceForTest(t *testing.T) {
 	})
 	paymentSetting.ComplianceConfirmed = true
 	paymentSetting.ComplianceTermsVersion = operation_setting.CurrentComplianceTermsVersion
+}
+
+func TestOfficialTopUpInfoOnlyListsEnabledGateways(t *testing.T) {
+	confirmPaymentComplianceForTest(t)
+	previousMethods := operation_setting.PayMethods
+	previousAddress, previousID, previousKey := operation_setting.PayAddress, operation_setting.EpayId, operation_setting.EpayKey
+	common.OptionMapRWMutex.Lock()
+	previousOptions := common.OptionMap
+	common.OptionMap = map[string]string{operation_setting.OfficialPaymentOptionKey: `{"wechat_enabled":true,"alipay_enabled":true}`}
+	common.OptionMapRWMutex.Unlock()
+	t.Cleanup(func() {
+		operation_setting.PayMethods = previousMethods
+		operation_setting.PayAddress, operation_setting.EpayId, operation_setting.EpayKey = previousAddress, previousID, previousKey
+		common.OptionMapRWMutex.Lock()
+		common.OptionMap = previousOptions
+		common.OptionMapRWMutex.Unlock()
+	})
+	operation_setting.PayMethods = []map[string]string{{"name": "Unconfigured Epay", "type": "alipay"}}
+	operation_setting.PayAddress, operation_setting.EpayId, operation_setting.EpayKey = "", "", ""
+	for _, confirmed := range []bool{true, false} {
+		operation_setting.GetPaymentSetting().ComplianceConfirmed = confirmed
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request = httptest.NewRequest(http.MethodGet, "/api/user/topup/info", nil)
+		GetTopUpInfo(c)
+		var response struct {
+			Data struct {
+				Enabled bool                `json:"enable_online_topup"`
+				Methods []map[string]string `json:"pay_methods"`
+			} `json:"data"`
+		}
+		require.NoError(t, common.Unmarshal(recorder.Body.Bytes(), &response))
+		assert.Equal(t, confirmed, response.Data.Enabled)
+		if !confirmed {
+			assert.Empty(t, response.Data.Methods)
+			continue
+		}
+		var methods []string
+		for _, method := range response.Data.Methods {
+			methods = append(methods, method["type"])
+		}
+		assert.Contains(t, methods, service.OfficialWeChat)
+		assert.Contains(t, methods, service.OfficialAlipay)
+		assert.NotContains(t, methods, "alipay")
+	}
 }
 
 func TestStripeWebhookEnabledRequiresTopUpAndWebhookConfig(t *testing.T) {

@@ -1,21 +1,3 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { Gift, ExternalLink, Loader2, Receipt, WalletCards } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
@@ -353,8 +335,8 @@ export function RechargeFormCard({
                           title={disabledReason}
                           aria-label={
                             disabledReason
-                              ? `${method.name}. ${disabledReason}`
-                              : method.name
+                              ? `${t(method.name)}. ${disabledReason}`
+                              : t(method.name)
                           }
                           className='min-h-14 min-w-0 justify-start gap-2 rounded-lg px-3 py-2 text-left'
                         >
@@ -370,7 +352,7 @@ export function RechargeFormCard({
                           )}
                           <span className='flex min-w-0 flex-col items-start gap-0.5'>
                             <span className='max-w-full truncate'>
-                              {method.name}
+                              {t(method.name)}
                             </span>
                             {disabledLabel && (
                               <span className='text-muted-foreground max-w-full truncate text-[11px] leading-4 font-normal'>

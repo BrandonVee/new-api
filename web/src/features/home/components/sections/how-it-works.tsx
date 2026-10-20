@@ -1,88 +1,149 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
-import { Settings, Zap, BarChart3 } from 'lucide-react'
+import { Tick02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
-import { AnimateInView } from '@/components/animate-in-view'
+import { CodeBlockFrame } from '@/components/ai-elements/code-block-frame'
+import { CopyButton } from '@/components/copy-button'
+import { Button } from '@/components/ui/button'
 
-export function HowItWorks() {
+interface HowItWorksProps {
+  baseUrl: string
+  isAuthenticated?: boolean
+}
+
+export function HowItWorks(props: HowItWorksProps) {
   const { t } = useTranslation()
-
+  const baseUrl = props.baseUrl.replace(/\/+$/, '')
+  const endpoint = `${baseUrl}/v1`
+  const code = [
+    'from openai import OpenAI',
+    '',
+    'client = OpenAI(',
+    `    base_url=${JSON.stringify(endpoint)},`,
+    '    api_key="YOUR_API_KEY",',
+    ')',
+    '',
+    'response = client.chat.completions.create(',
+    '    model="YOUR_MODEL_NAME",',
+    '    messages=[{"role": "user", "content": "Hello!"}],',
+    ')',
+    '',
+    'print(response.choices[0].message.content)',
+  ].join('\n')
   const steps = [
     {
-      num: '1',
-      title: t('Configure'),
-      desc: t(
-        'Add your API keys, set up channels and configure access permissions'
-      ),
-      icon: <Settings className='size-6' strokeWidth={1.5} />,
+      title: t('Create your account'),
+      description: t('Open your console and get ready to connect.'),
     },
     {
-      num: '2',
-      title: t('Connect'),
-      desc: t(
-        'Connect through OpenAI, Claude, Gemini, and other compatible API routes'
+      title: t('Get your API key'),
+      description: t(
+        'Create a key in the console and choose your access settings.'
       ),
-      icon: <Zap className='size-6' strokeWidth={1.5} />,
     },
     {
-      num: '3',
-      title: t('Monitor'),
-      desc: t('Track usage, costs and performance with real-time analytics'),
-      icon: <BarChart3 className='size-6' strokeWidth={1.5} />,
+      title: t('Make your first request'),
+      description: t(
+        'Set your base URL, choose an available model, and keep the SDK you already use.'
+      ),
     },
   ]
 
   return (
-    <section className='border-border/40 relative z-10 border-t px-6 py-24 md:py-32'>
-      <div className='mx-auto max-w-6xl'>
-        <AnimateInView className='mb-16 text-center md:mb-20'>
-          <p className='text-muted-foreground mb-3 text-xs font-medium tracking-widest uppercase'>
-            {t('How It Works')}
+    <section
+      id='get-started'
+      className='gateway-section'
+      aria-labelledby='gateway-start-title'
+    >
+      <div className='gateway-container'>
+        <div className='gateway-section-heading'>
+          <h2 id='gateway-start-title'>{t('Three steps to get started')}</h2>
+          <p>
+            {t(
+              'From your first API key to your first response, without the extra work.'
+            )}
           </p>
-          <h2 className='text-2xl font-bold tracking-tight md:text-3xl'>
-            {t('Three steps to get started')}
-          </h2>
-        </AnimateInView>
-
-        <div className='grid gap-8 md:grid-cols-3 md:gap-12'>
-          {steps.map((step, i) => (
-            <AnimateInView
-              key={step.num}
-              delay={i * 150}
-              animation='fade-up'
-              className='relative flex flex-col items-center text-center'
+        </div>
+        <div className='grid min-w-0 items-center gap-10 lg:grid-cols-2 lg:gap-20'>
+          <div className='min-w-0'>
+            <ol className='gateway-steps flex flex-col gap-7'>
+              {steps.map((step, index) => (
+                <li key={step.title} className='flex items-start gap-5'>
+                  <span
+                    className='gateway-step-number shrink-0'
+                    aria-hidden='true'
+                  >
+                    {index + 1}
+                  </span>
+                  <div className='min-w-0 pt-1'>
+                    <h3 className='text-base font-semibold sm:text-lg'>
+                      {step.title}
+                    </h3>
+                    <p className='text-muted-foreground mt-2 text-sm leading-6'>
+                      {step.description}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <div className='gateway-endpoint mt-8 flex min-w-0 items-center gap-2 rounded-xl px-4 py-3'>
+              <span className='shrink-0 text-xs font-medium'>
+                {t('Base URL')}
+              </span>
+              <code
+                className='min-w-0 flex-1 overflow-x-auto text-xs'
+                tabIndex={0}
+              >
+                {endpoint}
+              </code>
+              <CopyButton
+                value={endpoint}
+                aria-label={t('Copy base URL')}
+                className='size-8'
+              />
+            </div>
+            <ul className='mt-6 grid gap-3 text-sm sm:grid-cols-2'>
+              {[
+                t('OpenAI SDK compatible'),
+                t('Streaming responses'),
+                t('Switch models with one parameter'),
+                t('Keep your existing workflow'),
+              ].map((item) => (
+                <li key={item} className='flex items-start gap-2'>
+                  <HugeiconsIcon
+                    icon={Tick02Icon}
+                    className='text-primary mt-0.5 size-4 shrink-0'
+                    aria-hidden='true'
+                  />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <Button
+              variant='link'
+              className='mt-5 px-0'
+              render={
+                <Link to={props.isAuthenticated ? '/keys' : '/sign-in'} />
+              }
             >
-              <div className='relative mb-6'>
-                <div className='text-muted-foreground border-border/50 bg-muted/30 flex size-16 items-center justify-center rounded-2xl border transition-colors'>
-                  {step.icon}
-                </div>
-                <div className='bg-foreground text-background absolute -top-2 -right-2 flex size-6 items-center justify-center rounded-full text-xs font-bold'>
-                  {step.num}
-                </div>
-              </div>
-              <h3 className='mb-2 text-base font-semibold'>{step.title}</h3>
-              <p className='text-muted-foreground max-w-[240px] text-sm leading-relaxed'>
-                {step.desc}
-              </p>
-            </AnimateInView>
-          ))}
+              {t('Get your API key')}
+            </Button>
+          </div>
+          <CodeBlockFrame
+            className='gateway-code-demo min-w-0'
+            showToolbar
+            title='quickstart.py'
+            endActions={<CopyButton value={code} aria-label={t('Copy code')} />}
+          >
+            <pre
+              className='p-5 text-xs leading-7 sm:p-7 sm:text-sm'
+              tabIndex={0}
+              aria-label={t('Python integration example')}
+            >
+              <code>{code}</code>
+            </pre>
+          </CodeBlockFrame>
         </div>
       </div>
     </section>

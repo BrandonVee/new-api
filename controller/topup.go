@@ -27,8 +27,8 @@ func GetTopUpInfo(c *gin.Context) {
 	complianceConfirmed := operation_setting.IsPaymentComplianceConfirmed()
 
 	// 获取支付方式
-	payMethods := operation_setting.PayMethods
-	if !complianceConfirmed {
+	payMethods := append([]map[string]string{}, operation_setting.PayMethods...)
+	if !complianceConfirmed || !isEpayTopUpEnabled() {
 		payMethods = []map[string]string{}
 	}
 
@@ -97,8 +97,18 @@ func GetTopUpInfo(c *gin.Context) {
 		}
 	}
 
+	officialSettings := operation_setting.GetOfficialPaymentSettings()
+	enableOfficial := complianceConfirmed && (officialSettings.WeChatEnabled || officialSettings.AlipayEnabled)
+	if complianceConfirmed {
+		if officialSettings.WeChatEnabled {
+			payMethods = append(payMethods, map[string]string{"name": "WeChat Pay (Official)", "type": service.OfficialWeChat, "color": "#07C160", "min_topup": strconv.Itoa(operation_setting.MinTopUp)})
+		}
+		if officialSettings.AlipayEnabled {
+			payMethods = append(payMethods, map[string]string{"name": "Alipay (Official)", "type": service.OfficialAlipay, "color": "#1677FF", "min_topup": strconv.Itoa(operation_setting.MinTopUp)})
+		}
+	}
 	data := gin.H{
-		"enable_online_topup":              isEpayTopUpEnabled(),
+		"enable_online_topup":              isEpayTopUpEnabled() || enableOfficial,
 		"enable_stripe_topup":              isStripeTopUpEnabled(),
 		"enable_creem_topup":               isCreemTopUpEnabled(),
 		"enable_waffo_topup":               enableWaffo,
@@ -149,6 +159,10 @@ func GetEpayClient() *epay.Client {
 }
 
 func getPayMoney(amount int64, group string) float64 {
+	return quoteWalletTopUpPrice(amount, group).InexactFloat64()
+}
+
+func quoteWalletTopUpPrice(amount int64, group string) decimal.Decimal {
 	dAmount := decimal.NewFromInt(amount)
 	// 充值金额以“展示类型”为准：
 	// - USD/CNY: 前端传 amount 为金额单位；TOKENS: 前端传 tokens，需要换成 USD 金额
@@ -175,7 +189,7 @@ func getPayMoney(amount int64, group string) float64 {
 
 	payMoney := dAmount.Mul(dPrice).Mul(dTopupGroupRatio).Mul(dDiscount)
 
-	return payMoney.InexactFloat64()
+	return payMoney
 }
 
 func getMinTopup() int64 {

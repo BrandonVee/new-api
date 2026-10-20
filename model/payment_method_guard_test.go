@@ -1,13 +1,153 @@
 package model
 
 import (
+	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
+	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
+
+func TestOfficialPaymentDatabaseMatrix(t *testing.T) {
+	for _, dialect := range []string{"sqlite", "mysql", "postgres"} {
+		t.Run(dialect, func(t *testing.T) {
+			var driver gorm.Dialector
+			switch dialect {
+			case "sqlite":
+				driver = sqlite.Open(":memory:")
+			case "mysql":
+				if os.Getenv("TEST_MYSQL_DSN") == "" {
+					t.Skip("TEST_MYSQL_DSN not configured")
+				}
+				driver = mysql.Open(os.Getenv("TEST_MYSQL_DSN"))
+			case "postgres":
+				if os.Getenv("TEST_POSTGRES_DSN") == "" {
+					t.Skip("TEST_POSTGRES_DSN not configured")
+				}
+				driver = postgres.Open(os.Getenv("TEST_POSTGRES_DSN"))
+			}
+			db, err := gorm.Open(driver, &gorm.Config{NamingStrategy: schema.NamingStrategy{TablePrefix: "official_payment_test_"}})
+			require.NoError(t, err)
+			logDB, err := gorm.Open(driver, &gorm.Config{NamingStrategy: schema.NamingStrategy{TablePrefix: "official_payment_log_test_"}})
+			require.NoError(t, err)
+			sqlDB, err := db.DB()
+			require.NoError(t, err)
+			if dialect == "sqlite" {
+				sqlDB.SetMaxOpenConns(1)
+			} else {
+				sqlDB.SetMaxOpenConns(4)
+			}
+			logSQLDB, err := logDB.DB()
+			require.NoError(t, err)
+			logSQLDB.SetMaxOpenConns(1)
+			oldDB, oldLogDB := DB, LOG_DB
+			oldMainType, oldLogType := common.MainDatabaseType(), common.LogDatabaseType()
+			common.OptionMapRWMutex.Lock()
+			oldOptions := common.OptionMap
+			common.OptionMap = make(map[string]string)
+			common.OptionMapRWMutex.Unlock()
+			DB, LOG_DB = db, logDB
+			common.SetDatabaseTypes(common.DatabaseType(dialect), common.DatabaseType(dialect))
+			initCol()
+			t.Cleanup(func() {
+				assert.NoError(t, logDB.Migrator().DropTable(&Log{}))
+				assert.NoError(t, db.Migrator().DropTable(&UserSubscription{}, &SubscriptionOrder{}, &SubscriptionPlan{}, &TopUp{}, &User{}, &Option{}))
+				DB, LOG_DB = oldDB, oldLogDB
+				common.SetDatabaseTypes(oldMainType, oldLogType)
+				initCol()
+				common.OptionMapRWMutex.Lock()
+				common.OptionMap = oldOptions
+				common.OptionMapRWMutex.Unlock()
+				assert.NoError(t, logSQLDB.Close())
+				assert.NoError(t, sqlDB.Close())
+			})
+			require.NoError(t, db.AutoMigrate(&User{}, &TopUp{}, &SubscriptionPlan{}, &SubscriptionOrder{}, &UserSubscription{}, &Option{}))
+			require.NoError(t, logDB.AutoMigrate(&Log{}))
+			versionQuery := "SELECT version()"
+			if dialect == "sqlite" {
+				versionQuery = "SELECT sqlite_version()"
+			}
+			var version string
+			require.NoError(t, db.Raw(versionQuery).Scan(&version).Error)
+			t.Logf("database version: %s; separate log connection enabled", version)
+			require.NoError(t, UpdateOptionsBulk(map[string]string{operation_setting.OfficialPaymentOptionKey: `{"alipay_enabled":true,"alipay_app_id":"test-app","alipay_private_key":"test-secret"}`}))
+			assert.Equal(t, "test-app", operation_setting.GetOfficialPaymentSettings().AlipayAppID)
+			var saved Option
+			require.NoError(t, db.Where(map[string]any{"key": operation_setting.OfficialPaymentOptionKey}).First(&saved).Error)
+			assert.Contains(t, saved.Value, "test-secret")
+
+			for index, provider := range []string{PaymentProviderWeChatOfficial, PaymentProviderAlipayOfficial} {
+				t.Run(provider, func(t *testing.T) {
+					userID := 21000 + index
+					require.NoError(t, db.Create(&User{Id: userID, Username: fmt.Sprintf("official_user_%d", index), AffCode: fmt.Sprintf("pay%d", index), Quota: 0, Group: "default", Status: common.UserStatusEnabled}).Error)
+					walletTradeNo := "GW" + provider
+					insertTopUpForPaymentGuardTest(t, walletTradeNo, userID, provider)
+					assert.ErrorIs(t, RechargeOfficialPayment(walletTradeNo, PaymentProviderEpay, 999, ""), ErrPaymentMethodMismatch)
+					assert.ErrorIs(t, RechargeOfficialPayment(walletTradeNo, provider, 998, ""), ErrPaymentAmountMismatch)
+					assert.Equal(t, common.TopUpStatusPending, getTopUpStatusForPaymentGuardTest(t, walletTradeNo))
+					results := make(chan error, 2)
+					for range 2 {
+						go func() { results <- RechargeOfficialPayment(walletTradeNo, provider, 999, "") }()
+					}
+					require.NoError(t, <-results)
+					require.NoError(t, <-results)
+					assert.Equal(t, int(2*common.QuotaPerUnit), getUserQuotaForPaymentGuardTest(t, userID))
+					assert.ErrorIs(t, RechargeOfficialPayment(walletTradeNo, provider, 1000, ""), ErrPaymentAmountMismatch, "duplicates still validate amount")
+					var logs int64
+					require.NoError(t, logDB.Model(&Log{}).Where("user_id = ?", userID).Count(&logs).Error)
+					assert.EqualValues(t, 1, logs)
+
+					planID := 31000 + index
+					insertSubscriptionPlanForPaymentGuardTest(t, planID)
+					InvalidateSubscriptionPlanCache(planID)
+					t.Cleanup(func() { InvalidateSubscriptionPlanCache(planID) })
+					subTradeNo := "GS" + provider
+					insertSubscriptionOrderForPaymentGuardTest(t, subTradeNo, userID, planID, provider)
+					assert.ErrorIs(t, CompleteOfficialSubscriptionOrder(subTradeNo, provider, "", 998), ErrPaymentAmountMismatch)
+					otherProvider := PaymentProviderWeChatOfficial
+					if provider == otherProvider {
+						otherProvider = PaymentProviderAlipayOfficial
+					}
+					assert.ErrorIs(t, CompleteOfficialSubscriptionOrder(subTradeNo, otherProvider, "", 999), ErrPaymentMethodMismatch)
+					for range 2 {
+						go func() {
+							results <- CompleteOfficialSubscriptionOrder(subTradeNo, provider, `{"transaction_id":"paid"}`, 999)
+						}()
+					}
+					require.NoError(t, <-results)
+					require.NoError(t, <-results)
+					var subscriptions int64
+					require.NoError(t, db.Model(&UserSubscription{}).Where("user_id = ?", userID).Count(&subscriptions).Error)
+					assert.EqualValues(t, 1, subscriptions)
+					assert.ErrorIs(t, CompleteOfficialSubscriptionOrder(subTradeNo, provider, "", 1000), ErrPaymentAmountMismatch)
+					history := GetTopUpByTradeNo(subTradeNo)
+					require.NotNil(t, history)
+					assert.Equal(t, provider, history.PaymentProvider)
+					assert.Zero(t, history.Amount, "subscription history must never credit the wallet")
+					assert.Equal(t, int(2*common.QuotaPerUnit), getUserQuotaForPaymentGuardTest(t, userID))
+					require.NoError(t, logDB.Model(&Log{}).Where("user_id = ?", userID).Count(&logs).Error)
+					assert.EqualValues(t, 2, logs, "one wallet receipt and one subscription receipt")
+
+					before := common.MaxWalletQuota - 1
+					require.NoError(t, db.Model(&User{}).Where("id = ?", userID).Update("quota", before).Error)
+					insertTopUpForPaymentGuardTest(t, walletTradeNo+"overflow", userID, provider)
+					assert.ErrorIs(t, RechargeOfficialPayment(walletTradeNo+"overflow", provider, 999, ""), ErrTopUpQuotaLimitExceeded)
+					assert.Equal(t, common.TopUpStatusPending, getTopUpStatusForPaymentGuardTest(t, walletTradeNo+"overflow"))
+					assert.Equal(t, before, getUserQuotaForPaymentGuardTest(t, userID))
+				})
+			}
+		})
+	}
+}
 
 func insertUserForPaymentGuardTest(t *testing.T, id int, quota int) *User {
 	t.Helper()

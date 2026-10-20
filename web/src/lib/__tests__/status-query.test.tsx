@@ -1,27 +1,10 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
 import { useStatus } from '@/hooks/use-status'
+import { useSystemConfig } from '@/hooks/use-system-config'
 import { api } from '@/lib/api'
 import {
   getModuleAccessForGuard,
@@ -32,7 +15,11 @@ import {
   ensureStatus,
   statusQueryOptions,
 } from '@/lib/status-query'
-import { useSystemConfigStore } from '@/stores/system-config-store'
+import {
+  getLogo,
+  getSystemName,
+  useSystemConfigStore,
+} from '@/stores/system-config-store'
 
 /**
  * Guards the deduplication contract of the shared `['status']` query: several
@@ -87,6 +74,76 @@ afterEach(() => {
   apiClient.get = originalGet
   window.localStorage.clear()
   useSystemConfigStore.setState(useSystemConfigStore.getInitialState(), true)
+})
+
+describe('site branding', () => {
+  test.each([
+    { configuredLogo: '', displayLogo: '/ai-gateway-logo.png' },
+    { configuredLogo: '/logo.png', displayLogo: '/ai-gateway-logo.png' },
+    {
+      configuredLogo: '/ai-gateway-logo.png',
+      displayLogo: '/ai-gateway-logo.png',
+    },
+    {
+      configuredLogo: 'https://cdn.example.com/custom-brand.svg',
+      displayLogo: 'https://cdn.example.com/custom-brand.svg',
+    },
+  ])(
+    'uses $displayLogo for cached and refreshed logo $configuredLogo',
+    async (scenario) => {
+      useSystemConfigStore
+        .getState()
+        .setConfig({ logo: scenario.configuredLogo })
+      const queryClient = createQueryClient()
+      const hook = renderHook(() => useSystemConfig(), {
+        wrapper: wrapper(queryClient),
+      })
+
+      expect(hook.result.current.logo).toBe(scenario.displayLogo)
+      expect(getLogo()).toBe(scenario.displayLogo)
+
+      apiClient.get = async () => ({
+        data: { success: true, data: { logo: scenario.configuredLogo } },
+      })
+      await ensureStatus(queryClient)
+
+      expect(useSystemConfigStore.getState().config.logo).toBe(
+        scenario.displayLogo
+      )
+    }
+  )
+
+  test.each([
+    { configuredName: '', displayName: 'Ai-Gateway' },
+    { configuredName: 'New API', displayName: 'Ai-Gateway' },
+    { configuredName: 'NewAPI', displayName: 'Ai-Gateway' },
+    { configuredName: 'newapi', displayName: 'Ai-Gateway' },
+    { configuredName: 'new-api', displayName: 'Ai-Gateway' },
+    { configuredName: ' New API ', displayName: 'Ai-Gateway' },
+    { configuredName: 'Ai-Gateway', displayName: 'Ai-Gateway' },
+    { configuredName: 'Research Gateway', displayName: 'Research Gateway' },
+  ])(
+    'displays $displayName for cached and refreshed $configuredName branding',
+    async (scenario) => {
+      useSystemConfigStore
+        .getState()
+        .setConfig({ systemName: scenario.configuredName })
+      const queryClient = createQueryClient()
+      const hook = renderHook(() => useSystemConfig(), {
+        wrapper: wrapper(queryClient),
+      })
+
+      expect(hook.result.current.systemName).toBe(scenario.displayName)
+      expect(getSystemName()).toBe(scenario.displayName)
+
+      stubStatusEndpoint(scenario.configuredName)
+      await ensureStatus(queryClient)
+
+      expect(useSystemConfigStore.getState().config.systemName).toBe(
+        scenario.displayName
+      )
+    }
+  )
 })
 
 describe('shared status query deduplication', () => {

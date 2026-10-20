@@ -1,29 +1,17 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import i18next from 'i18next'
 import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
 
+import {
+  createOfficialCheckout,
+  isOfficialPayment,
+  type OfficialCheckout,
+} from '@/features/payments/api'
 import { handleServerError } from '@/lib/handle-server-error'
 
 import {
   calculateAmount,
+  calculateOfficialAmount,
   calculateStripeAmount,
   calculateWaffoAmount,
   calculateWaffoPancakeAmount,
@@ -47,6 +35,7 @@ type AmountCalculator = (request: AmountRequest) => Promise<AmountResponse>
 
 export interface PaymentAmountCalculators {
   regular: AmountCalculator
+  official?: AmountCalculator
   stripe: AmountCalculator
   waffo: AmountCalculator
   waffoPancake: AmountCalculator
@@ -54,6 +43,7 @@ export interface PaymentAmountCalculators {
 
 const defaultPaymentAmountCalculators: PaymentAmountCalculators = {
   regular: calculateAmount,
+  official: calculateOfficialAmount,
   stripe: calculateStripeAmount,
   waffo: calculateWaffoAmount,
   waffoPancake: calculateWaffoPancakeAmount,
@@ -65,7 +55,9 @@ export async function requestPaymentAmount(
   calculators: PaymentAmountCalculators = defaultPaymentAmountCalculators
 ): Promise<number> {
   let calculator = calculators.regular
-  if (isStripePayment(paymentType)) {
+  if (isOfficialPayment(paymentType)) {
+    calculator = calculators.official ?? calculators.regular
+  } else if (isStripePayment(paymentType)) {
     calculator = calculators.stripe
   } else if (isWaffoPayment(paymentType)) {
     calculator = calculators.waffo
@@ -85,6 +77,8 @@ export function usePayment() {
   const [amount, setAmount] = useState<number>(0)
   const [calculating, setCalculating] = useState(false)
   const [processing, setProcessing] = useState(false)
+  const [officialCheckout, setOfficialCheckout] =
+    useState<OfficialCheckout | null>(null)
 
   // Calculate payment amount
   const calculatePaymentAmount = useCallback(
@@ -112,6 +106,16 @@ export function usePayment() {
     async (topupAmount: number, paymentType: string) => {
       try {
         setProcessing(true)
+
+        if (isOfficialPayment(paymentType)) {
+          setOfficialCheckout(
+            await createOfficialCheckout({
+              amount: Math.floor(topupAmount),
+              payment_method: paymentType,
+            })
+          )
+          return true
+        }
 
         const isStripe = isStripePayment(paymentType)
         const amount = Math.floor(topupAmount)
@@ -166,5 +170,7 @@ export function usePayment() {
     calculatePaymentAmount,
     processPayment,
     setAmount,
+    officialCheckout,
+    setOfficialCheckout,
   }
 }

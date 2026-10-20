@@ -1,28 +1,27 @@
-new-api Notices
+Ai-Gateway Notices
 
-new-api
-Copyright (c) QuantumNous and contributors.
+Ai-Gateway
+Maintained by Brandon.
+Copyright (c) 2026 Brandon for Ai-Gateway modifications.
 
 This project is licensed under the GNU Affero General Public License v3.0.
 See LICENSE for the full project license terms.
 
-==== Additional Terms under AGPLv3 Section 7 ====
+==== Ai-Gateway Modifications ====
 
-Pursuant to Section 7(b) of the GNU Affero General Public License version 3,
-the following reasonable legal notice and author attribution must be preserved
-by modified versions in the Appropriate Legal Notices and in any prominent
-about, legal, footer, or attribution location presented by the user interface:
+Modified and maintained by Brandon.
+Modification notice: 2026-10-20.
+This version includes changes to the frontend landing page, console theme,
+site branding, official payment integrations, and independent maintenance
+configuration.
+These modifications are distributed under the same license terms as the
+original project, together with the original notices below.
 
-"Frontend design and development by New API contributors."
+==== Upstream Project Notices ====
 
-Modified versions that present a user interface must also preserve a visible
-link to the original project in a prominent about, legal, footer, or
-attribution location:
+new-api
+Copyright (c) QuantumNous and contributors.
 
-https://github.com/QuantumNous/new-api
-
-Modified versions must not misrepresent the origin of the software and must
-mark their changes in accordance with AGPLv3 Section 7(c).
 
 ==== Third-Party Notices ====
 

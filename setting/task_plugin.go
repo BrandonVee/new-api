@@ -12,20 +12,13 @@ const (
 	TaskPluginMarketplaceSourcesKey  = "TaskPluginMarketplaceSources"
 	TaskPluginDisabledFactoryKeysKey = "TaskPluginDisabledFactoryKeys"
 
-	officialTaskPluginMarketplaceIndexURL = "https://www.newapi.ai/api/v1/plugins/index.json"
-	githubTaskPluginMarketplaceIndexURL   = "https://raw.githubusercontent.com/QuantumNous/new-api-plugins/main/index.json"
+	legacyOfficialTaskPluginMarketplaceIndexURL = "https://www.newapi.ai/api/v1/plugins/index.json"
+	legacyGitHubTaskPluginMarketplaceIndexURL   = "https://raw.githubusercontent.com/QuantumNous/new-api-plugins/main/index.json"
 )
 
 type TaskPluginMarketplaceSource struct {
 	Name     string `json:"name"`
 	IndexURL string `json:"index_url"`
-}
-
-func defaultTaskPluginMarketplaceSources() []TaskPluginMarketplaceSource {
-	return []TaskPluginMarketplaceSource{
-		{Name: "Official", IndexURL: officialTaskPluginMarketplaceIndexURL},
-		{Name: "GitHub", IndexURL: githubTaskPluginMarketplaceIndexURL},
-	}
 }
 
 func GetTaskPluginMarketplaceSources() []TaskPluginMarketplaceSource {
@@ -38,24 +31,25 @@ func GetTaskPluginMarketplaceSources() []TaskPluginMarketplaceSource {
 
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
-		return defaultTaskPluginMarketplaceSources()
+		return []TaskPluginMarketplaceSource{}
 	}
 	var sources []TaskPluginMarketplaceSource
 	if err := common.UnmarshalJsonStr(raw, &sources); err != nil {
-		return defaultTaskPluginMarketplaceSources()
+		return []TaskPluginMarketplaceSource{}
 	}
 	if sources == nil {
 		return []TaskPluginMarketplaceSource{}
 	}
-	return sources
+	// Retire the upstream project's built-in sources even when an older
+	// installation persisted them. Independently configured sources remain.
+	return slices.DeleteFunc(sources, func(source TaskPluginMarketplaceSource) bool {
+		indexURL := strings.TrimSpace(source.IndexURL)
+		return indexURL == legacyOfficialTaskPluginMarketplaceIndexURL || indexURL == legacyGitHubTaskPluginMarketplaceIndexURL
+	})
 }
 
 func TaskPluginMarketplaceSources2JsonString() string {
-	encoded, err := common.Marshal(defaultTaskPluginMarketplaceSources())
-	if err != nil {
-		return "[]"
-	}
-	return string(encoded)
+	return "[]"
 }
 
 func ParseTaskPluginDisabledFactoryKeys(raw string) []string {

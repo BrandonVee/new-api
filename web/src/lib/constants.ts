@@ -1,28 +1,45 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 /**
  * Application-wide constants
  */
 
 // System Configuration Defaults
-export const DEFAULT_SYSTEM_NAME = 'New API'
-export const DEFAULT_LOGO = '/logo.png'
+export const DEFAULT_SYSTEM_NAME = 'Ai-Gateway'
+export const DEFAULT_LOGO = '/ai-gateway-logo.png'
+export const PROJECT_MAINTAINER = 'Brandon'
+
+export function resolveDocsLink(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim()) return '/'
+  const link = value.trim()
+  if (link.startsWith('/') && !link.startsWith('//')) return link
+
+  try {
+    const url = new URL(link)
+    if (
+      !['http:', 'https:'].includes(url.protocol) ||
+      /(^|\.)newapi\.(pro|ai)$/i.test(url.hostname)
+    ) {
+      return '/'
+    }
+    return link
+  } catch {
+    return '/'
+  }
+}
+
+export function resolveSystemLogo(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim() || value === '/logo.png') {
+    return DEFAULT_LOGO
+  }
+  return value
+}
+
+export function resolveSystemName(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim()) return DEFAULT_SYSTEM_NAME
+  if (['new api', 'newapi', 'new-api'].includes(value.trim().toLowerCase())) {
+    return DEFAULT_SYSTEM_NAME
+  }
+  return value
+}
 
 // LocalStorage Keys
 export const STORAGE_KEYS = {

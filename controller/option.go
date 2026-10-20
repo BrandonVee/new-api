@@ -186,6 +186,10 @@ func UpdateOption(c *gin.Context) {
 		common.ApiErrorStatus(c, http.StatusBadRequest, common.NewMessage("Invalid parameters"))
 		return
 	}
+	if option.Key == operation_setting.OfficialPaymentOptionKey {
+		common.ApiErrorT(c, "Use the official payment settings form to update merchant credentials")
+		return
+	}
 	switch option.Value.(type) {
 	case bool:
 		option.Value = common.Interface2String(option.Value.(bool))

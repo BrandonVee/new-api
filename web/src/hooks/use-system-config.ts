@@ -1,25 +1,11 @@
-/*
-Copyright (C) 2023-2026 QuantumNous
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-For commercial licensing, please contact support@quantumnous.com
-*/
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useCallback } from 'react'
 
-import { DEFAULT_LOGO } from '@/lib/constants'
+import {
+  DEFAULT_LOGO,
+  resolveSystemLogo,
+  resolveSystemName,
+} from '@/lib/constants'
 import { applyFaviconToDom } from '@/lib/dom-utils'
 import { ensureStatus } from '@/lib/status-query'
 import { useSystemConfigStore } from '@/stores/system-config-store'
@@ -62,6 +48,7 @@ export function useSystemConfig(options: UseSystemConfigOptions = {}) {
   const queryClient = useQueryClient()
   const { config, loading, loadedLogoUrl, setLoadedLogoUrl, setLoading } =
     useSystemConfigStore()
+  const logo = resolveSystemLogo(config.logo)
 
   // Load config from backend via the shared `/api/status` cache.
   // `ensureStatus` writes the mapped config into this store itself, so there is
@@ -84,10 +71,8 @@ export function useSystemConfig(options: UseSystemConfigOptions = {}) {
 
   // Preload logo image when URL changes
   useEffect(() => {
-    const { logo } = config
-
     // Skip if logo is already loaded
-    if (!logo || logo === loadedLogoUrl) return
+    if (logo === loadedLogoUrl) return
 
     // Preload new logo
     return preloadImage(
@@ -105,12 +90,13 @@ export function useSystemConfig(options: UseSystemConfigOptions = {}) {
         setLoadedLogoUrl(logo)
       }
     )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.logo, loadedLogoUrl, setLoadedLogoUrl])
+  }, [logo, loadedLogoUrl, setLoadedLogoUrl])
 
   return {
     ...config,
+    systemName: resolveSystemName(config.systemName),
+    logo,
     loading,
-    logoLoaded: config.logo === loadedLogoUrl && !!loadedLogoUrl,
+    logoLoaded: logo === loadedLogoUrl && !!loadedLogoUrl,
   }
 }
