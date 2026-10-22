@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/i18n"
-	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/dto"
+	"github.com/BrandonVee/ai-gateway/i18n"
+	"github.com/BrandonVee/ai-gateway/logger"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -258,7 +258,7 @@ func pinnedTaskPluginIdentities(c *gin.Context, expected string) ([]int, []strin
 // ChannelSelectError explains why SelectChannelForRequest found no channel.
 // Callers render it for their transport: the HTTP distributor localizes
 // MessageID with its own helpers and the Responses WebSocket relay wraps it in
-// a NewAPIError. Message is set instead of MessageID when the text is a fixed
+// a AiGatewayError. Message is set instead of MessageID when the text is a fixed
 // error code that clients match on.
 type ChannelSelectError struct {
 	StatusCode int

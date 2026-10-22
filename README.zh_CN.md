@@ -1,8 +1,8 @@
 <div align="center">
 
-![new-api](/web/public/logo.png)
+![Ai-gateway](/web/public/ai-gateway-logo.png)
 
-# New API
+# Ai-gateway
 
 **连接模型、应用与 Agent 的 AI 网关**
 
@@ -12,35 +12,6 @@
   <a href="./README.md">English</a> |
   <a href="./README.fr.md">Français</a> |
   <a href="./README.ja.md">日本語</a>
-</p>
-
-<p align="center">
-  <a href="https://raw.githubusercontent.com/Calcium-Ion/new-api/main/LICENSE">
-    <img src="https://img.shields.io/github/license/Calcium-Ion/new-api?color=brightgreen" alt="license">
-  </a><!--
-  --><a href="https://github.com/Calcium-Ion/new-api/releases/latest">
-    <img src="https://img.shields.io/github/v/release/Calcium-Ion/new-api?color=brightgreen&include_prereleases" alt="release">
-  </a><!--
-  --><a href="https://hub.docker.com/r/CalciumIon/new-api">
-    <img src="https://img.shields.io/badge/docker-dockerHub-blue" alt="docker">
-  </a>
-  <a href="https://atomgit.com/QuantumNous/new-api" target="_blank">
-    <img alt="AtomGit G-Star" src="https://atomgit.com/QuantumNous/new-api/star/badge.svg"/>
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://trendshift.io/repositories/20180" target="_blank">
-    <img src="https://trendshift.io/api/badge/repositories/20180" alt="QuantumNous%2Fnew-api | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/>
-  </a>
-  <br>
-  <a href="https://hellogithub.com/repository/QuantumNous/new-api" target="_blank">
-    <img src="https://api.hellogithub.com/v1/widgets/recommend.svg?rid=539ac4217e69431684ad4a0bab768811&claim_uid=tbFPfKIDHpc4TzR" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" />
-  </a><!--
-  -->
-  <a href="https://atomgit.com/QuantumNous/new-api" target="_blank">
-    <img alt="AtomGit G-Star" src="https://atomgit.com/QuantumNous/new-api/star/new_badge.svg" width="250" height="55" />
-  </a>
 </p>
 
 <p align="center">
@@ -58,7 +29,7 @@
 
 ## 📝 项目说明
 
-New API 是面向应用、Agent 和团队的自托管 AI 网关。将不同厂商的模型服务接入统一入口，在同一套控制台中管理渠道、访问权限、用量与成本。
+Ai-gateway 是面向应用、Agent 和团队的自托管 AI 网关。将不同厂商的模型服务接入统一入口，在同一套控制台中管理渠道、访问权限、用量与成本。
 
 你可以用它为团队分配已授权的模型资源，在切换上游时减少客户端改动，或搭建自己的多模型服务。支持接入 OpenAI、Anthropic、Google Gemini、Azure OpenAI、AWS Bedrock、Vertex AI、DeepSeek、通义千问及其他兼容服务。
 
@@ -118,13 +89,13 @@ New API 是面向应用、Agent 和团队的自托管 AI 网关。将不同厂�
 ## 🙏 特别鸣谢
 
 <p align="center">
-  <a href="https://www.jetbrains.com/?from=new-api" target="_blank">
+  <a href="https://www.jetbrains.com/" target="_blank">
     <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo" width="120" />
   </a>
 </p>
 
 <p align="center">
-  <strong>感谢 <a href="https://www.jetbrains.com/?from=new-api">JetBrains</a> 为本项目提供免费的开源开发许可证</strong>
+  <strong>感谢 <a href="https://www.jetbrains.com/">JetBrains</a> 为本项目提供免费的开源开发许可证</strong>
 </p>
 
 ---
@@ -167,12 +138,13 @@ New API 是面向应用、Agent 和团队的自托管 AI 网关。将不同厂�
 以下命令使用 SQLite 启动单实例，仅监听本机端口：
 
 ```bash
+docker build -t ai-gateway:latest .
 mkdir -p data
-docker run --name new-api -d --restart unless-stopped \
+docker run --name ai-gateway -d --restart unless-stopped \
   -p 127.0.0.1:3000:3000 \
   -e TZ=Asia/Shanghai \
   -v "$(pwd)/data:/data" \
-  calciumion/new-api:latest
+  ai-gateway:latest
 ```
 
 打开 [http://localhost:3000](http://localhost:3000)，按初始化向导创建管理员账号。SQLite 数据库存放在挂载的 `data` 目录中，更换容器后仍会保留。
@@ -182,20 +154,20 @@ docker run --name new-api -d --restart unless-stopped \
 1. 新建渠道，填写上游 API Key、可用模型和所属分组，执行渠道测试。
 2. 配置模型价格，确保调用用户有可用额度或有效订阅。
 3. 在控制台创建 API Key，确保它能访问对应分组和模型。
-4. 对于 OpenAI 兼容客户端，将 Base URL 设为 `http://localhost:3000/v1`，密钥使用 **New API 签发的 Key**。
+4. 对于 OpenAI 兼容客户端，将 Base URL 设为 `http://localhost:3000/v1`，密钥使用 **Ai-gateway 签发的 Key**。
 
-在终端中将 `NEW_API_KEY` 环境变量设为该密钥，查询它可以访问的模型：
+在终端中将 `AI_GATEWAY_KEY` 环境变量设为该密钥，查询它可以访问的模型：
 
 ```bash
 curl --fail-with-body http://localhost:3000/v1/models \
-  -H "Authorization: Bearer ${NEW_API_KEY}"
+  -H "Authorization: Bearer ${AI_GATEWAY_KEY}"
 ```
 
 然后调用 Responses，将 `your-enabled-model` 替换为已启用且支持该接口的模型名称：
 
 ```bash
 curl --fail-with-body http://localhost:3000/v1/responses \
-  -H "Authorization: Bearer ${NEW_API_KEY}" \
+  -H "Authorization: Bearer ${AI_GATEWAY_KEY}" \
   -H "Content-Type: application/json" \
   -d '{"model":"your-enabled-model","input":"Hello!"}'
 ```
@@ -206,18 +178,18 @@ curl --fail-with-body http://localhost:3000/v1/responses \
 
 ### Docker Compose
 
-仓库的 [Compose 配置](./docker-compose.yml) 默认启动 **New API + PostgreSQL + Redis**，并提供 MySQL 和独立 ClickHouse 日志库的配置示例。
+仓库的 [Compose 配置](./docker-compose.yml) 默认启动 **Ai-gateway + PostgreSQL + Redis**，并提供 MySQL 和独立 ClickHouse 日志库的配置示例。
 
 ```bash
-git clone https://github.com/QuantumNous/new-api.git
-cd new-api
+git clone https://github.com/BrandonVee/new-api.git ai-gateway
+cd ai-gateway
 ```
 
 启动前编辑 `docker-compose.yml`：同时替换数据库、Redis 服务及对应连接串中的示例密码，并设置固定的随机 `SESSION_SECRET`（可用 `openssl rand -hex 32` 生成）。通过 HTTPS 访问控制台时，设置 `SESSION_COOKIE_SECURE=true`，并在 `SESSION_COOKIE_TRUSTED_URL` 中填写控制台对外的精确 HTTPS Origin。
 
 ```bash
 docker compose up -d
-docker compose logs -f new-api
+docker compose logs -f ai-gateway
 ```
 
 ### 存储与配置
@@ -244,7 +216,7 @@ docker compose logs -f new-api
 
 正式部署时使用 HTTPS，并配置反向代理支持流式响应与 WebSocket 升级。持久化并备份数据库和挂载数据。多节点必须共用主数据库和鉴权密钥；独立 Redis 或内存限流器会按节点分别计数。不同拓扑下的会话传播行为见鉴权文档。
 
-从[发布页](https://github.com/QuantumNous/new-api/releases)选择明确的镜像版本，阅读升级说明并先备份再升级。`latest` 会随发布构建变化；已有实例应按实际版本评估迁移与兼容性。
+从[发布页](https://github.com/BrandonVee/new-api/releases)选择明确的镜像版本，阅读升级说明并先备份再升级。`latest` 会随发布构建变化；已有实例应按实际版本评估迁移与兼容性。
 
 <a id="development"></a>
 
@@ -293,7 +265,7 @@ bun run dev -- --port 5173
 | 官方文档 | [使用指南](https://docs.newapi.ai/zh/docs) · [安装部署](https://docs.newapi.ai/zh/docs/installation) · [API 参考](https://docs.newapi.ai/zh/docs/api) |
 | 项目导读 | [DeepWiki](https://deepwiki.com/QuantumNous/new-api) |
 | 使用问题与交流 | [常见问题](https://docs.newapi.ai/zh/docs/support/faq) · [社区渠道](https://docs.newapi.ai/zh/docs/support/community-interaction) |
-| 缺陷与功能建议 | [GitHub Issues](https://github.com/QuantumNous/new-api/issues) |
+| 缺陷与功能建议 | [GitHub Issues](https://github.com/BrandonVee/new-api/issues) |
 | 安全漏洞 | 按[安全政策](./.github/SECURITY.md)进行私下报告 |
 
 反馈问题时请附上版本、部署方式、复现步骤及脱敏日志。欢迎贡献文档、翻译、渠道适配和有针对性的回归测试。
@@ -314,7 +286,7 @@ bun run dev -- --port 5173
 | 项目 | 说明 |
 |------|------|
 | [new-api-key-tool](https://github.com/Calcium-Ion/new-api-key-tool) | Key 额度查询工具 |
-| [new-api-horizon](https://github.com/Calcium-Ion/new-api-horizon) | New API 高性能优化版 |
+| [new-api-horizon](https://github.com/Calcium-Ion/new-api-horizon) | 上游网关高性能优化版 |
 
 ---
 
@@ -332,23 +304,15 @@ bun run dev -- --port 5173
 
 ---
 
-## 🌟 Star History
-
-<div align="center">
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Calcium-Ion/new-api&type=Date)](https://star-history.com/#Calcium-Ion/new-api&Date)
-
-</div>
-
 ---
 
 <div align="center">
 
-### 💖 感谢使用 New API
+### 💖 感谢使用 Ai-gateway
 
 如果这个项目对你有帮助，欢迎给我们一个 ⭐️ Star！
 
-**[官方文档](https://docs.newapi.ai/zh/docs)** • **[问题反馈](https://github.com/Calcium-Ion/new-api/issues)** • **[最新发布](https://github.com/Calcium-Ion/new-api/releases)**
+**[官方文档](https://docs.newapi.ai/zh/docs)** • **[问题反馈](https://github.com/BrandonVee/new-api/issues)** • **[最新发布](https://github.com/BrandonVee/new-api/releases)**
 
 <sub>Built with ❤️ by QuantumNous</sub>
 

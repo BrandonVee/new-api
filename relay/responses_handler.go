@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"strings"
 
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	relayconstant "github.com/QuantumNous/new-api/relay/constant"
-	"github.com/QuantumNous/new-api/relay/helper"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/types"
-	"github.com/QuantumNous/new-api/service"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	relayconstant "github.com/BrandonVee/ai-gateway/relay/constant"
+	"github.com/BrandonVee/ai-gateway/relay/helper"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/service"
 
 	"github.com/gin-gonic/gin"
 )
 
-func ResponsesHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types.NewAPIError) {
+func ResponsesHelper(c *gin.Context, info *relaycommon.RelayInfo) (aiGatewayError *types.AiGatewayError) {
 	var responsesReq *dto.OpenAIResponsesRequest
 	switch req := info.Request.(type) {
 	case *dto.OpenAIResponsesRequest:
@@ -64,18 +64,18 @@ func ResponsesHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *
 		httpResp = resp.(*http.Response)
 
 		if httpResp.StatusCode != http.StatusOK {
-			newAPIError = service.RelayErrorHandler(c.Request.Context(), httpResp, false)
+			aiGatewayError = service.RelayErrorHandler(c.Request.Context(), httpResp, false)
 			// reset status code 重置状态码
-			service.ResetStatusCode(newAPIError, statusCodeMappingStr)
-			return newAPIError
+			service.ResetStatusCode(aiGatewayError, statusCodeMappingStr)
+			return aiGatewayError
 		}
 	}
 
-	usage, newAPIError := adaptor.DoResponse(c, httpResp, info)
-	if newAPIError != nil {
+	usage, aiGatewayError := adaptor.DoResponse(c, httpResp, info)
+	if aiGatewayError != nil {
 		// reset status code 重置状态码
-		service.ResetStatusCode(newAPIError, statusCodeMappingStr)
-		return newAPIError
+		service.ResetStatusCode(aiGatewayError, statusCodeMappingStr)
+		return aiGatewayError
 	}
 
 	usageDto := usage.(*dto.Usage)

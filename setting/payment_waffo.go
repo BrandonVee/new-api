@@ -1,8 +1,8 @@
 package setting
 
 import (
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
 )
 
 var (

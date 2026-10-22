@@ -5,9 +5,9 @@ import (
 	"errors"
 	"io"
 
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/setting/system_setting"
-	"github.com/QuantumNous/new-api/types"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/setting/system_setting"
+	"github.com/BrandonVee/ai-gateway/types"
 	"github.com/gin-gonic/gin"
 )
 

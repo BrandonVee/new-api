@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/internal/convdiag"
-	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/internal/convdiag"
+	kitutil "github.com/BrandonVee/ai-gateway/relaykit/relayconvert/kitutil"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 )
 
 func openAIResponsesRequestFromAny(request any) (*dto.OpenAIResponsesRequest, error) {

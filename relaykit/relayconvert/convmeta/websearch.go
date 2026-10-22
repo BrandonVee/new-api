@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 )
 
 // WebSearch is the protocol-neutral hosted web-search specification decoded

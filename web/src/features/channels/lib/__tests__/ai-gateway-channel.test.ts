@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 
 import type { TaskPluginOption } from '../../api'
 import {
-  CHANNEL_TYPE_NEW_API,
+  CHANNEL_TYPE_AI_GATEWAY,
   CHANNEL_TYPE_VLLM,
   CHANNEL_TYPE_SGLANG,
   CHANNEL_TYPE_OPTIONS,
@@ -18,47 +18,47 @@ import {
 import {
   getChannelPluginExtensions,
   readTaskExtendPluginKeys,
-  supportsNewAPIUpstream,
+  supportsAiGatewayUpstream,
 } from '../channel-plugin-extensions'
 import { getChannelTypeConfig } from '../channel-type-config'
 import { getChannelTypeIcon, getKeyPromptForType } from '../channel-utils'
 
-function newAPIForm(baseUrl: string) {
+function aiGatewayForm(baseUrl: string) {
   return {
     ...CHANNEL_FORM_DEFAULT_VALUES,
-    name: 'New API upstream',
-    type: CHANNEL_TYPE_NEW_API,
+    name: 'Ai-gateway upstream',
+    type: CHANNEL_TYPE_AI_GATEWAY,
     base_url: baseUrl,
     key: 'test-key',
     models: 'gpt-5',
   }
 }
 
-describe('New API channel', () => {
+describe('Ai-gateway channel', () => {
   test('registers selection, ordering, model discovery, and icon metadata', () => {
     const option = CHANNEL_TYPE_OPTIONS.find(
-      (item) => item.value === CHANNEL_TYPE_NEW_API
+      (item) => item.value === CHANNEL_TYPE_AI_GATEWAY
     )
 
     expect(option).toEqual({
-      value: CHANNEL_TYPE_NEW_API,
-      label: 'New API',
+      value: CHANNEL_TYPE_AI_GATEWAY,
+      label: 'Ai-gateway',
     })
     expect(
       CHANNEL_TYPE_OPTIONS.findIndex(
-        (item) => item.value === CHANNEL_TYPE_NEW_API
+        (item) => item.value === CHANNEL_TYPE_AI_GATEWAY
       ) + 1
     ).toBe(CHANNEL_TYPE_OPTIONS.findIndex((item) => item.value === 58))
-    expect(MODEL_FETCHABLE_TYPES.has(CHANNEL_TYPE_NEW_API)).toBe(true)
-    expect(getChannelTypeIcon(CHANNEL_TYPE_NEW_API)).toBe('NewAPI')
-    expect(getKeyPromptForType(CHANNEL_TYPE_NEW_API)).toBe(
+    expect(MODEL_FETCHABLE_TYPES.has(CHANNEL_TYPE_AI_GATEWAY)).toBe(true)
+    expect(getChannelTypeIcon(CHANNEL_TYPE_AI_GATEWAY)).toBe('AiGateway')
+    expect(getKeyPromptForType(CHANNEL_TYPE_AI_GATEWAY)).toBe(
       'Enter API key for this channel'
     )
-    expect(getChannelTypeConfig(CHANNEL_TYPE_NEW_API).icon).toBe('NewAPI')
+    expect(getChannelTypeConfig(CHANNEL_TYPE_AI_GATEWAY).icon).toBe('AiGateway')
   })
 
   test('requires a non-blank Base URL', () => {
-    const blankResult = channelFormSchema.safeParse(newAPIForm('  '))
+    const blankResult = channelFormSchema.safeParse(aiGatewayForm('  '))
 
     expect(blankResult.success).toBe(false)
     if (!blankResult.success) {
@@ -72,13 +72,14 @@ describe('New API channel', () => {
     }
 
     expect(
-      channelFormSchema.safeParse(newAPIForm('https://new-api.example')).success
+      channelFormSchema.safeParse(aiGatewayForm('https://new-api.example'))
+        .success
     ).toBe(true)
   })
 
   test('keeps Sub2API Base URL validation unchanged', () => {
     const result = channelFormSchema.safeParse({
-      ...newAPIForm(''),
+      ...aiGatewayForm(''),
       type: 59,
     })
 
@@ -105,7 +106,7 @@ describe.each([
 
   test('requires an upstream address and submits the served model name', () => {
     const form = {
-      ...newAPIForm(''),
+      ...aiGatewayForm(''),
       type,
       models: 'deepseek-v4-flash-vision-exp',
       key: 'EMPTY',
@@ -136,7 +137,7 @@ describe.each([
   })
 })
 
-describe('New API channel task plugin extensions', () => {
+describe('Ai-gateway channel task plugin extensions', () => {
   const plugins: TaskPluginOption[] = [
     {
       key: 'doubao',
@@ -159,23 +160,22 @@ describe('New API channel task plugin extensions', () => {
     },
   ]
 
-  test('only plugins declaring a New API upstream can be bound to a New API channel', () => {
-    expect(plugins.filter(supportsNewAPIUpstream).map((p) => p.key)).toEqual([
-      'doubao',
-      'kling',
-    ])
-    expect(supportsNewAPIUpstream({ upstreams: null })).toBe(false)
-    expect(supportsNewAPIUpstream({})).toBe(false)
+  test('only plugins declaring a Ai-gateway upstream can be bound to a Ai-gateway channel', () => {
+    expect(plugins.filter(supportsAiGatewayUpstream).map((p) => p.key)).toEqual(
+      ['doubao', 'kling']
+    )
+    expect(supportsAiGatewayUpstream({ upstreams: null })).toBe(false)
+    expect(supportsAiGatewayUpstream({})).toBe(false)
   })
 
-  test('reads the extension list together with a single key on New API channels only', () => {
+  test('reads the extension list together with a single key on Ai-gateway channels only', () => {
     expect(
-      readTaskExtendPluginKeys(CHANNEL_TYPE_NEW_API, {
+      readTaskExtendPluginKeys(CHANNEL_TYPE_AI_GATEWAY, {
         task_plugin_key: 'kling',
         task_extend_plugin_keys: ['doubao', 'kling', '', 'doubao'],
       })
     ).toEqual(['kling', 'doubao'])
-    expect(readTaskExtendPluginKeys(CHANNEL_TYPE_NEW_API, {})).toEqual([])
+    expect(readTaskExtendPluginKeys(CHANNEL_TYPE_AI_GATEWAY, {})).toEqual([])
     expect(
       readTaskExtendPluginKeys(1, { task_extend_plugin_keys: ['doubao'] })
     ).toEqual([])
@@ -183,21 +183,21 @@ describe('New API channel task plugin extensions', () => {
 
   test('lists only bound plugins as extensions while other types keep declared channel types', () => {
     expect(
-      getChannelPluginExtensions(CHANNEL_TYPE_NEW_API, plugins, ['kling'])
+      getChannelPluginExtensions(CHANNEL_TYPE_AI_GATEWAY, plugins, ['kling'])
     ).toEqual([plugins[1]])
-    expect(getChannelPluginExtensions(CHANNEL_TYPE_NEW_API, plugins)).toEqual(
-      []
-    )
+    expect(
+      getChannelPluginExtensions(CHANNEL_TYPE_AI_GATEWAY, plugins)
+    ).toEqual([])
     expect(getChannelPluginExtensions(45, plugins, ['kling'])).toEqual([
       plugins[0],
     ])
   })
 
-  test('round-trips bound plugins through the channel setting for New API channels only', () => {
+  test('round-trips bound plugins through the channel setting for Ai-gateway channels only', () => {
     const channel = channelSchema.parse({
       id: 7,
       name: 'Gateway',
-      type: CHANNEL_TYPE_NEW_API,
+      type: CHANNEL_TYPE_AI_GATEWAY,
       key: '',
       status: 1,
       created_time: 1,
@@ -218,7 +218,7 @@ describe('New API channel task plugin extensions', () => {
 
     const gateway = transformFormDataToCreatePayload(
       channelFormSchema.parse({
-        ...newAPIForm('https://gateway.example'),
+        ...aiGatewayForm('https://gateway.example'),
         task_extend_plugin_keys: ['doubao', 'kling'],
       })
     )
@@ -230,7 +230,7 @@ describe('New API channel task plugin extensions', () => {
 
     const openai = transformFormDataToCreatePayload(
       channelFormSchema.parse({
-        ...newAPIForm('https://gateway.example'),
+        ...aiGatewayForm('https://gateway.example'),
         type: 1,
         task_extend_plugin_keys: ['doubao'],
       })

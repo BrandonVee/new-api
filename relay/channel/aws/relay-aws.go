@@ -9,19 +9,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/relay/channel"
-	"github.com/QuantumNous/new-api/relay/channel/claude"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relay/helper"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/types"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/relay/channel"
+	"github.com/BrandonVee/ai-gateway/relay/channel/claude"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	"github.com/BrandonVee/ai-gateway/relay/helper"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 
-	"github.com/QuantumNous/new-api/setting/model_setting"
+	"github.com/BrandonVee/ai-gateway/setting/model_setting"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
@@ -47,8 +47,8 @@ func newAwsInvokeContext(parent context.Context) (context.Context, context.Cance
 	return context.WithTimeout(parent, time.Duration(common.RelayTimeout)*time.Second)
 }
 
-func newAwsInvokeError(requestContext context.Context, err error, operation string) *types.NewAPIError {
-	options := make([]types.NewAPIErrorOptions, 0, 1)
+func newAwsInvokeError(requestContext context.Context, err error, operation string) *types.AiGatewayError {
+	options := make([]types.AiGatewayErrorOptions, 0, 1)
 	if requestContext.Err() != nil {
 		options = append(options, types.ErrOptionWithSkipRetry())
 	}
@@ -226,7 +226,7 @@ func getAwsModelID(requestModel string) string {
 	return requestModel
 }
 
-func awsHandler(c *gin.Context, info *relaycommon.RelayInfo, a *Adaptor) (*types.NewAPIError, *dto.Usage) {
+func awsHandler(c *gin.Context, info *relaycommon.RelayInfo, a *Adaptor) (*types.AiGatewayError, *dto.Usage) {
 
 	requestContext := c.Request.Context()
 	ctx, cancel := newAwsInvokeContext(requestContext)
@@ -257,7 +257,7 @@ func awsHandler(c *gin.Context, info *relaycommon.RelayInfo, a *Adaptor) (*types
 	return nil, claudeInfo.Usage
 }
 
-func awsStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, a *Adaptor) (*types.NewAPIError, *dto.Usage) {
+func awsStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, a *Adaptor) (*types.AiGatewayError, *dto.Usage) {
 	requestContext := c.Request.Context()
 	ctx, cancel := newAwsInvokeContext(requestContext)
 	defer cancel()
@@ -314,7 +314,7 @@ streamLoop:
 }
 
 // Nova模型处理函数
-func handleNovaRequest(c *gin.Context, info *relaycommon.RelayInfo, a *Adaptor) (*types.NewAPIError, *dto.Usage) {
+func handleNovaRequest(c *gin.Context, info *relaycommon.RelayInfo, a *Adaptor) (*types.AiGatewayError, *dto.Usage) {
 
 	requestContext := c.Request.Context()
 	ctx, cancel := newAwsInvokeContext(requestContext)

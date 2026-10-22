@@ -137,7 +137,7 @@ function plainObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : null;
 }
 
-// Another New API gateway serves the xAI wire format only on this plugin's
+// Another Ai-gateway gateway serves the xAI wire format only on this plugin's
 // prefixed native routes.
 function apiRoot(ctx) {
   return ctx.baseUrl + (ctx.upstream && ctx.upstream.kind === "new_api" ? "/xai" : "");
@@ -566,7 +566,7 @@ function outputResolution(url) {
     const track = videoTrack(url);
     if (!track) return "";
     return Math.min(track.width, track.height) > 480 ? "720p" : "480p";
-  } catch (_error) {
+  } catch {
     return "";
   }
 }

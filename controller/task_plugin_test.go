@@ -11,12 +11,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	"github.com/QuantumNous/new-api/plugins"
-	"github.com/QuantumNous/new-api/setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/plugins"
+	"github.com/BrandonVee/ai-gateway/setting"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
@@ -106,7 +106,7 @@ func TestDisableThirdPartyPluginSupportsCascadeAndForce(t *testing.T) {
 	channel := model.Channel{Type: constant.ChannelTypeTaskPlugin, Status: common.ChannelStatusEnabled, Name: "linked", Models: "doc", Group: "default", BaseURL: &baseURL, Setting: &setting}
 	require.NoError(t, channel.Insert())
 	gatewaySetting := `{"task_extend_plugin_keys":["lifecycle-only","other"]}`
-	gateway := model.Channel{Type: constant.ChannelTypeNewAPI, Status: common.ChannelStatusEnabled, Name: "gateway", Models: "doc,gpt", Group: "default", BaseURL: &baseURL, Setting: &gatewaySetting}
+	gateway := model.Channel{Type: constant.ChannelTypeAiGateway, Status: common.ChannelStatusEnabled, Name: "gateway", Models: "doc,gpt", Group: "default", BaseURL: &baseURL, Setting: &gatewaySetting}
 	require.NoError(t, gateway.Insert())
 	require.NoError(t, model.DB.Create(&model.Task{Platform: "lifecycle-only", Status: model.TaskStatusSubmitted}).Error)
 
@@ -494,7 +494,7 @@ export function parseTaskResult() { return {}; }
 		assert.Equal(t, "count", option.UsageProfiles[0].Schema["image_count"].Unit)
 		assert.Equal(t, "text:UO", option.Icon)
 		assert.Equal(t, []int{1990, 1991}, option.ChannelTypes)
-		assert.Equal(t, []string{"vendor", "new_api"}, option.Upstreams, "the New API channel form lists only plugins declaring new_api")
+		assert.Equal(t, []string{"vendor", "new_api"}, option.Upstreams, "the Ai-gateway channel form lists only plugins declaring ai_gateway")
 		assert.Equal(t, "http://localhost:9000", option.BaseURL, "the drawer prefills the normalized plugin default")
 		return
 	}
@@ -1002,8 +1002,8 @@ func TestUploadTaskPluginReportsUnknownMetaField(t *testing.T) {
 	}
 	require.NoError(t, common.Unmarshal(recorder.Body.Bytes(), &response))
 	assert.False(t, response.Success)
-	assert.Equal(t, `Plugin metadata contains an unknown field "futureField". If this plugin was downloaded from the official marketplace, it may require a newer version of Ai-Gateway. Try updating Ai-Gateway and installing the plugin again.`, response.Message)
-	assert.Equal(t, `Plugin metadata contains an unknown field "{{field}}". If this plugin was downloaded from the official marketplace, it may require a newer version of Ai-Gateway. Try updating Ai-Gateway and installing the plugin again.`, response.MessageKey)
+	assert.Equal(t, `Plugin metadata contains an unknown field "futureField". If this plugin was downloaded from the official marketplace, it may require a newer version of Ai-gateway. Try updating Ai-gateway and installing the plugin again.`, response.Message)
+	assert.Equal(t, `Plugin metadata contains an unknown field "{{field}}". If this plugin was downloaded from the official marketplace, it may require a newer version of Ai-gateway. Try updating Ai-gateway and installing the plugin again.`, response.MessageKey)
 	assert.Equal(t, map[string]any{"field": "futureField"}, response.MessageParams)
 }
 

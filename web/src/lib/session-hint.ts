@@ -3,7 +3,7 @@
  *
  * The Refresh Cookie is `HttpOnly` and scoped to `/api/user/auth`, so a page at
  * `/` cannot read it and cannot tell an anonymous visitor from a returning one.
- * The server therefore writes `new_api_has_session=1` alongside it — same
+ * The server therefore writes `ai_gateway_has_session=1` alongside it — same
  * expiry, `Path=/`, not `HttpOnly` — purely so the frontend can skip a refresh
  * that is certain to fail.
  *
@@ -37,7 +37,5 @@ export function readCookie(cookieHeader: string, name: string): string | null {
  */
 export function hasSessionHint(): boolean {
   if (typeof document === 'undefined') return true
-  return (
-    readCookie(document.cookie, SESSION_HINT_COOKIE_NAME) !== null
-  )
+  return readCookie(document.cookie, SESSION_HINT_COOKIE_NAME) !== null
 }

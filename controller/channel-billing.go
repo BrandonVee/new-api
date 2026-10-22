@@ -11,16 +11,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/relay/channel/advancedcustom"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	relayconstant "github.com/QuantumNous/new-api/relay/constant"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/types"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/relay/channel/advancedcustom"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	relayconstant "github.com/BrandonVee/ai-gateway/relay/constant"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/service"
+	"github.com/BrandonVee/ai-gateway/setting/operation_setting"
 
 	"github.com/shopspring/decimal"
 
@@ -468,13 +468,13 @@ func updateChannelSub2APIBalance(channel *model.Channel) (float64, error) {
 	return *balance, nil
 }
 
-// updateChannelNewAPIBalance reads the upstream key's remaining quota. When the
+// updateChannelAiGatewayBalance reads the upstream key's remaining quota. When the
 // upstream also returns its owner's quota, the smaller of the two is what the
 // key can still spend. Quota converts to USD with the upstream's quota_per_unit.
-func updateChannelNewAPIBalance(channel *model.Channel) (float64, error) {
+func updateChannelAiGatewayBalance(channel *model.Channel) (float64, error) {
 	baseURL := strings.TrimRight(channel.GetBaseURL(), "/")
 	if baseURL == "" {
-		return 0, errors.New("New API channel is missing base_url")
+		return 0, errors.New("Ai-gateway channel is missing base_url")
 	}
 	body, err := GetResponseBody("GET", baseURL+"/api/usage/token/", channel, GetAuthHeader(channel.Key))
 	if err != nil {
@@ -495,7 +495,7 @@ func updateChannelNewAPIBalance(channel *model.Channel) (float64, error) {
 		return 0, err
 	}
 	if !usage.Code {
-		return 0, fmt.Errorf("New API usage query failed: %s", usage.Message)
+		return 0, fmt.Errorf("Ai-gateway usage query failed: %s", usage.Message)
 	}
 	remaining := usage.Data.TotalAvailable
 	if usage.Data.UnlimitedQuota {
@@ -521,7 +521,7 @@ func updateChannelNewAPIBalance(channel *model.Channel) (float64, error) {
 		return 0, err
 	}
 	if status.Data.QuotaPerUnit <= 0 {
-		return 0, errors.New("New API /api/status response is missing quota_per_unit")
+		return 0, errors.New("Ai-gateway /api/status response is missing quota_per_unit")
 	}
 	balance := remaining / status.Data.QuotaPerUnit
 	channel.UpdateBalance(balance)
@@ -654,8 +654,8 @@ func updateStandardChannelBalance(channel *model.Channel) (float64, error) {
 		return updateChannelMoonshotBalance(channel)
 	case constant.ChannelTypeSub2API:
 		return updateChannelSub2APIBalance(channel)
-	case constant.ChannelTypeNewAPI:
-		return updateChannelNewAPIBalance(channel)
+	case constant.ChannelTypeAiGateway:
+		return updateChannelAiGatewayBalance(channel)
 	default:
 		return 0, common.NewMessage("Not implemented yet")
 	}

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/convmeta"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/internal/convdiag"
-	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/reasoning"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/convmeta"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/internal/convdiag"
+	kitutil "github.com/BrandonVee/ai-gateway/relaykit/relayconvert/kitutil"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/reasoning"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 )
 
 const (
@@ -82,7 +82,7 @@ func ClaudeMessagesRequestToOpenAIChat(ctx context.Context, claudeRequest dto.Cl
 		}
 		if info != nil {
 			// Keep the outgoing -thinking suffix so a cascaded downstream
-			// new-api can recover reasoning intent from the model name. This
+			// ai-gateway can recover reasoning intent from the model name. This
 			// is an emission-side policy, not converter-side suffix parsing.
 			thinkingSuffix := "-thinking"
 			if strings.HasSuffix(info.GetOriginModelName(), thinkingSuffix) &&

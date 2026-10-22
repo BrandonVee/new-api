@@ -11,16 +11,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	relaychannel "github.com/QuantumNous/new-api/relay/channel"
-	"github.com/QuantumNous/new-api/relay/channel/ollama"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/service/authz"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	relaychannel "github.com/BrandonVee/ai-gateway/relay/channel"
+	"github.com/BrandonVee/ai-gateway/relay/channel/ollama"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/service"
+	"github.com/BrandonVee/ai-gateway/service/authz"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -521,7 +521,7 @@ func GetChannelKey(c *gin.Context) {
 	})
 }
 
-// maxTaskExtendPluginKeys bounds the plugins one New API channel can be
+// maxTaskExtendPluginKeys bounds the plugins one Ai-gateway channel can be
 // extended with; it comfortably covers every built-in and installed plugin.
 const maxTaskExtendPluginKeys = 32
 
@@ -560,14 +560,14 @@ func validateChannel(channel *model.Channel, isAdd bool) error {
 	}
 
 	setting := channel.GetSetting()
-	if channel.Type != constant.ChannelTypeNewAPI && len(setting.TaskExtendPluginKeys) > 0 {
-		return fmt.Errorf("task_extend_plugin_keys is only supported on New API channels")
+	if channel.Type != constant.ChannelTypeAiGateway && len(setting.TaskExtendPluginKeys) > 0 {
+		return fmt.Errorf("task_extend_plugin_keys is only supported on Ai-gateway channels")
 	}
-	if channel.Type == constant.ChannelTypeNewAPI {
+	if channel.Type == constant.ChannelTypeAiGateway {
 		if len(setting.TaskExtendPluginKeys) > maxTaskExtendPluginKeys {
 			return fmt.Errorf("task_extend_plugin_keys must not exceed %d plugins", maxTaskExtendPluginKeys)
 		}
-		// The single key stays valid on a New API channel, so both bindings are
+		// The single key stays valid on a Ai-gateway channel, so both bindings are
 		// checked as one set.
 		keys := setting.TaskExtendPluginKeys
 		if setting.TaskPluginKey != "" {
@@ -588,15 +588,15 @@ func validateChannel(channel *model.Channel, isAdd bool) error {
 			if !ok {
 				return fmt.Errorf("task plugin %q is not registered", key)
 			}
-			if !plugin.Meta.SupportsUpstream(jsplugin.UpstreamKindNewAPI) {
-				return fmt.Errorf("task plugin %q does not support a New API upstream and cannot be bound to a New API channel", key)
+			if !plugin.Meta.SupportsUpstream(jsplugin.UpstreamKindAiGateway) {
+				return fmt.Errorf("task plugin %q does not support a Ai-gateway upstream and cannot be bound to a Ai-gateway channel", key)
 			}
 			bound[key] = struct{}{}
 		}
 	}
 
-	if channel.Type == constant.ChannelTypeNewAPI && strings.TrimSpace(channel.GetBaseURL()) == "" {
-		return fmt.Errorf("New API channel base URL cannot be empty")
+	if channel.Type == constant.ChannelTypeAiGateway && strings.TrimSpace(channel.GetBaseURL()) == "" {
+		return fmt.Errorf("Ai-gateway channel base URL cannot be empty")
 	}
 	if channel.Type == constant.ChannelTypeVLLM && strings.TrimSpace(channel.GetBaseURL()) == "" {
 		return fmt.Errorf("vLLM channel base URL cannot be empty")
@@ -737,7 +737,7 @@ func AddChannel(c *gin.Context) {
 		return
 	}
 
-	// Binding a plugin needs the same permission on a New API channel as the
+	// Binding a plugin needs the same permission on a Ai-gateway channel as the
 	// type-61 channel dedicated to it.
 	if addChannelRequest.Channel != nil &&
 		(addChannelRequest.Channel.Type == constant.ChannelTypeTaskPlugin || len(addChannelRequest.Channel.GetSetting().TaskPluginBindings()) > 0) &&
@@ -1118,7 +1118,7 @@ func UpdateChannel(c *gin.Context) {
 		proxyChanged = originProxyErr != nil || normalizedOriginProxy != newProxy
 	}
 	// Changing which plugins a channel binds needs the bind permission on any
-	// channel type; resubmitting an unchanged New API binding list does not, so
+	// channel type; resubmitting an unchanged Ai-gateway binding list does not, so
 	// administrators without it can still edit the rest of a gateway channel.
 	if settingProvided &&
 		!slices.Equal(channel.GetSetting().TaskPluginBindings(), originChannel.GetSetting().TaskPluginBindings()) &&

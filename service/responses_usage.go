@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/QuantumNous/new-api/common"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert"
-	"github.com/QuantumNous/new-api/tokenkit"
+	"github.com/BrandonVee/ai-gateway/common"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert"
+	"github.com/BrandonVee/ai-gateway/tokenkit"
 )
 
 // ResponsesUsageAccumulator owns the accounting facts for one Responses stream.

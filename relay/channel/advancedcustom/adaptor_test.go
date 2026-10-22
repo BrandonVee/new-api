@@ -10,14 +10,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	relayconstant "github.com/QuantumNous/new-api/relay/constant"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert"
-	"github.com/QuantumNous/new-api/relaykit/types"
-	"github.com/QuantumNous/new-api/setting/model_setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	relayconstant "github.com/BrandonVee/ai-gateway/relay/constant"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/setting/model_setting"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -85,7 +85,7 @@ func TestAdaptorMasksDialedHostsInDialFailure(t *testing.T) {
 
 			_, err := (&Adaptor{}).DoRequest(c, info, nil)
 
-			var apiErr *types.NewAPIError
+			var apiErr *types.AiGatewayError
 			require.ErrorAs(t, err, &apiErr)
 			require.Contains(t, apiErr.Error(), tc.hidden)
 			message := apiErr.ToOpenAIError(common.UpstreamAddresses(c)...).Message
@@ -651,10 +651,10 @@ func TestAdaptorResponsesToGeminiUsesResponsesBridge(t *testing.T) {
 	body, err := common.Marshal(payload)
 	require.NoError(t, err)
 
-	usage, newAPIError := adaptor.DoResponse(c, &http.Response{
+	usage, aiGatewayError := adaptor.DoResponse(c, &http.Response{
 		Body: io.NopCloser(bytes.NewReader(body)),
 	}, info)
-	require.Nil(t, newAPIError)
+	require.Nil(t, aiGatewayError)
 	require.NotNil(t, usage)
 
 	got := recorder.Body.String()

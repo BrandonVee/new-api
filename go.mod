@@ -1,4 +1,4 @@
-module github.com/QuantumNous/new-api
+module github.com/BrandonVee/ai-gateway
 
 // +heroku goVersion go1.18
 go 1.26
@@ -168,10 +168,10 @@ require (
 require (
 	github.com/Calcium-Ion/moejs v0.1.0-alpha.7
 	github.com/ClickHouse/clickhouse-go/v2 v2.46.0
-	github.com/QuantumNous/new-api/relaykit v0.0.0
-	github.com/QuantumNous/new-api/tokenkit v0.0.0
+	github.com/BrandonVee/ai-gateway/relaykit v0.0.0
+	github.com/BrandonVee/ai-gateway/tokenkit v0.0.0
 )
 
-replace github.com/QuantumNous/new-api/relaykit => ./relaykit
+replace github.com/BrandonVee/ai-gateway/relaykit => ./relaykit
 
-replace github.com/QuantumNous/new-api/tokenkit => ./tokenkit
+replace github.com/BrandonVee/ai-gateway/tokenkit => ./tokenkit

@@ -3,10 +3,10 @@ package controller
 import (
 	"maps"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/service"
+	"github.com/BrandonVee/ai-gateway/setting/ratio_setting"
 
 	"github.com/gin-gonic/gin"
 )

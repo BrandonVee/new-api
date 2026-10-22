@@ -1,11 +1,11 @@
 package sub2api
 
 import (
-	"github.com/QuantumNous/new-api/relay/channel/newapi"
+	"github.com/BrandonVee/ai-gateway/relay/channel/aigateway"
 )
 
 type Adaptor struct {
-	newapi.Adaptor
+	aigateway.Adaptor
 }
 
 func (a *Adaptor) GetModelList() []string {

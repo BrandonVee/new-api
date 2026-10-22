@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	pluginruntime "github.com/QuantumNous/new-api/pkg/jsplugin"
-	"github.com/QuantumNous/new-api/relay/channel"
-	vertexcore "github.com/QuantumNous/new-api/relay/channel/vertex"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/model"
+	pluginruntime "github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/relay/channel"
+	vertexcore "github.com/BrandonVee/ai-gateway/relay/channel/vertex"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -79,7 +79,7 @@ export function parseTaskResult(){return {status:"SUCCESS"}}
 	assert.Equal(t, "Bearer access-token", req.Header.Get("Authorization"))
 }
 
-func TestUpstreamContextsUseGatewayBearerOnNewAPIChannels(t *testing.T) {
+func TestUpstreamContextsUseGatewayBearerOnAiGatewayChannels(t *testing.T) {
 	pluginAuthCache = sync.Map{}
 	original := acquireAccessToken
 	exchanges := 0
@@ -101,10 +101,10 @@ func TestUpstreamContextsUseGatewayBearerOnNewAPIChannels(t *testing.T) {
 		wantAuthHeader string
 		wantAPIKey     any // nil when the raw key must stay hidden from the plugin
 	}{
-		{"api key plugin on a New API channel", "", constant.ChannelTypeNewAPI, "sk-gateway", pluginruntime.UpstreamKindNewAPI, "Bearer sk-gateway", "sk-gateway"},
+		{"api key plugin on a Ai-gateway channel", "", constant.ChannelTypeAiGateway, "sk-gateway", pluginruntime.UpstreamKindAiGateway, "Bearer sk-gateway", "sk-gateway"},
 		{"api key plugin on a Task Plugin channel", "", constant.ChannelTypeTaskPlugin, "vendor-key", pluginruntime.UpstreamKindVendor, "vendor-key", "vendor-key"},
 		{"api key plugin on a legacy channel", "", 1002, "vendor-key", pluginruntime.UpstreamKindVendor, "vendor-key", "vendor-key"},
-		{"oauth2_jwt plugin on a New API channel", `,auth:{type:"oauth2_jwt"}`, constant.ChannelTypeNewAPI, "sk-gateway", pluginruntime.UpstreamKindNewAPI, "Bearer sk-gateway", "sk-gateway"},
+		{"oauth2_jwt plugin on a Ai-gateway channel", `,auth:{type:"oauth2_jwt"}`, constant.ChannelTypeAiGateway, "sk-gateway", pluginruntime.UpstreamKindAiGateway, "Bearer sk-gateway", "sk-gateway"},
 		{"oauth2_jwt plugin on a Task Plugin channel", `,auth:{type:"oauth2_jwt"}`, constant.ChannelTypeTaskPlugin, string(credentials), pluginruntime.UpstreamKindVendor, "Bearer access-token", nil},
 	}
 	for _, tc := range testCases {
@@ -151,5 +151,5 @@ export function buildContentRequest(ctx){return {url:ctx.baseUrl+"/content/"+ctx
 			}
 		})
 	}
-	assert.Equal(t, 1, exchanges, "the vendor token exchange runs only for the oauth2_jwt vendor channel, never for a New API channel")
+	assert.Equal(t, 1, exchanges, "the vendor token exchange runs only for the oauth2_jwt vendor channel, never for a Ai-gateway channel")
 }

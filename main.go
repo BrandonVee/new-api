@@ -15,24 +15,24 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/controller"
-	"github.com/QuantumNous/new-api/i18n"
-	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/middleware"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/oauth"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	perfmetrics "github.com/QuantumNous/new-api/pkg/perf_metrics"
-	"github.com/QuantumNous/new-api/pkg/wsmanager"
-	"github.com/QuantumNous/new-api/relay"
-	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
-	"github.com/QuantumNous/new-api/router"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/service/authz"
-	_ "github.com/QuantumNous/new-api/setting/performance_setting"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/controller"
+	"github.com/BrandonVee/ai-gateway/i18n"
+	"github.com/BrandonVee/ai-gateway/logger"
+	"github.com/BrandonVee/ai-gateway/middleware"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/oauth"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	perfmetrics "github.com/BrandonVee/ai-gateway/pkg/perf_metrics"
+	"github.com/BrandonVee/ai-gateway/pkg/wsmanager"
+	"github.com/BrandonVee/ai-gateway/relay"
+	kitutil "github.com/BrandonVee/ai-gateway/relaykit/relayconvert/kitutil"
+	"github.com/BrandonVee/ai-gateway/router"
+	"github.com/BrandonVee/ai-gateway/service"
+	"github.com/BrandonVee/ai-gateway/service/authz"
+	_ "github.com/BrandonVee/ai-gateway/setting/performance_setting"
+	"github.com/BrandonVee/ai-gateway/setting/ratio_setting"
 
 	"github.com/bytedance/gopkg/util/gopool"
 	"github.com/gin-gonic/gin"
@@ -259,7 +259,7 @@ func InjectUmamiAnalytics() {
 		analyticsInjectBuilder.WriteString(umamiSiteID)
 		analyticsInjectBuilder.WriteString("\"></script>")
 	}
-	analyticsInjectBuilder.WriteString("<!--Umami Ai-Gateway-->\n")
+	analyticsInjectBuilder.WriteString("<!--Umami Ai-gateway-->\n")
 	analyticsInject := []byte(analyticsInjectBuilder.String())
 	placeholder := []byte("<!--umami-->\n")
 	indexPage = bytes.ReplaceAll(indexPage, placeholder, analyticsInject)
@@ -282,7 +282,7 @@ func InjectGoogleAnalytics() {
 		analyticsInjectBuilder.WriteString("');")
 		analyticsInjectBuilder.WriteString("</script>")
 	}
-	analyticsInjectBuilder.WriteString("<!--Google Analytics Ai-Gateway-->\n")
+	analyticsInjectBuilder.WriteString("<!--Google Analytics Ai-gateway-->\n")
 	analyticsInject := []byte(analyticsInjectBuilder.String())
 	placeholder := []byte("<!--Google Analytics-->\n")
 	indexPage = bytes.ReplaceAll(indexPage, placeholder, analyticsInject)

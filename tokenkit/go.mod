@@ -1,4 +1,4 @@
-module github.com/QuantumNous/new-api/tokenkit
+module github.com/BrandonVee/ai-gateway/tokenkit
 
 go 1.26
 

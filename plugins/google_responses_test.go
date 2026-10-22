@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	builtinplugins "github.com/QuantumNous/new-api/plugins"
-	"github.com/QuantumNous/new-api/relay/channel"
-	taskplugin "github.com/QuantumNous/new-api/relay/channel/task/jsplugin"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	builtinplugins "github.com/BrandonVee/ai-gateway/plugins"
+	"github.com/BrandonVee/ai-gateway/relay/channel"
+	taskplugin "github.com/BrandonVee/ai-gateway/relay/channel/task/jsplugin"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,11 +43,11 @@ func TestGoogleResponsesProtocol(t *testing.T) {
 	})
 }
 
-// A New API channel reaches Veo through another gateway's /google routes. The
+// A Ai-gateway channel reaches Veo through another gateway's /google routes. The
 // gateway rebuilds the request this driver sent, names the operation after its
 // own task so it is polled there, and serves the video file only its Gemini
 // key can read.
-func TestGoogleThroughNewAPIGateway(t *testing.T) {
+func TestGoogleThroughAiGatewayGateway(t *testing.T) {
 	source, err := builtinplugins.Source("google")
 	require.NoError(t, err)
 	plugin, err := jsplugin.NewRegistry().RegisterFactory(source, jsplugin.Options{Key: "google"})
@@ -98,7 +98,7 @@ func TestGoogleThroughNewAPIGateway(t *testing.T) {
 
 	adaptor := taskplugin.New(plugin)
 	adaptor.Init(&relaycommon.RelayInfo{ChannelMeta: &relaycommon.ChannelMeta{
-		ChannelType: constant.ChannelTypeNewAPI, ApiKey: "sk-gateway", ChannelBaseUrl: "https://gateway.example",
+		ChannelType: constant.ChannelTypeAiGateway, ApiKey: "sk-gateway", ChannelBaseUrl: "https://gateway.example",
 	}})
 	queryParams := map[string]any{"model": veo, "task_id": "task_pub"}
 	for _, tc := range []struct {

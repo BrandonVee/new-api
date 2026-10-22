@@ -1,8 +1,8 @@
 <div align="center">
 
-![new-api](/web/public/logo.png)
+![Ai-gateway](/web/public/ai-gateway-logo.png)
 
-# New API
+# Ai-gateway
 
 **Une passerelle IA pour les modèles, les applications et les agents**
 
@@ -12,35 +12,6 @@
   <a href="./README.md">English</a> |
   <strong>Français</strong> |
   <a href="./README.ja.md">日本語</a>
-</p>
-
-<p align="center">
-  <a href="https://raw.githubusercontent.com/Calcium-Ion/new-api/main/LICENSE">
-    <img src="https://img.shields.io/github/license/Calcium-Ion/new-api?color=brightgreen" alt="licence">
-  </a><!--
-  --><a href="https://github.com/Calcium-Ion/new-api/releases/latest">
-    <img src="https://img.shields.io/github/v/release/Calcium-Ion/new-api?color=brightgreen&include_prereleases" alt="version">
-  </a><!--
-  --><a href="https://hub.docker.com/r/CalciumIon/new-api">
-    <img src="https://img.shields.io/badge/docker-dockerHub-blue" alt="docker">
-  </a>
-  <a href="https://atomgit.com/QuantumNous/new-api" target="_blank">
-    <img alt="AtomGit G-Star" src="https://atomgit.com/QuantumNous/new-api/star/badge.svg"/>
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://trendshift.io/repositories/20180" target="_blank">
-    <img src="https://trendshift.io/api/badge/repositories/20180" alt="QuantumNous%2Fnew-api | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/>
-  </a>
-  <br>
-  <a href="https://hellogithub.com/repository/QuantumNous/new-api" target="_blank">
-    <img src="https://api.hellogithub.com/v1/widgets/recommend.svg?rid=539ac4217e69431684ad4a0bab768811&claim_uid=tbFPfKIDHpc4TzR" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" />
-  </a><!--
-  -->
-  <a href="https://atomgit.com/QuantumNous/new-api" target="_blank">
-    <img alt="AtomGit G-Star" src="https://atomgit.com/QuantumNous/new-api/star/new_badge.svg" width="250" height="55" />
-  </a>
 </p>
 
 <p align="center">
@@ -57,7 +28,7 @@
 
 ## 📝 Description du projet
 
-New API est une passerelle IA auto-hébergée pour les applications, les agents et les équipes. Connectez vos fournisseurs de modèles, exposez une API commune à vos clients et gérez le routage, les accès, les usages et les coûts depuis une même console.
+Ai-gateway est une passerelle IA auto-hébergée pour les applications, les agents et les équipes. Connectez vos fournisseurs de modèles, exposez une API commune à vos clients et gérez le routage, les accès, les usages et les coûts depuis une même console.
 
 Utilisez-la pour partager des accès autorisés au sein d'une équipe, changer de fournisseur sans reconfigurer chaque client ou exploiter un service privé multi-modèles. Les fournisseurs incluent OpenAI, Anthropic, Google Gemini, Azure OpenAI, AWS Bedrock, Vertex AI, DeepSeek, Qwen et d'autres services compatibles.
 
@@ -103,13 +74,13 @@ Utilisez-la pour partager des accès autorisés au sein d'une équipe, changer d
 ## 🙏 Remerciements spéciaux
 
 <p align="center">
-  <a href="https://www.jetbrains.com/?from=new-api" target="_blank">
+  <a href="https://www.jetbrains.com/" target="_blank">
     <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo" width="120" />
   </a>
 </p>
 
 <p align="center">
-  <strong>Merci à <a href="https://www.jetbrains.com/?from=new-api">JetBrains</a> pour avoir fourni une licence de développement open-source gratuite pour ce projet</strong>
+  <strong>Merci à <a href="https://www.jetbrains.com/">JetBrains</a> pour avoir fourni une licence de développement open-source gratuite pour ce projet</strong>
 </p>
 
 ---
@@ -152,12 +123,13 @@ Ce README décrit le code source actuel. Consultez les notes de la version que v
 Cette commande démarre une instance SQLite accessible uniquement depuis la machine locale :
 
 ```bash
+docker build -t ai-gateway:latest .
 mkdir -p data
-docker run --name new-api -d --restart unless-stopped \
+docker run --name ai-gateway -d --restart unless-stopped \
   -p 127.0.0.1:3000:3000 \
   -e TZ=Asia/Shanghai \
   -v "$(pwd)/data:/data" \
-  calciumion/new-api:latest
+  ai-gateway:latest
 ```
 
 Ouvrez [http://localhost:3000](http://localhost:3000) et suivez l'assistant pour créer le compte administrateur. Le répertoire `data` conserve la base SQLite lors du remplacement du conteneur.
@@ -167,20 +139,20 @@ Ouvrez [http://localhost:3000](http://localhost:3000) et suivez l'assistant pour
 1. Ajoutez un canal avec votre clé API amont, ses modèles et son groupe, puis lancez un test du canal.
 2. Configurez les prix des modèles et vérifiez que l'utilisateur dispose d'un quota ou d'un abonnement valide.
 3. Créez une clé API dans la console, autorisée à accéder au même groupe et aux mêmes modèles.
-4. Pour un client compatible OpenAI, utilisez `http://localhost:3000/v1` comme URL de base et la **clé émise par New API**.
+4. Pour un client compatible OpenAI, utilisez `http://localhost:3000/v1` comme URL de base et la **clé émise par Ai-gateway**.
 
-Définissez `NEW_API_KEY` dans votre shell avec cette clé, puis listez les modèles accessibles :
+Définissez `AI_GATEWAY_KEY` dans votre shell avec cette clé, puis listez les modèles accessibles :
 
 ```bash
 curl --fail-with-body http://localhost:3000/v1/models \
-  -H "Authorization: Bearer ${NEW_API_KEY}"
+  -H "Authorization: Bearer ${AI_GATEWAY_KEY}"
 ```
 
 Appelez ensuite Responses en remplaçant `your-enabled-model` par un modèle activé qui prend en charge cette interface :
 
 ```bash
 curl --fail-with-body http://localhost:3000/v1/responses \
-  -H "Authorization: Bearer ${NEW_API_KEY}" \
+  -H "Authorization: Bearer ${AI_GATEWAY_KEY}" \
   -H "Content-Type: application/json" \
   -d '{"model":"your-enabled-model","input":"Hello!"}'
 ```
@@ -191,18 +163,18 @@ curl --fail-with-body http://localhost:3000/v1/responses \
 
 ### Docker Compose
 
-La [configuration Compose](./docker-compose.yml) du dépôt démarre **New API + PostgreSQL + Redis** par défaut. Elle contient aussi des exemples pour MySQL et une base de journaux ClickHouse distincte.
+La [configuration Compose](./docker-compose.yml) du dépôt démarre **Ai-gateway + PostgreSQL + Redis** par défaut. Elle contient aussi des exemples pour MySQL et une base de journaux ClickHouse distincte.
 
 ```bash
-git clone https://github.com/QuantumNous/new-api.git
-cd new-api
+git clone https://github.com/BrandonVee/new-api.git ai-gateway
+cd ai-gateway
 ```
 
 Avant de démarrer, modifiez `docker-compose.yml` : remplacez les mots de passe d'exemple de la base et de Redis dans les services et les chaînes de connexion, puis définissez un `SESSION_SECRET` aléatoire et persistant (générable avec `openssl rand -hex 32`). Pour une console HTTPS, définissez `SESSION_COOKIE_SECURE=true` et renseignez son origine HTTPS publique exacte dans `SESSION_COOKIE_TRUSTED_URL`.
 
 ```bash
 docker compose up -d
-docker compose logs -f new-api
+docker compose logs -f ai-gateway
 ```
 
 ### Stockage et configuration
@@ -229,7 +201,7 @@ Consultez l'[exemple d'environnement](./.env.example), la [référence des varia
 
 En production, utilisez HTTPS et configurez le proxy inverse pour le streaming et WebSocket. Conservez et sauvegardez les bases et les données montées. Tous les nœuds doivent partager la base principale et les secrets d'authentification ; des Redis distincts ou des limiteurs en mémoire comptent les limites séparément par nœud. Le guide des sessions détaille la propagation selon la topologie.
 
-Choisissez une version précise d'image dans les [versions publiées](https://github.com/QuantumNous/new-api/releases), lisez ses notes et sauvegardez avant toute mise à niveau. Le tag `latest` évolue avec les publications ; évaluez les migrations et la compatibilité de votre installation.
+Choisissez une version précise d'image dans les [versions publiées](https://github.com/BrandonVee/new-api/releases), lisez ses notes et sauvegardez avant toute mise à niveau. Le tag `latest` évolue avec les publications ; évaluez les migrations et la compatibilité de votre installation.
 
 <a id="development"></a>
 
@@ -278,7 +250,7 @@ Lisez [AGENTS.md](./AGENTS.md) avant de contribuer. Exécutez les vérifications
 | Documentation officielle | [Guides](https://docs.newapi.ai/en/docs) · [Installation](https://docs.newapi.ai/en/docs/installation) · [Référence API](https://docs.newapi.ai/en/docs/api) |
 | Exploration du projet | [DeepWiki](https://deepwiki.com/QuantumNous/new-api) |
 | Questions et échanges | [FAQ](https://docs.newapi.ai/en/docs/support/faq) · [Communauté](https://docs.newapi.ai/en/docs/support/community-interaction) |
-| Bugs et propositions | [GitHub Issues](https://github.com/QuantumNous/new-api/issues) |
+| Bugs et propositions | [GitHub Issues](https://github.com/BrandonVee/new-api/issues) |
 | Vulnérabilités | Signalement privé selon la [politique de sécurité](./.github/SECURITY.md) |
 
 Pour signaler un bug, indiquez la version, le déploiement, les étapes de reproduction et des journaux expurgés des données sensibles. Les contributions à la documentation, aux traductions, aux intégrations et aux tests de régression ciblés sont les bienvenues.
@@ -299,7 +271,7 @@ Pour signaler un bug, indiquez la version, le déploiement, les étapes de repro
 | Projet | Description |
 |------|------|
 | [new-api-key-tool](https://github.com/Calcium-Ion/new-api-key-tool) | Outil de recherche de quota d'utilisation avec une clé |
-| [new-api-horizon](https://github.com/Calcium-Ion/new-api-horizon) | Version optimisée haute performance de New API |
+| [new-api-horizon](https://github.com/Calcium-Ion/new-api-horizon) | Version optimisée haute performance de Ai-gateway |
 
 ---
 
@@ -317,23 +289,15 @@ Consultez [NOTICE](./NOTICE) et les [licences tierces](./THIRD-PARTY-LICENSES.md
 
 ---
 
-## 🌟 Historique des étoiles
-
-<div align="center">
-
-[![Graphique de l'historique des étoiles](https://api.star-history.com/svg?repos=Calcium-Ion/new-api&type=Date)](https://star-history.com/#Calcium-Ion/new-api&Date)
-
-</div>
-
 ---
 
 <div align="center">
 
-### 💖 Merci d'utiliser New API
+### 💖 Merci d'utiliser Ai-gateway
 
 Si ce projet vous est utile, bienvenue à nous donner une ⭐️ Étoile！
 
-**[Documentation officielle](https://docs.newapi.ai/en/docs)** • **[Commentaires sur les problèmes](https://github.com/Calcium-Ion/new-api/issues)** • **[Dernière version](https://github.com/Calcium-Ion/new-api/releases)**
+**[Documentation officielle](https://docs.newapi.ai/en/docs)** • **[Commentaires sur les problèmes](https://github.com/BrandonVee/new-api/issues)** • **[Dernière version](https://github.com/BrandonVee/new-api/releases)**
 
 <sub>Construit avec ❤️ par QuantumNous</sub>
 

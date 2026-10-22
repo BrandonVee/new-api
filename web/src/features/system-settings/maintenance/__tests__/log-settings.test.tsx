@@ -53,7 +53,7 @@ beforeEach(() => {
       success: true,
       data:
         url === '/api/performance/logs'
-          ? { enabled: true, log_dir: '/var/log/new-api', file_count: 3 }
+          ? { enabled: true, log_dir: '/var/log/ai-gateway', file_count: 3 }
           : null,
     },
   }))

@@ -13,17 +13,17 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/pkg/billingexpr"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/types"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/setting/billing_setting"
-	"github.com/QuantumNous/new-api/setting/config"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/pkg/billingexpr"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/service"
+	"github.com/BrandonVee/ai-gateway/setting/billing_setting"
+	"github.com/BrandonVee/ai-gateway/setting/config"
+	"github.com/BrandonVee/ai-gateway/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -956,7 +956,7 @@ export function parseTaskResult() { return {}; }
 				var revision atomic.Int32
 				var failVendors atomic.Bool
 				upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					assert.Contains(t, r.URL.Path, "/api/i18n/zh/newapi/")
+					assert.Contains(t, r.URL.Path, "/api/i18n/zh/aigateway/")
 					var payload any
 					if strings.HasSuffix(r.URL.Path, "vendors.json") {
 						if failVendors.Load() {

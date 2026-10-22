@@ -19,11 +19,11 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/logger"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/logger"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
 )
 
 const APIVersion1 = 1
@@ -111,11 +111,11 @@ type Meta struct {
 
 // Upstream kinds a plugin driver can address. Every driver speaks to its
 // vendor; a driver that also builds its own native-route URLs when the channel
-// points at another New API gateway declares UpstreamKindNewAPI in
+// points at another Ai-gateway gateway declares UpstreamKindAiGateway in
 // meta.upstreams, which is what makes it bindable to a type-60 channel.
 const (
-	UpstreamKindVendor = "vendor"
-	UpstreamKindNewAPI = "new_api"
+	UpstreamKindVendor    = "vendor"
+	UpstreamKindAiGateway = "new_api"
 )
 
 // SupportsUpstream reports whether the driver handles channels of the given
@@ -1220,7 +1220,7 @@ func normalizeV1Meta(meta *Meta) error {
 	}
 	seenUpstreams := make(map[string]bool, len(meta.Upstreams))
 	for _, kind := range meta.Upstreams {
-		if (kind != UpstreamKindVendor && kind != UpstreamKindNewAPI) || seenUpstreams[kind] {
+		if (kind != UpstreamKindVendor && kind != UpstreamKindAiGateway) || seenUpstreams[kind] {
 			return fmt.Errorf("unsupported or duplicate upstream kind %q", kind)
 		}
 		seenUpstreams[kind] = true
@@ -1322,8 +1322,8 @@ func normalizeV1Meta(meta *Meta) error {
 		if channelType == constant.ChannelTypeTaskPlugin {
 			return fmt.Errorf("plugin meta channelTypes must not contain the task plugin channel type")
 		}
-		if channelType == constant.ChannelTypeNewAPI {
-			return fmt.Errorf("plugin meta channelTypes must not contain the New API channel type; bind the plugin through task_extend_plugin_keys instead")
+		if channelType == constant.ChannelTypeAiGateway {
+			return fmt.Errorf("plugin meta channelTypes must not contain the Ai-gateway channel type; bind the plugin through task_extend_plugin_keys instead")
 		}
 		if _, duplicate := seenChannelTypes[channelType]; duplicate {
 			return fmt.Errorf("plugin meta channelTypes must be unique")

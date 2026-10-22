@@ -8,7 +8,7 @@ import (
 	"time"
 	"unicode/utf16"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/BrandonVee/ai-gateway/common"
 )
 
 var (

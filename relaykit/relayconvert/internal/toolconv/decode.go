@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/convmeta"
-	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/convmeta"
+	kitutil "github.com/BrandonVee/ai-gateway/relaykit/relayconvert/kitutil"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 )
 
 const maxClaudeWebSearchUses = 1000

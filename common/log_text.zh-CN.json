@@ -818,7 +818,7 @@
   "union is nil or unknown type": "union 为 nil 或类型未知",
   "unknown tag: %v": "未知 tag: %v",
   "unrecognized data format from %s: %s": "无法识别 %s 返回的数据格式: %s",
-  "updateVideoSingleTask parsed as new api response format: %+v": "updateVideoSingleTask 按 New API 响应格式解析: %+v",
+  "updateVideoSingleTask parsed as Ai-gateway response format: %+v": "updateVideoSingleTask 按 Ai-gateway 响应格式解析: %+v",
   "updateVideoSingleTask response: %s": "updateVideoSingleTask 响应: %s",
   "updating all channels": "开始更新所有渠道的余额",
   "updating dashboard data...": "正在更新数据看板数据...",

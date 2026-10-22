@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -47,10 +47,10 @@ func getUpstreamBase() string {
 func getUpstreamURLs(locale string) (modelsURL, vendorsURL string) {
 	base := strings.TrimRight(getUpstreamBase(), "/")
 	if l, ok := normalizeLocale(locale); ok && l != "" {
-		return fmt.Sprintf("%s/api/i18n/%s/newapi/models.json", base, l),
-			fmt.Sprintf("%s/api/i18n/%s/newapi/vendors.json", base, l)
+		return fmt.Sprintf("%s/api/i18n/%s/aigateway/models.json", base, l),
+			fmt.Sprintf("%s/api/i18n/%s/aigateway/vendors.json", base, l)
 	}
-	return fmt.Sprintf("%s/api/newapi/models.json", base), fmt.Sprintf("%s/api/newapi/vendors.json", base)
+	return fmt.Sprintf("%s/api/aigateway/models.json", base), fmt.Sprintf("%s/api/aigateway/vendors.json", base)
 }
 
 type upstreamEnvelope[T any] struct {

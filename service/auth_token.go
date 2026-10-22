@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/model"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -99,7 +99,7 @@ func ParseAccessToken(raw string) (AuthIdentity, error) {
 	}, nil
 }
 
-// ParseDashboardAccessToken distinguishes new-api dashboard JWTs from opaque
+// ParseDashboardAccessToken distinguishes ai-gateway dashboard JWTs from opaque
 // credentials. A token carrying the dashboard issuer, audience and a known
 // token use is always treated as internal, even when its signature, lifetime
 // or requested purpose is invalid, so it can never fall through to PAT or

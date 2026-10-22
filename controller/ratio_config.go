@@ -3,9 +3,9 @@ package controller
 import (
 	"net/http"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/setting/billing_setting"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/setting/billing_setting"
+	"github.com/BrandonVee/ai-gateway/setting/ratio_setting"
 
 	"github.com/gin-gonic/gin"
 )

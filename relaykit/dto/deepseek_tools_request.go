@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 )
 
 // DeepSeekToolsRequest is a DeepSeek Search or Fetch API request

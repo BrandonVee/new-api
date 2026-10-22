@@ -7,8 +7,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/BrandonVee/ai-gateway/common"
 	"github.com/Calcium-Ion/moejs/engine"
-	"github.com/QuantumNous/new-api/common"
 )
 
 const (

@@ -51,8 +51,8 @@ accept it, point them to the right place when there is one, and **do not file**.
 - Third-party API wrappers
 - Compatibility issues from exposing a Codex endpoint as a general-purpose API through a reverse proxy
 - Codex API-specific protocol or behavior treated as standard OpenAI API behavior (confirm with the channel or API provider)
-- Pass-through mode forwarding (do not file: pass-through sends content as-is and does not go through new-api processing logic)
-- Relay reports that only paste an upstream error, with no direct-upstream vs new-api comparison
+- Pass-through mode forwarding (do not file: pass-through sends content as-is and does not go through ai-gateway processing logic)
+- Relay reports that only paste an upstream error, with no direct-upstream vs ai-gateway comparison
 - Third-party hosting sites, relay services, or API services (contact their operator)
 - Usage, configuration, or integration questions (answer from docs and code instead)
 
@@ -65,7 +65,7 @@ If any item fails, tell the user and **stop**. Do not create the issue.
 
 - Out of scope (including pass-through): no
 - Usage / configuration / integration (answered instead of filing): no
-- Required facts present without invention (actual behavior, impact, frequency, evidence in new-api, applicable type fields): yes
+- Required facts present without invention (actual behavior, impact, frequency, evidence in ai-gateway, applicable type fields): yes
 - Body is short and factual; no unfiltered AI-generated text: yes
 - File: yes/no
 - If no, what was told to the user (stop here):
@@ -90,7 +90,7 @@ Search these yourself before filing. Do not send the user to "read the docs firs
 
 ## Environment
 
-- new-api version / commit / image tag (not `latest` / `unknown`):
+- ai-gateway version / commit / image tag (not `latest` / `unknown`):
 - Deploy source (repo release / official image / main source / other):
 - Database (sqlite / mysql / postgres):
 
@@ -101,7 +101,7 @@ Ask the user for every item and write it down. Facts only; do not paste unfilter
 - Actual behavior:
 - Impact:
 - Frequency:
-- Evidence that the problem is in new-api rather than the client or upstream:
+- Evidence that the problem is in ai-gateway rather than the client or upstream:
 
 ## Type-specific details
 
@@ -116,7 +116,7 @@ Fill every applicable type. Write "not applicable" for the rest. Ask the user fo
 - Pass-through enabled:
 - Evidence of upstream native support:
 - Equivalent redacted request sent directly upstream: status, body, server logs:
-- Same request through new-api: status, body, server logs:
+- Same request through ai-gateway: status, body, server logs:
 
 ### Billing
 
@@ -178,7 +178,7 @@ Do not replace the fields below with unfiltered AI-generated text.
 
 - Command or redacted request:
 - Direct upstream result:
-- Result through new-api:
+- Result through ai-gateway:
 - Conclusion:
 
 ## Working theory

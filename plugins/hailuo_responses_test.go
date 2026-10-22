@@ -7,15 +7,15 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	builtinplugins "github.com/QuantumNous/new-api/plugins"
-	"github.com/QuantumNous/new-api/relay/channel"
-	taskplugin "github.com/QuantumNous/new-api/relay/channel/task/jsplugin"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	builtinplugins "github.com/BrandonVee/ai-gateway/plugins"
+	"github.com/BrandonVee/ai-gateway/relay/channel"
+	taskplugin "github.com/BrandonVee/ai-gateway/relay/channel/task/jsplugin"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	"github.com/BrandonVee/ai-gateway/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -411,7 +411,7 @@ func TestHailuoQueryRequestEndpointByModel(t *testing.T) {
 			want: "https://api.minimax.example/v2/query/video_generation/t1",
 		},
 		{
-			name: "a New API gateway serves H3 on the prefixed v2 route",
+			name: "a Ai-gateway gateway serves H3 on the prefixed v2 route",
 			ctx:  map[string]any{"taskId": "t1", "upstreamModel": "MiniMax-H3", "upstream": map[string]any{"kind": "new_api"}},
 			want: "https://api.minimax.example/hailuo/v2/query/video_generation/t1",
 		},
@@ -654,12 +654,12 @@ func TestHailuoH3PassesOpenAIVideoDecode(t *testing.T) {
 	assert.Equal(t, float64(12), requestBody["duration"])
 }
 
-// A New API channel reaches this plugin on another gateway. The downstream
+// A Ai-gateway channel reaches this plugin on another gateway. The downstream
 // driver addresses the gateway's /hailuo routes, whose decoders give the
 // gateway's driver the same request and whose presenters give the downstream
 // driver the same task state, so MiniMax receives one body and both gateways
 // settle on the same facts.
-func TestHailuoThroughNewAPIGateway(t *testing.T) {
+func TestHailuoThroughAiGatewayGateway(t *testing.T) {
 	plugin := loadHailuoPlugin(t)
 	call := func(export string, members []string, args ...any) map[string]any {
 		t.Helper()
@@ -732,7 +732,7 @@ func TestHailuoThroughNewAPIGateway(t *testing.T) {
 
 	adaptor := taskplugin.New(plugin)
 	adaptor.Init(&relaycommon.RelayInfo{ChannelMeta: &relaycommon.ChannelMeta{
-		ChannelType: constant.ChannelTypeNewAPI, ApiKey: "sk-gateway", ChannelBaseUrl: "https://gateway.example",
+		ChannelType: constant.ChannelTypeAiGateway, ApiKey: "sk-gateway", ChannelBaseUrl: "https://gateway.example",
 	}})
 	success := map[string]any{"status_code": 0, "status_msg": "success"}
 	for _, tc := range []struct {

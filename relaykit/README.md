@@ -2,7 +2,7 @@
 
 RelayKit 是一个 Go 模块，在 OpenAI Chat Completions、OpenAI Responses、Anthropic Messages 和 Gemini `generateContent` 四种协议之间转换请求、非流式响应和流式事件。
 
-它从 [new-api](https://github.com/QuantumNous/new-api) 中拆出，模块路径是 `github.com/QuantumNous/new-api/relaykit`，运行时依赖是 uuid、lo、gjson 和 sjson 四个包。它做协议数据的建模和转换，HTTP 收发、SSE 读写、渠道选择、鉴权和计费由宿主程序完成，所以可以嵌进其他 Go 网关或代理。
+它从 [ai-gateway](https://github.com/QuantumNous/new-api) 中拆出，模块路径是 `github.com/BrandonVee/ai-gateway/relaykit`，运行时依赖是 uuid、lo、gjson 和 sjson 四个包。它做协议数据的建模和转换，HTTP 收发、SSE 读写、渠道选择、鉴权和计费由宿主程序完成，所以可以嵌进其他 Go 网关或代理。
 
 ## 支持矩阵
 
@@ -52,12 +52,12 @@ JSON 编解码默认用 `encoding/json`，宿主可以在启动时用 `kitutil.S
 RelayKit 要求 Go 1.25.1 或更高版本。tag 的形式是 `relaykit/vX.Y.Z`，`@latest` 解析到最新的一个。
 
 ```bash
-go get github.com/QuantumNous/new-api/relaykit@latest
+go get github.com/BrandonVee/ai-gateway/relaykit@latest
 ```
 
 | 包 | 内容 |
 |---|---|
-| `relaykit/dto` | 四种协议的请求、响应、流式事件和 usage 结构，以及 new-api 宿主共用的渠道、定价和用户设置结构 |
+| `relaykit/dto` | 四种协议的请求、响应、流式事件和 usage 结构，以及 ai-gateway 宿主共用的渠道、定价和用户设置结构 |
 | `relaykit/types` | 协议格式、错误、诊断、文件来源等共享类型 |
 | `relaykit/relayconvert` | 请求、响应和流式转换入口 |
 | `relaykit/relayconvert/convmeta` | 转换上下文接口 `Meta`、默认实现 `Values` 和选项 `Options` |
@@ -76,10 +76,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/convmeta"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/convmeta"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 )
 
 func main() {
@@ -275,7 +275,7 @@ GOWORK=off go build ./...
 GOWORK=off go test ./...
 ```
 
-`GOWORK=off` 让模块脱离仓库的 workspace 单独构建，这是 new-api 对 RelayKit 改动的检查项。转换矩阵由 golden test 覆盖，协议输出变化确认是预期行为后更新快照：
+`GOWORK=off` 让模块脱离仓库的 workspace 单独构建，这是 ai-gateway 对 RelayKit 改动的检查项。转换矩阵由 golden test 覆盖，协议输出变化确认是预期行为后更新快照：
 
 ```bash
 GOWORK=off go test ./relayconvert -run TestGolden -update
@@ -287,4 +287,4 @@ RelayKit 处于 `v0.x`。公开 API 和 DTO 可能在小版本里变化，升级
 
 ## 许可证
 
-RelayKit 是 new-api 项目的一部分，遵循项目根目录中的 [GNU Affero General Public License v3.0](../LICENSE)。
+RelayKit 是 ai-gateway 项目的一部分，遵循项目根目录中的 [GNU Affero General Public License v3.0](../LICENSE)。

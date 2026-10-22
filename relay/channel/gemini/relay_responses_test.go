@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	relayconstant "github.com/QuantumNous/new-api/relay/constant"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	relayconstant "github.com/BrandonVee/ai-gateway/relay/constant"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,10 +48,10 @@ func TestGeminiResponsesHandlerReturnsOpenAIResponsesJSON(t *testing.T) {
 	body, err := common.Marshal(payload)
 	require.NoError(t, err)
 
-	usage, newAPIError := GeminiResponsesHandler(c, info, &http.Response{
+	usage, aiGatewayError := GeminiResponsesHandler(c, info, &http.Response{
 		Body: io.NopCloser(bytes.NewReader(body)),
 	})
-	require.Nil(t, newAPIError)
+	require.Nil(t, aiGatewayError)
 	require.NotNil(t, usage)
 	assert.Equal(t, 2, usage.PromptTokens)
 	assert.Equal(t, 3, usage.CompletionTokens)
@@ -75,10 +75,10 @@ func TestGeminiResponsesHandlerClosesBodyOnReadError(t *testing.T) {
 	c.Set(common.RequestIdKey, "gemini-responses-read-error-test")
 
 	body := &failingReadCloser{}
-	usage, newAPIError := GeminiResponsesHandler(c, newGeminiResponsesRelayInfo(false), &http.Response{Body: body})
+	usage, aiGatewayError := GeminiResponsesHandler(c, newGeminiResponsesRelayInfo(false), &http.Response{Body: body})
 
 	require.Nil(t, usage)
-	require.NotNil(t, newAPIError)
+	require.NotNil(t, aiGatewayError)
 	assert.True(t, body.closed)
 }
 
@@ -141,10 +141,10 @@ func TestGeminiResponsesStreamHandlerReturnsOpenAIResponsesSSE(t *testing.T) {
 		"",
 	}, "\n")
 
-	usage, newAPIError := GeminiResponsesStreamHandler(c, info, &http.Response{
+	usage, aiGatewayError := GeminiResponsesStreamHandler(c, info, &http.Response{
 		Body: io.NopCloser(strings.NewReader(streamBody)),
 	})
-	require.Nil(t, newAPIError)
+	require.Nil(t, aiGatewayError)
 	require.NotNil(t, usage)
 	assert.Equal(t, 5, usage.TotalTokens)
 

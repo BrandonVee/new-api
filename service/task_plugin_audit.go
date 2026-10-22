@@ -1,9 +1,9 @@
 package service
 
 import (
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
-	pluginruntime "github.com/QuantumNous/new-api/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/model"
+	pluginruntime "github.com/BrandonVee/ai-gateway/pkg/jsplugin"
 	"github.com/gin-gonic/gin"
 )
 

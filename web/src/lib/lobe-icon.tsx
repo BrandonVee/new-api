@@ -19,8 +19,19 @@ import {
 import sglangLogo from '@/assets/brand-icons/sglang.svg'
 import { IconSub2api } from '@/assets/custom/icon-sub2api'
 import { IconWan } from '@/assets/custom/icon-wan'
+import { DEFAULT_LOGO } from '@/lib/constants'
 
 const CUSTOM_ICONS: Record<string, ComponentType<{ size?: number }>> = {
+  AiGateway: (props) => (
+    <img
+      src={DEFAULT_LOGO}
+      alt=''
+      aria-hidden='true'
+      width={props.size ?? 20}
+      height={props.size ?? 20}
+      className='object-contain'
+    />
+  ),
   SGLang: (props) => (
     <img
       src={sglangLogo}

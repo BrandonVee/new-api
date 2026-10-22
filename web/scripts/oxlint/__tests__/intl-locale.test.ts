@@ -101,7 +101,7 @@ let directory: string
 let diagnostics: Diagnostic[]
 
 beforeAll(() => {
-  directory = mkdtempSync(join(tmpdir(), 'new-api-intl-lint-'))
+  directory = mkdtempSync(join(tmpdir(), 'ai-gateway-intl-lint-'))
   for (const [name, code] of cases) {
     writeFileSync(join(directory, `${name}.tsx`), code)
   }

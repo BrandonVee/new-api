@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	builtinplugins "github.com/QuantumNous/new-api/plugins"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	builtinplugins "github.com/BrandonVee/ai-gateway/plugins"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -61,11 +61,11 @@ func TestViduMetadataCannotChangeWhatIsBilled(t *testing.T) {
 	assert.Equal(t, float64(7), body["seed"])
 }
 
-// A New API channel reaches Vidu through another gateway's /vidu routes. The
+// A Ai-gateway channel reaches Vidu through another gateway's /vidu routes. The
 // gateway rebuilds the request this driver sent, so Vidu receives one body and
 // both gateways bill the same facts, and the gateway's task reads back as the
 // same state and credits.
-func TestViduThroughNewAPIGateway(t *testing.T) {
+func TestViduThroughAiGatewayGateway(t *testing.T) {
 	source, err := builtinplugins.Source("vidu")
 	require.NoError(t, err)
 	plugin, err := jsplugin.NewRegistry().RegisterFactory(source, jsplugin.Options{Key: "vidu"})

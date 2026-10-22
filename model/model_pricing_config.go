@@ -11,12 +11,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/pkg/billingexpr"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	"github.com/QuantumNous/new-api/setting/billing_setting"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/pkg/billingexpr"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/setting/billing_setting"
+	"github.com/BrandonVee/ai-gateway/setting/operation_setting"
+	"github.com/BrandonVee/ai-gateway/setting/ratio_setting"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

@@ -1,4 +1,4 @@
-import { CHANNEL_TYPE_NEW_API, CHANNEL_TYPE_SUB2API } from '../constants'
+import { CHANNEL_TYPE_AI_GATEWAY, CHANNEL_TYPE_SUB2API } from '../constants'
 import { CHANNEL_TYPE_ADVANCED_CUSTOM } from './advanced-custom'
 
 /**
@@ -11,7 +11,7 @@ const RESPONSES_WEBSOCKET_CHANNEL_TYPES: ReadonlySet<number> = new Set([
   57,
   CHANNEL_TYPE_ADVANCED_CUSTOM,
   CHANNEL_TYPE_SUB2API,
-  CHANNEL_TYPE_NEW_API,
+  CHANNEL_TYPE_AI_GATEWAY,
 ])
 
 export function supportsResponsesWebSocket(channelType: number): boolean {

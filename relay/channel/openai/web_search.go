@@ -1,7 +1,7 @@
 package openai
 
 import (
-	"github.com/QuantumNous/new-api/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
 
 	"github.com/tidwall/gjson"
 )

@@ -62,7 +62,7 @@ async function renderRankings() {
 
 beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  client.setQueryData(['status'], { system_name: 'Ai-Gateway' })
+  client.setQueryData(['status'], { system_name: 'Ai-gateway' })
   client.setQueryData(['notice'], { success: true, data: '' })
   useAuthStore.setState(useAuthStore.getInitialState(), true)
   useSystemConfigStore.setState(useSystemConfigStore.getInitialState(), true)

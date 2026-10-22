@@ -16,12 +16,12 @@ import (
 	sqlmysql "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/clickhouse"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/i18n"
-	"github.com/QuantumNous/new-api/middleware"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/service/authz"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/i18n"
+	"github.com/BrandonVee/ai-gateway/middleware"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/service"
+	"github.com/BrandonVee/ai-gateway/service/authz"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
@@ -837,7 +837,7 @@ func newAuditTestDatabase(t *testing.T, kind, dsn string) (*gorm.DB, string) {
 		return db, path
 	}
 	require.NotEmpty(t, dsn)
-	name := fmt.Sprintf("newapi_audit_%d", time.Now().UnixNano())
+	name := fmt.Sprintf("aigateway_audit_%d", time.Now().UnixNano())
 	var original, isolated gorm.Dialector
 	var newDSN string
 	if kind == "mysql" {

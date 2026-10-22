@@ -180,7 +180,7 @@ function definedFields(source, keys) {
   return fields;
 }
 
-// On a New API channel the same plugin answers on another gateway, which
+// On a Ai-gateway channel the same plugin answers on another gateway, which
 // serves the MiniMax wire format only on the prefixed native routes.
 function viaGateway(ctx) {
   return Boolean(ctx.upstream && ctx.upstream.kind === "new_api");

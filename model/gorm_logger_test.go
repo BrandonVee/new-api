@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/BrandonVee/ai-gateway/common"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/proto"
-	"github.com/QuantumNous/new-api/common"
 	"github.com/glebarez/sqlite"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5/pgconn"

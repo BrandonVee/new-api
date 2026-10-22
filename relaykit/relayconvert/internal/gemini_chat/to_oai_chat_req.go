@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/convmeta"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/internal/convdiag"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/internal/jsonutil"
-	relaymedia "github.com/QuantumNous/new-api/relaykit/relayconvert/internal/media"
-	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/reasoning"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/convmeta"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/internal/convdiag"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/internal/jsonutil"
+	relaymedia "github.com/BrandonVee/ai-gateway/relaykit/relayconvert/internal/media"
+	kitutil "github.com/BrandonVee/ai-gateway/relaykit/relayconvert/kitutil"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/reasoning"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 )
 
 func GeminiGenerateContentRequestToOpenAIChat(ctx context.Context, geminiRequest *dto.GeminiChatRequest, info convmeta.Meta) (*dto.GeneralOpenAIRequest, error) {

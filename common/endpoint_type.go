@@ -1,6 +1,6 @@
 package common
 
-import "github.com/QuantumNous/new-api/constant"
+import "github.com/BrandonVee/ai-gateway/constant"
 
 // GetEndpointTypesByChannelType 获取渠道最优先端点类型（所有的渠道都支持 OpenAI 端点）
 func GetEndpointTypesByChannelType(channelType int, modelName string) []constant.EndpointType {
@@ -39,7 +39,7 @@ func GetEndpointTypesByChannelType(channelType int, modelName string) []constant
 		endpointTypes = GetAdvancedCustomPreset(channelType).SupportedEndpointTypesForModel(modelName)
 	case constant.ChannelTypeSora:
 		endpointTypes = []constant.EndpointType{constant.EndpointTypeOpenAIVideo}
-	case constant.ChannelTypeSub2API, constant.ChannelTypeNewAPI:
+	case constant.ChannelTypeSub2API, constant.ChannelTypeAiGateway:
 		endpointTypes = []constant.EndpointType{
 			constant.EndpointTypeOpenAI,
 			constant.EndpointTypeOpenAIResponse,

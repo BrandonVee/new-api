@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,7 +38,7 @@ func SystemPerformanceCheck() gin.HandlerFunc {
 }
 
 // checkSystemPerformance 检查系统性能是否超过阈值
-func checkSystemPerformance() *types.NewAPIError {
+func checkSystemPerformance() *types.AiGatewayError {
 	// 过载标记在采样侧完成：CPU / 内存按容器 cgroup 配额计算，并要求连续多次
 	// 超阈值；判定时再按当前阈值复核，并忽略过期采样。
 	overload := common.CheckSystemOverload(common.GetSystemStatus(), common.GetPerformanceMonitorConfig(), time.Now())

@@ -16,17 +16,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/i18n"
-	"github.com/QuantumNous/new-api/middleware"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/relay"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/types"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/setting"
-	"github.com/QuantumNous/new-api/setting/config"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/i18n"
+	"github.com/BrandonVee/ai-gateway/middleware"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/relay"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/service"
+	"github.com/BrandonVee/ai-gateway/setting"
+	"github.com/BrandonVee/ai-gateway/setting/config"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -140,7 +140,7 @@ func TestResponsesWSRequestRunnerRefreshesBillingContextAndCleansBody(t *testing
 	handshake.Header.Set("X-Forwarded-For", "198.51.100.99")
 	var storage common.BodyStorage
 	request := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(`{"input":"first"}`))
-	require.Nil(t, runner(request, "ws-first", func(c *gin.Context) *types.NewAPIError {
+	require.Nil(t, runner(request, "ws-first", func(c *gin.Context) *types.AiGatewayError {
 		assert.Equal(t, user.Id, c.GetInt("id"))
 		assert.Equal(t, 100, c.GetInt("token_quota"))
 		assert.Equal(t, "203.0.113.8", c.ClientIP())
@@ -168,7 +168,7 @@ func TestResponsesWSRequestRunnerRefreshesBillingContextAndCleansBody(t *testing
 		"group": "updated", "setting": `{"billing_preference":"wallet_only"}`,
 	}).Error)
 	request = httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(`{"input":"second"}`))
-	require.Nil(t, runner(request, "ws-second", func(c *gin.Context) *types.NewAPIError {
+	require.Nil(t, runner(request, "ws-second", func(c *gin.Context) *types.AiGatewayError {
 		assert.Equal(t, 2, c.GetInt("token_quota"))
 		assert.True(t, c.GetBool("token_model_limit_enabled"))
 		modelLimits, _ := c.Get("token_model_limit")
@@ -214,10 +214,10 @@ func TestResponsesWSRequestRunnerRejectsRevokedCredentials(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			user, token := setupResponsesWSRequestTest(t)
 			runner, _ := newResponsesWSTestRunner(t, token)
-			require.Nil(t, runner(httptest.NewRequest(http.MethodPost, "/v1/responses", nil), "before", func(*gin.Context) *types.NewAPIError { return nil }))
+			require.Nil(t, runner(httptest.NewRequest(http.MethodPost, "/v1/responses", nil), "before", func(*gin.Context) *types.AiGatewayError { return nil }))
 			tc.update(t, user, token)
 			called := false
-			apiError := runner(httptest.NewRequest(http.MethodPost, "/v1/responses", nil), "after", func(*gin.Context) *types.NewAPIError {
+			apiError := runner(httptest.NewRequest(http.MethodPost, "/v1/responses", nil), "after", func(*gin.Context) *types.AiGatewayError {
 				called = true
 				return nil
 			})
@@ -238,7 +238,7 @@ func TestResponsesWSRequestRunnerUsesExistingMemoryRateLimit(t *testing.T) {
 	setting.ModelRequestRateLimitSuccessCount = 100
 	runner, _ := newResponsesWSTestRunner(t, token)
 	called := 0
-	handle := func(*gin.Context) *types.NewAPIError { called++; return nil }
+	handle := func(*gin.Context) *types.AiGatewayError { called++; return nil }
 	require.Nil(t, runner(httptest.NewRequest(http.MethodPost, "/v1/responses", nil), "first", handle))
 	apiError := runner(httptest.NewRequest(http.MethodPost, "/v1/responses", nil), "limited", handle)
 	require.NotNil(t, apiError)
@@ -261,8 +261,8 @@ func TestResponsesWSRequestRunnerSharesRedisSuccessLimitWithHTTP(t *testing.T) {
 	setting.ModelRequestRateLimitSuccessCount = 1
 	runner, _ := newResponsesWSTestRunner(t, token)
 	failed := types.NewErrorWithStatusCode(errors.New("invalid input"), types.ErrorCodeInvalidRequest, http.StatusBadRequest)
-	assert.Same(t, failed, runner(httptest.NewRequest(http.MethodPost, "/v1/responses", nil), "failed", func(*gin.Context) *types.NewAPIError { return failed }))
-	require.Nil(t, runner(httptest.NewRequest(http.MethodPost, "/v1/responses", nil), "successful", func(*gin.Context) *types.NewAPIError { return nil }))
+	assert.Same(t, failed, runner(httptest.NewRequest(http.MethodPost, "/v1/responses", nil), "failed", func(*gin.Context) *types.AiGatewayError { return failed }))
+	require.Nil(t, runner(httptest.NewRequest(http.MethodPost, "/v1/responses", nil), "successful", func(*gin.Context) *types.AiGatewayError { return nil }))
 	engine := gin.New()
 	called := false
 	engine.POST("/v1/responses", middleware.TokenAuth(), middleware.ModelRequestRateLimit(), func(c *gin.Context) { called = true })
@@ -663,7 +663,7 @@ func TestResponsesWebSocketDialsNativeResponsesChannelTypes(t *testing.T) {
 		otherSettings dto.ChannelOtherSettings
 		want          func(key string) upstreamTarget
 	}{
-		{name: "new api", channelType: constant.ChannelTypeNewAPI, want: bearer},
+		{name: "new api", channelType: constant.ChannelTypeAiGateway, want: bearer},
 		{name: "sub2api", channelType: constant.ChannelTypeSub2API, want: bearer},
 		{name: "advanced custom query auth", channelType: constant.ChannelTypeAdvancedCustom, otherSettings: queryAuthRoute, want: func(key string) upstreamTarget {
 			return upstreamTarget{Path: "/upstream/responses", QueryKey: key}

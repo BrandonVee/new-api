@@ -1,13 +1,13 @@
-Ai-Gateway Notices
+Ai-gateway Notices
 
-Ai-Gateway
+Ai-gateway
 Maintained by Brandon.
-Copyright (c) 2026 Brandon for Ai-Gateway modifications.
+Copyright (c) 2026 Brandon for Ai-gateway modifications.
 
 This project is licensed under the GNU Affero General Public License v3.0.
 See LICENSE for the full project license terms.
 
-==== Ai-Gateway Modifications ====
+==== Ai-gateway Modifications ====
 
 Modified and maintained by Brandon.
 Modification notice: 2026-10-20.

@@ -8,8 +8,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/schema"
@@ -23,7 +23,7 @@ type TaskPluginChannelRef struct {
 
 func GetTaskPluginUsage(key string) ([]TaskPluginChannelRef, int64, error) {
 	var channels []Channel
-	boundTypes := []int{constant.ChannelTypeTaskPlugin, constant.ChannelTypeNewAPI}
+	boundTypes := []int{constant.ChannelTypeTaskPlugin, constant.ChannelTypeAiGateway}
 	if err := DB.Where("type IN ? AND status = ?", boundTypes, common.ChannelStatusEnabled).Find(&channels).Error; err != nil {
 		return nil, 0, err
 	}
@@ -39,7 +39,7 @@ func GetTaskPluginUsage(key string) ([]TaskPluginChannelRef, int64, error) {
 }
 
 // UnbindTaskPlugin removes one plugin from a channel's bindings and reports
-// whether the channel changed. A New API gateway channel keeps serving its other
+// whether the channel changed. A Ai-gateway gateway channel keeps serving its other
 // plugins and its ordinary traffic.
 func UnbindTaskPlugin(channelID int, key string) (bool, error) {
 	channel, err := GetChannelById(channelID, false)

@@ -23,16 +23,16 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/model"
-	pluginruntime "github.com/QuantumNous/new-api/pkg/jsplugin"
-	"github.com/QuantumNous/new-api/relay/channel"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	kitdto "github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/dto"
+	"github.com/BrandonVee/ai-gateway/logger"
+	"github.com/BrandonVee/ai-gateway/model"
+	pluginruntime "github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/relay/channel"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	kitdto "github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -1193,13 +1193,13 @@ func (a *TaskAdaptor) channelSetting() kitdto.ChannelSettings {
 }
 
 // applyUpstreamCredentials sets ctx.upstream together with the credentials
-// every driver hook reads. A New API channel (type 60) is another gateway:
+// every driver hook reads. A Ai-gateway channel (type 60) is another gateway:
 // the plugin must address its own prefixed native routes there, and the
 // channel key is that gateway's token, so it is sent as a Bearer header for
 // every auth type instead of running the plugin's vendor auth scheme.
 func (a *TaskAdaptor) applyUpstreamCredentials(ctx map[string]any, channelType int, key, proxy string) error {
-	if channelType == constant.ChannelTypeNewAPI {
-		ctx["upstream"] = map[string]any{"kind": pluginruntime.UpstreamKindNewAPI}
+	if channelType == constant.ChannelTypeAiGateway {
+		ctx["upstream"] = map[string]any{"kind": pluginruntime.UpstreamKindAiGateway}
 		ctx["auth"] = map[string]any{"authHeader": "Bearer " + key}
 		ctx["authHeader"] = "Bearer " + key
 		ctx["apiKey"] = key

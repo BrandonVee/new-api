@@ -86,7 +86,7 @@ beforeEach(() => {
   useSystemConfigStore.setState(useSystemConfigStore.getInitialState(), true)
   useAuthStore.getState().auth.setUser({ id: 1, username: 'preview', role: 1 })
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  client.setQueryData(['status'], { system_name: 'Ai-Gateway' })
+  client.setQueryData(['status'], { system_name: 'Ai-gateway' })
   vi.spyOn(api, 'get').mockResolvedValue({ data: { success: true, data: '' } })
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
 })

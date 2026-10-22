@@ -9,16 +9,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/pkg/billingexpr"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	builtinplugins "github.com/QuantumNous/new-api/plugins"
-	"github.com/QuantumNous/new-api/relay/channel"
-	taskplugin "github.com/QuantumNous/new-api/relay/channel/task/jsplugin"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/setting/billing_setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/pkg/billingexpr"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	builtinplugins "github.com/BrandonVee/ai-gateway/plugins"
+	"github.com/BrandonVee/ai-gateway/relay/channel"
+	taskplugin "github.com/BrandonVee/ai-gateway/relay/channel/task/jsplugin"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	"github.com/BrandonVee/ai-gateway/service"
+	"github.com/BrandonVee/ai-gateway/setting/billing_setting"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -161,7 +161,7 @@ func TestXAIModeratedVideoKeepsItsCharge(t *testing.T) {
 			if tc.wantStatus == "IN_PROGRESS" {
 				return
 			}
-			// A downstream New API gateway polls this task's native status
+			// A downstream Ai-gateway gateway polls this task's native status
 			// route, which omits usage, and must settle on the same facts.
 			var data any
 			require.NoError(t, common.UnmarshalJsonStr(tc.body, &data))

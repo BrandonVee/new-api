@@ -340,14 +340,14 @@ function trimmed(value) {
   return String(value || "").trim();
 }
 
-function viaNewAPI(ctx) {
+function viaAiGateway(ctx) {
   return !!(ctx.upstream && ctx.upstream.kind === "new_api");
 }
 
-// Another New API gateway serves the DashScope wire format only on this
+// Another Ai-gateway gateway serves the DashScope wire format only on this
 // plugin's /ali native routes; DashScope itself serves the unprefixed paths.
 function apiRoot(ctx) {
-  return ctx.baseUrl + (viaNewAPI(ctx) ? "/ali" : "");
+  return ctx.baseUrl + (viaAiGateway(ctx) ? "/ali" : "");
 }
 
 function firstImage(req) {
@@ -980,7 +980,7 @@ export function buildSubmitRequest(ctx) {
     if (!converted.synchronous) headers["X-DashScope-Async"] = "enable";
     // A gateway's native route aggregates the vendor stream itself and answers
     // with one JSON body, so only DashScope is asked for SSE.
-    const streaming = converted.synchronous && converted.body.parameters.enable_interleave === true && !viaNewAPI(ctx);
+    const streaming = converted.synchronous && converted.body.parameters.enable_interleave === true && !viaAiGateway(ctx);
     if (streaming) headers["X-DashScope-Sse"] = "enable";
     return {
       url: apiRoot(ctx) + "/api/v1/services/aigc/" + converted.service,

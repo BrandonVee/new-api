@@ -74,12 +74,12 @@ async function renderAbout() {
   )
 }
 
-test('the about and legal pages present Ai-Gateway and link to local license documents', async () => {
+test('the about and legal pages present Ai-gateway and link to local license documents', async () => {
   const user = userEvent.setup()
   await renderAbout()
 
   expect(
-    await screen.findByRole('heading', { name: 'Ai-Gateway' })
+    await screen.findByRole('heading', { name: 'Ai-gateway' })
   ).toBeVisible()
   expect(screen.getByText('Maintained by Brandon')).toBeVisible()
   expect(
@@ -102,7 +102,7 @@ test('the about and legal pages present Ai-Gateway and link to local license doc
     await screen.findByRole('heading', { name: 'Legal Notices' })
   ).toBeVisible()
   expect(
-    screen.getByRole('heading', { name: 'Ai-Gateway', level: 2 })
+    screen.getByRole('heading', { name: 'Ai-gateway', level: 2 })
   ).toBeVisible()
   expect(screen.getByText('Maintained by Brandon')).toBeVisible()
   expect(
@@ -141,6 +141,6 @@ test('administrator-supplied about content remains available', async () => {
   ).toBeVisible()
   expect(screen.getByText('Managed by our own team.')).toBeVisible()
   expect(
-    screen.queryByRole('heading', { name: 'Ai-Gateway' })
+    screen.queryByRole('heading', { name: 'Ai-gateway' })
   ).not.toBeInTheDocument()
 })

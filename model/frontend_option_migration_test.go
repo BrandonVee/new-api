@@ -4,12 +4,38 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/BrandonVee/ai-gateway/common"
 	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
+
+func TestSystemNameOptionsNormalizeLegacyBranding(t *testing.T) {
+	previousName, previousOptions := common.SystemName, common.OptionMap
+	common.OptionMap = make(map[string]string)
+	t.Cleanup(func() {
+		common.SystemName, common.OptionMap = previousName, previousOptions
+	})
+	for _, tc := range []struct {
+		name string
+		want string
+	}{
+		{"", "Ai-gateway"},
+		{"New API", "Ai-gateway"},
+		{" NewAPI ", "Ai-gateway"},
+		{"new-api", "Ai-gateway"},
+		{"Ai-Gateway", "Ai-gateway"},
+		{"Ai- gateway", "Ai-gateway"},
+		{"Research Gateway", "Research Gateway"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			require.NoError(t, updateOptionMap("SystemName", tc.name))
+			assert.Equal(t, tc.want, common.SystemName)
+			assert.Equal(t, tc.want, common.OptionMap["SystemName"])
+		})
+	}
+}
 
 func useFrontendOptionMigrationDB(t *testing.T) *gorm.DB {
 	t.Helper()

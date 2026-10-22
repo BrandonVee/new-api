@@ -6,8 +6,8 @@ package reasoning
 import (
 	"strings"
 
-	kitreasoning "github.com/QuantumNous/new-api/relaykit/relayconvert/reasoning"
-	"github.com/QuantumNous/new-api/setting/model_setting"
+	kitreasoning "github.com/BrandonVee/ai-gateway/relaykit/relayconvert/reasoning"
+	"github.com/BrandonVee/ai-gateway/setting/model_setting"
 )
 
 var (

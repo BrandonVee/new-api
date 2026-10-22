@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
 	"github.com/pkg/errors"
 
 	"github.com/gin-gonic/gin"
@@ -179,7 +179,7 @@ func GetContextKeyString(c *gin.Context, key constant.ContextKey) string {
 }
 
 // presetUpstreamHosts are the hosts, with any port, of the default base URLs
-// new-api presets for channel types. They are public endpoints, so errors keep
+// ai-gateway presets for channel types. They are public endpoints, so errors keep
 // them readable. The port keeps a configured localhost upstream apart from the
 // Ollama preset.
 var presetUpstreamHosts = sync.OnceValue(func() map[string]struct{} {

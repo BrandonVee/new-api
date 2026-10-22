@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strings"
 
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 )
 
 type Outcome string
@@ -22,7 +22,7 @@ const (
 // samples; a stream already completed normally without errors remains eligible
 // after its context is canceled. Classification is independent of retries,
 // channel disabling and billing.
-func ClassifyRelayOutcome(ctx context.Context, info *relaycommon.RelayInfo, apiErr *types.NewAPIError) Outcome {
+func ClassifyRelayOutcome(ctx context.Context, info *relaycommon.RelayInfo, apiErr *types.AiGatewayError) Outcome {
 	if info == nil || info.PerformanceBusinessRejection {
 		return OutcomeIgnored
 	}
@@ -42,7 +42,7 @@ func ClassifyRelayOutcome(ctx context.Context, info *relaycommon.RelayInfo, apiE
 	}
 	if apiErr != nil {
 		root := rootAPIError(apiErr)
-		local := root.GetErrorType() == types.ErrorTypeNewAPIError
+		local := root.GetErrorType() == types.ErrorTypeAiGatewayError
 		return classifyFailure(local, string(root.GetErrorCode()), root.ToOpenAIError().Type, root.StatusCode)
 	}
 	deadlineExceeded := info.StreamStatus != nil && errors.Is(info.StreamStatus.EndError, context.DeadlineExceeded)
@@ -78,9 +78,9 @@ func ClassifyRelayOutcome(ctx context.Context, info *relaycommon.RelayInfo, apiE
 // rootAPIError follows host wrappers back to the error that describes what
 // actually happened, e.g. an upstream credential error re-wrapped as a local
 // invalid request.
-func rootAPIError(apiErr *types.NewAPIError) *types.NewAPIError {
+func rootAPIError(apiErr *types.AiGatewayError) *types.AiGatewayError {
 	for {
-		var inner *types.NewAPIError
+		var inner *types.AiGatewayError
 		if !errors.As(apiErr.Unwrap(), &inner) || inner == apiErr {
 			return apiErr
 		}

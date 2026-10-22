@@ -6,15 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	"github.com/QuantumNous/new-api/setting"
-	"github.com/QuantumNous/new-api/setting/config"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
-	"github.com/QuantumNous/new-api/setting/performance_setting"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
-	"github.com/QuantumNous/new-api/setting/system_setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/setting"
+	"github.com/BrandonVee/ai-gateway/setting/config"
+	"github.com/BrandonVee/ai-gateway/setting/operation_setting"
+	"github.com/BrandonVee/ai-gateway/setting/performance_setting"
+	"github.com/BrandonVee/ai-gateway/setting/ratio_setting"
+	"github.com/BrandonVee/ai-gateway/setting/system_setting"
 	"gorm.io/gorm"
 )
 
@@ -347,6 +347,12 @@ func UpdateOptionsBulk(values map[string]string) error {
 }
 
 func updateOptionMap(key string, value string) (err error) {
+	if key == "SystemName" {
+		switch strings.ToLower(strings.TrimSpace(value)) {
+		case "", "new api", "newapi", "new-api", "ai-gateway", "ai- gateway":
+			value = common.DefaultSystemName
+		}
+	}
 	if key == retiredThemeOptionKey || key == legacyAccessTokenRetireAtKey {
 		common.OptionMapRWMutex.Lock()
 		delete(common.OptionMap, key)

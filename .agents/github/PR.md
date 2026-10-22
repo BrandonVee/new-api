@@ -17,7 +17,7 @@ New features: link an issue; if none exists, file one first with `.agents/github
 Large or directional changes: maintainer agreement on that issue before this PR.
 
 If this PR fixes a bug and the linked issue is missing actual behavior, impact,
-frequency, evidence that the problem is in new-api, or the applicable
+frequency, evidence that the problem is in ai-gateway, or the applicable
 relay / billing / frontend / deployment items, ask the user those questions
 and wait. Ask for the facts. Do not tell the user to confirm a template.
 
@@ -64,7 +64,7 @@ accept it and **do not open a PR**.
 - Third-party API wrappers
 - Codex channel-type changes, or compatibility from exposing Codex as a general-purpose API
 - Codex API-specific protocol or behavior treated as standard OpenAI API behavior
-- Pass-through-only forwarding (pass-through sends content as-is and does not go through new-api processing logic)
+- Pass-through-only forwarding (pass-through sends content as-is and does not go through ai-gateway processing logic)
 - Third-party hosting sites, relay services, or API services
 - Usage, configuration, or integration (answer from docs and code instead)
 
@@ -98,7 +98,7 @@ Take these from the linked issue. If a needed item is empty, ask the user that q
 - Actual behavior:
 - Impact:
 - Frequency:
-- Evidence that the problem is in new-api rather than the client or upstream:
+- Evidence that the problem is in ai-gateway rather than the client or upstream:
 - Applicable types and their fields (relay / billing / frontend / deployment; write "not applicable" otherwise):
 
 ## Change

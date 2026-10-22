@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/setting/system_setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/setting/system_setting"
 )
 
 // NotifyChannelWatchers sends a channel notice (a channel disabled or enabled
@@ -276,7 +276,7 @@ func sendGotifyNotify(gotifyUrl string, gotifyToken string, priority int, data d
 
 		// 设置请求头
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
-		req.Header.Set("User-Agent", "NewAPI-Gotify-Notify/1.0")
+		req.Header.Set("User-Agent", "AiGateway-Gotify-Notify/1.0")
 
 		// 发送请求
 		client := GetSSRFProtectedHTTPClient()

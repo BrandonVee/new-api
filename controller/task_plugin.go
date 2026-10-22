@@ -14,13 +14,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	"github.com/QuantumNous/new-api/plugins"
-	"github.com/QuantumNous/new-api/setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/logger"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/plugins"
+	"github.com/BrandonVee/ai-gateway/setting"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -30,7 +30,7 @@ const maxTaskPluginSourceBytes = 8 << 20
 func taskPluginCompileError(c *gin.Context, err error) {
 	var unknownField *jsplugin.UnknownMetaFieldError
 	if errors.As(err, &unknownField) {
-		common.ApiErrorT(c, "Plugin metadata contains an unknown field \"{{field}}\". If this plugin was downloaded from the official marketplace, it may require a newer version of Ai-Gateway. Try updating Ai-Gateway and installing the plugin again.", map[string]any{"field": unknownField.Field})
+		common.ApiErrorT(c, "Plugin metadata contains an unknown field \"{{field}}\". If this plugin was downloaded from the official marketplace, it may require a newer version of Ai-gateway. Try updating Ai-gateway and installing the plugin again.", map[string]any{"field": unknownField.Field})
 		return
 	}
 	common.ApiError(c, err)
@@ -524,7 +524,7 @@ func SetTaskPluginStatus(c *gin.Context) {
 		}
 		if cascade {
 			for _, channel := range channels {
-				if channel.Type == constant.ChannelTypeNewAPI {
+				if channel.Type == constant.ChannelTypeAiGateway {
 					// A gateway channel also carries ordinary traffic, so the
 					// cascade only drops this plugin from its bindings.
 					unbound, unbindErr := model.UnbindTaskPlugin(channel.Id, key)

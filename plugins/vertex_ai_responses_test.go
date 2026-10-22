@@ -3,10 +3,10 @@ package plugins_test
 import (
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	builtinplugins "github.com/QuantumNous/new-api/plugins"
-	"github.com/QuantumNous/new-api/relay"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	builtinplugins "github.com/BrandonVee/ai-gateway/plugins"
+	"github.com/BrandonVee/ai-gateway/relay"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -202,11 +202,11 @@ func decodePluginValue(t *testing.T, value any) map[string]any {
 	return decoded
 }
 
-// A New API channel reaches Vertex AI through another gateway's /vertex-ai
+// A Ai-gateway channel reaches Vertex AI through another gateway's /vertex-ai
 // route, which runs the request in the gateway's own project. Operation names
 // carry the caller's path and the gateway task id, never the gateway's project,
 // and fetchPredictOperation on such a name reads that gateway task.
-func TestVertexAIThroughNewAPIGateway(t *testing.T) {
+func TestVertexAIThroughAiGatewayGateway(t *testing.T) {
 	source, err := builtinplugins.Source("vertex-ai")
 	require.NoError(t, err)
 	plugin, err := jsplugin.NewRegistry().RegisterFactory(source, jsplugin.Options{Key: "vertex-ai"})

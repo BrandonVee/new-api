@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/convmeta"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/internal/convdiag"
-	relaymedia "github.com/QuantumNous/new-api/relaykit/relayconvert/internal/media"
-	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/reasoning"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/convmeta"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/internal/convdiag"
+	relaymedia "github.com/BrandonVee/ai-gateway/relaykit/relayconvert/internal/media"
+	kitutil "github.com/BrandonVee/ai-gateway/relaykit/relayconvert/kitutil"
+	"github.com/BrandonVee/ai-gateway/relaykit/relayconvert/reasoning"
 )
 
 func ClaudeMessagesRequestToOpenAIResponses(ctx context.Context, claudeRequest dto.ClaudeRequest, info convmeta.Meta) (*dto.OpenAIResponsesRequest, error) {
@@ -54,7 +54,7 @@ func ClaudeMessagesRequestToOpenAIResponses(ctx context.Context, claudeRequest d
 		TopP:              claudeRequest.TopP,
 	}
 	if info != nil && !convmeta.OptionsOf(info).OpenRouterDialect {
-		// Keep the outgoing -thinking suffix so a cascaded downstream new-api
+		// Keep the outgoing -thinking suffix so a cascaded downstream ai-gateway
 		// can recover reasoning intent from the model name. This is an
 		// emission-side policy, not converter-side suffix parsing.
 		thinkingSuffix := "-thinking"

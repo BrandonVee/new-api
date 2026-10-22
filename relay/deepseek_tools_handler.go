@@ -6,14 +6,14 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/logger"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	relayconstant "github.com/QuantumNous/new-api/relay/constant"
-	"github.com/QuantumNous/new-api/relay/helper"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/types"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/logger"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	relayconstant "github.com/BrandonVee/ai-gateway/relay/constant"
+	"github.com/BrandonVee/ai-gateway/relay/helper"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -23,12 +23,12 @@ import (
 // /v1/alpha/search: the raw body is forwarded, the response is returned
 // unchanged, and the call is billed at the routing name's request price with
 // no tokens.
-func DeepSeekToolsHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types.NewAPIError) {
+func DeepSeekToolsHelper(c *gin.Context, info *relaycommon.RelayInfo) (aiGatewayError *types.AiGatewayError) {
 	info.InitChannelMeta(c)
 
 	switch info.ChannelType {
 	case constant.ChannelTypeDeepSeek,
-		constant.ChannelTypeNewAPI,
+		constant.ChannelTypeAiGateway,
 		constant.ChannelTypeSub2API,
 		constant.ChannelTypeAdvancedCustom:
 	default:
@@ -62,7 +62,7 @@ func DeepSeekToolsHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIErr
 	if len(info.ParamOverride) > 0 {
 		jsonData, err = relaycommon.ApplyParamOverrideWithRelayInfo(jsonData, info)
 		if err != nil {
-			return newAPIErrorFromParamOverride(err)
+			return aiGatewayErrorFromParamOverride(err)
 		}
 	}
 
@@ -92,9 +92,9 @@ func DeepSeekToolsHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIErr
 	defer httpResp.Body.Close()
 
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
-		newAPIError = service.RelayErrorHandler(c.Request.Context(), httpResp, false)
-		service.ResetStatusCode(newAPIError, statusCodeMappingStr)
-		return newAPIError
+		aiGatewayError = service.RelayErrorHandler(c.Request.Context(), httpResp, false)
+		service.ResetStatusCode(aiGatewayError, statusCodeMappingStr)
+		return aiGatewayError
 	}
 
 	responseBody, err := io.ReadAll(httpResp.Body)

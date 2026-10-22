@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/model"
-	kitdto "github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/types"
-	"github.com/QuantumNous/new-api/setting/system_setting"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/dto"
+	"github.com/BrandonVee/ai-gateway/model"
+	kitdto "github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/setting/system_setting"
 
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
@@ -127,7 +127,7 @@ func TestProcessChannelErrorMasksDisableReasonAndNotification(t *testing.T) {
 }
 
 // Only addresses the admin configured are masked: a channel on the base URL
-// new-api presets reaches a public official endpoint, and so do adaptors that
+// ai-gateway presets reaches a public official endpoint, and so do adaptors that
 // build official endpoints themselves.
 func TestUpstreamAddressesMaskOnlyConfiguredAddresses(t *testing.T) {
 	for _, tc := range []struct {
@@ -193,12 +193,12 @@ func TestUpstreamAddressesMaskOnlyConfiguredAddresses(t *testing.T) {
 }
 
 func TestDecideRelayRetryReasons(t *testing.T) {
-	upstream := func(status int) *types.NewAPIError {
+	upstream := func(status int) *types.AiGatewayError {
 		return types.NewOpenAIError(errors.New("upstream"), types.ErrorCodeBadResponseStatusCode, status)
 	}
 	for _, tc := range []struct {
 		name    string
-		err     *types.NewAPIError
+		err     *types.AiGatewayError
 		retries int
 		setup   func(*gin.Context)
 		want    PolicyDecision

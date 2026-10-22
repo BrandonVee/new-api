@@ -34,7 +34,7 @@ export const meta = {
     { label: "4s × 720p", facts: { seconds: 4, resolution: "720p" } },
   ],
   // Gemini API request and response bodies, for clients and for a downstream
-  // New API gateway. The model segment carries the method,
+  // Ai-gateway gateway. The model segment carries the method,
   // models/{model}:predictLongRunning, and the operation it returns is named
   // after the gateway task.
   routes: [
@@ -52,7 +52,7 @@ function plainObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : null;
 }
 
-// On a New API channel the same plugin answers on another gateway, which
+// On a Ai-gateway channel the same plugin answers on another gateway, which
 // serves the Gemini API wire format on the prefixed native routes and takes
 // its own token as a Bearer header.
 function viaGateway(ctx) {

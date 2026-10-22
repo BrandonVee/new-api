@@ -1,6 +1,6 @@
 package billing_setting
 
-import "github.com/QuantumNous/new-api/constant"
+import "github.com/BrandonVee/ai-gateway/constant"
 
 // deepSeekPeak is DeepSeek's peak window: Monday to Friday, 09:00-12:00 and
 // 14:00-18:00 Beijing time. The Chinese public holidays DeepSeek bills

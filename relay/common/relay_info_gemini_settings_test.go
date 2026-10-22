@@ -3,8 +3,8 @@ package common
 import (
 	"testing"
 
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/setting/model_setting"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/setting/model_setting"
 	"github.com/stretchr/testify/assert"
 )
 

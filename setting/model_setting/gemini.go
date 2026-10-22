@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/setting/config"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/setting/config"
 )
 
 const defaultGeminiSafetySetting = "OFF"

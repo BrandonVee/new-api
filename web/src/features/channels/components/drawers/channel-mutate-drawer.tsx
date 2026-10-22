@@ -122,7 +122,7 @@ import {
   ADD_MODE_OPTIONS,
   CLAUDE_FIELD_PASSTHROUGH_TYPES,
   CHANNEL_STATUS_LABELS,
-  CHANNEL_TYPE_NEW_API,
+  CHANNEL_TYPE_AI_GATEWAY,
   CHANNEL_TYPE_OLLAMA,
   CHANNEL_TYPE_OPTIONS,
   CHANNEL_TYPE_TASK_PLUGIN,
@@ -176,7 +176,7 @@ import {
 import {
   getChannelPluginExtensions,
   supportsChannelPluginExtensions,
-  supportsNewAPIUpstream,
+  supportsAiGatewayUpstream,
 } from '../../lib/channel-plugin-extensions'
 import { getChannelTypeConfig } from '../../lib/channel-type-config'
 import {
@@ -1109,7 +1109,7 @@ export function ChannelMutateDrawer({
     const timer = setTimeout(() => {
       toast.warning(
         t(
-          'Warning: Base URL should not end with /v1. Ai-Gateway will handle it automatically. This may cause request failures.'
+          'Warning: Base URL should not end with /v1. Ai-gateway will handle it automatically. This may cause request failures.'
         ),
         { duration: 5000 }
       )
@@ -1316,7 +1316,7 @@ export function ChannelMutateDrawer({
   const taskPluginExtensionOptions = useMemo(
     () =>
       (taskPluginOptionsQuery.data ?? [])
-        .filter(supportsNewAPIUpstream)
+        .filter(supportsAiGatewayUpstream)
         .map((plugin) => ({
           value: plugin.key,
           label: plugin.name,
@@ -3102,7 +3102,7 @@ export function ChannelMutateDrawer({
       <ChannelModelsSection>
         <div className='space-y-5'>
           <div className='border-border/60 bg-muted/10 rounded-lg border p-4'>
-            {currentType === CHANNEL_TYPE_NEW_API &&
+            {currentType === CHANNEL_TYPE_AI_GATEWAY &&
               canBindTaskPlugin &&
               taskPluginOptionsQuery.isSuccess &&
               !showProviderPicker && (
@@ -3126,7 +3126,7 @@ export function ChannelMutateDrawer({
                       </FormControl>
                       <FormDescription>
                         {t(
-                          'This channel serves the models of every selected plugin. The upstream New API gateway must have the same plugins installed.'
+                          'This channel serves the models of every selected plugin. The upstream Ai-gateway gateway must have the same plugins installed.'
                         )}
                       </FormDescription>
                       <FormMessage />
@@ -4189,7 +4189,7 @@ export function ChannelMutateDrawer({
                     {currentType !== CHANNEL_TYPE_TASK_PLUGIN && (
                       <FormDescription>
                         {t(
-                          'Custom API base URL. For official channels, Ai-Gateway has built-in addresses. Only fill this for third-party proxy sites or special endpoints. Do not add /v1 or trailing slash.'
+                          'Custom API base URL. For official channels, Ai-gateway has built-in addresses. Only fill this for third-party proxy sites or special endpoints. Do not add /v1 or trailing slash.'
                         )}
                       </FormDescription>
                     )}

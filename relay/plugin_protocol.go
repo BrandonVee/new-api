@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/dto"
-	pluginruntime "github.com/QuantumNous/new-api/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/dto"
+	pluginruntime "github.com/BrandonVee/ai-gateway/pkg/jsplugin"
 )
 
 const (

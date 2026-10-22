@@ -62,7 +62,7 @@ function trimmed(value) {
 function plainObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : null;
 }
-// On a New API channel the same plugin answers on another gateway, which
+// On a Ai-gateway channel the same plugin answers on another gateway, which
 // serves the Vertex AI wire format on the prefixed native routes, takes its own
 // token as a Bearer header and runs the request in its own project.
 function viaGateway(ctx) {

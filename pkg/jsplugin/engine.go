@@ -16,9 +16,9 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/logger"
 	"github.com/Calcium-Ion/moejs"
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/logger"
 )
 
 const (

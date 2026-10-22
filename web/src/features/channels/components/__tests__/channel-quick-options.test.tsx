@@ -15,7 +15,7 @@ import { Form } from '@/components/ui/form'
 import { api } from '@/lib/api'
 
 import {
-  CHANNEL_TYPE_NEW_API,
+  CHANNEL_TYPE_AI_GATEWAY,
   CHANNEL_TYPE_SUB2API,
   CHANNEL_TYPE_TASK_PLUGIN,
 } from '../../constants'
@@ -265,7 +265,7 @@ describe('responses websocket quick option', () => {
     57,
     CHANNEL_TYPE_ADVANCED_CUSTOM,
     CHANNEL_TYPE_SUB2API,
-    CHANNEL_TYPE_NEW_API,
+    CHANNEL_TYPE_AI_GATEWAY,
   ])('is offered for channel type %s', (channelType) => {
     render(
       <QuickOptionsHarness

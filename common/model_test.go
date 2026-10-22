@@ -3,8 +3,8 @@ package common_test
 import (
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,7 +30,7 @@ func TestWanEndpointsDistinguishImagesFromVideos(t *testing.T) {
 // /v1/models reports the DeepSeek Search and Fetch routing names with their
 // own endpoint on the channels that relay them; chat models keep their list.
 func TestDeepSeekToolRoutingNamesReportTheirEndpoint(t *testing.T) {
-	for _, channelType := range []int{constant.ChannelTypeDeepSeek, constant.ChannelTypeNewAPI} {
+	for _, channelType := range []int{constant.ChannelTypeDeepSeek, constant.ChannelTypeAiGateway} {
 		assert.Equal(t, []constant.EndpointType{constant.EndpointTypeDeepSeekToolsSearch}, common.GetEndpointTypesByChannelType(channelType, constant.DeepSeekSearchModel))
 		assert.Equal(t, []constant.EndpointType{constant.EndpointTypeDeepSeekToolsFetch}, common.GetEndpointTypesByChannelType(channelType, constant.DeepSeekFetchModel))
 	}

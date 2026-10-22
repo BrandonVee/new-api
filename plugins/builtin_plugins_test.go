@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -180,7 +180,7 @@ func TestBuiltInResponsesDecodersEchoChannelMappedAlias(t *testing.T) {
 	}
 }
 
-func TestBuiltInPluginsAddressNewAPIUpstreamOnNativeRoutes(t *testing.T) {
+func TestBuiltInPluginsAddressAiGatewayUpstreamOnNativeRoutes(t *testing.T) {
 	generation := jsplugin.DefaultRegistry.Generation()
 	require.NotNil(t, generation)
 
@@ -299,14 +299,14 @@ func TestBuiltInPluginsAddressNewAPIUpstreamOnNativeRoutes(t *testing.T) {
 	}{
 		{"vendor signal", map[string]any{"kind": "vendor"}, false, false},
 		{"no signal from an older host", nil, false, false},
-		{"new_api signal", map[string]any{"kind": "new_api"}, true, false},
+		{"ai_gateway signal", map[string]any{"kind": "new_api"}, true, false},
 		{"legacy sk- key without a signal", nil, true, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.key, func(t *testing.T) {
 			plugin, found := generation.Get(tc.key)
 			require.True(t, found)
-			require.True(t, plugin.Meta.SupportsUpstream(jsplugin.UpstreamKindNewAPI), "%s must declare new_api to be bindable to a New API channel", tc.key)
+			require.True(t, plugin.Meta.SupportsUpstream(jsplugin.UpstreamKindAiGateway), "%s must declare ai_gateway to be bindable to a Ai-gateway channel", tc.key)
 			call := func(hook string, args ...any) map[string]any {
 				value, err := plugin.Engine.Call(t.Context(), hook, args...)
 				require.NoError(t, err, hook)

@@ -114,13 +114,15 @@ describe('site branding', () => {
   )
 
   test.each([
-    { configuredName: '', displayName: 'Ai-Gateway' },
-    { configuredName: 'New API', displayName: 'Ai-Gateway' },
-    { configuredName: 'NewAPI', displayName: 'Ai-Gateway' },
-    { configuredName: 'newapi', displayName: 'Ai-Gateway' },
-    { configuredName: 'new-api', displayName: 'Ai-Gateway' },
-    { configuredName: ' New API ', displayName: 'Ai-Gateway' },
-    { configuredName: 'Ai-Gateway', displayName: 'Ai-Gateway' },
+    { configuredName: '', displayName: 'Ai-gateway' },
+    { configuredName: 'New API', displayName: 'Ai-gateway' },
+    { configuredName: 'NewAPI', displayName: 'Ai-gateway' },
+    { configuredName: 'newapi', displayName: 'Ai-gateway' },
+    { configuredName: 'new-api', displayName: 'Ai-gateway' },
+    { configuredName: ' New API ', displayName: 'Ai-gateway' },
+    { configuredName: 'Ai-gateway', displayName: 'Ai-gateway' },
+    { configuredName: 'Ai-Gateway', displayName: 'Ai-gateway' },
+    { configuredName: 'Ai- gateway', displayName: 'Ai-gateway' },
     { configuredName: 'Research Gateway', displayName: 'Research Gateway' },
   ])(
     'displays $displayName for cached and refreshed $configuredName branding',

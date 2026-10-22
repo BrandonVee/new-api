@@ -1,6 +1,6 @@
-package newapi
+package aigateway
 
-const ChannelName = "newapi"
+const ChannelName = "aigateway"
 
 // ModelList is empty because models are fetched dynamically from upstream /v1/models.
 var ModelList = []string{}

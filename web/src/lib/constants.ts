@@ -3,7 +3,7 @@
  */
 
 // System Configuration Defaults
-export const DEFAULT_SYSTEM_NAME = 'Ai-Gateway'
+export const DEFAULT_SYSTEM_NAME = 'Ai-gateway'
 export const DEFAULT_LOGO = '/ai-gateway-logo.png'
 export const PROJECT_MAINTAINER = 'Brandon'
 
@@ -35,7 +35,11 @@ export function resolveSystemLogo(value: unknown): string {
 
 export function resolveSystemName(value: unknown): string {
   if (typeof value !== 'string' || !value.trim()) return DEFAULT_SYSTEM_NAME
-  if (['new api', 'newapi', 'new-api'].includes(value.trim().toLowerCase())) {
+  if (
+    ['new api', 'newapi', 'new-api', 'ai-gateway', 'ai- gateway'].includes(
+      value.trim().toLowerCase()
+    )
+  ) {
     return DEFAULT_SYSTEM_NAME
   }
   return value

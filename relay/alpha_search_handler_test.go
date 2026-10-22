@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/pkg/billingexpr"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relay/helper"
-	"github.com/QuantumNous/new-api/relaykit/types"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/pkg/billingexpr"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	"github.com/BrandonVee/ai-gateway/relay/helper"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -102,8 +102,8 @@ func TestDeepSeekToolsHelper(t *testing.T) {
 		{name: "fetch failure keeps its status", path: fetch, body: `{"url":"https://example.com/missing"}`,
 			response:    `{"error":{"message":"failed to fetch URL","type":"not_found_error","param":null,"code":"invalid_request_error"}}`,
 			channelType: constant.ChannelTypeDeepSeek, status: http.StatusNotFound},
-		{name: "search through a New API channel", path: search, body: `{"query":"deepseek"}`,
-			response: results, channelType: constant.ChannelTypeNewAPI, status: http.StatusOK, settled: []int{375}},
+		{name: "search through a Ai-gateway channel", path: search, body: `{"query":"deepseek"}`,
+			response: results, channelType: constant.ChannelTypeAiGateway, status: http.StatusOK, settled: []int{375}},
 		{name: "channel without the endpoint", path: search, body: `{"query":"deepseek"}`, channelType: constant.ChannelTypeOpenAI},
 	}
 	for _, tc := range tests {

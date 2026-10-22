@@ -14,7 +14,7 @@ vi.mock('@lobehub/icons/es/Mistral/components/Color.js', () => {
 describe('Lobe icons', () => {
   it.each([
     '/build/web/node_modules/@lobehub/icons/es/',
-    'D:\\a\\new-api\\web\\node_modules\\@lobehub\\icons\\es\\',
+    'D:\\a\\ai-gateway\\web\\node_modules\\@lobehub\\icons\\es\\',
   ])('includes icon variants when bundling from %s', (root) => {
     // Vitest loads imports without applying Rspack's webpackInclude filter.
     const source = readFileSync(
@@ -118,9 +118,18 @@ describe('Lobe icons', () => {
         'OpenAI',
         'Claude.Color',
         'SGLang',
+        'AiGateway',
         'Sub2API',
         'Wan',
       ])
     )
+  })
+
+  it('renders the gateway brand logo at the requested size', () => {
+    render(getLobeIcon('AiGateway', 28))
+    const logo = screen.getByRole('presentation', { hidden: true })
+    expect(logo).toHaveAttribute('src', '/ai-gateway-logo.png')
+    expect(logo).toHaveAttribute('width', '28')
+    expect(logo).toHaveAttribute('height', '28')
   })
 })

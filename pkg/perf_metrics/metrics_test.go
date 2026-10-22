@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/model"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	"github.com/BrandonVee/ai-gateway/relaykit/types"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +23,7 @@ func TestClassifyRelayOutcome(t *testing.T) {
 	for _, tc := range []struct {
 		name string
 		ctx  context.Context
-		err  *types.NewAPIError
+		err  *types.AiGatewayError
 		want Outcome
 	}{
 		{"success", context.Background(), nil, OutcomeSuccess},

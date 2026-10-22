@@ -113,7 +113,7 @@ export function Hero(props: HeroProps) {
             </div>
             <p className='mt-2 max-w-md text-xs leading-5'>
               {t(
-                'Supports one-click configuration and works with Ai-Gateway multi-protocol settings.'
+                'Supports one-click configuration and works with Ai-gateway multi-protocol settings.'
               )}
             </p>
           </div>

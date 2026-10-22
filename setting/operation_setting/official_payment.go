@@ -1,6 +1,6 @@
 package operation_setting
 
-import "github.com/QuantumNous/new-api/common"
+import "github.com/BrandonVee/ai-gateway/common"
 
 // Keep the merchant credentials in one option so configuration changes are atomic.
 // The Secret suffix also excludes the entire option from the general settings API.

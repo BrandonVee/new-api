@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	"github.com/QuantumNous/new-api/service/authz"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/service/authz"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
@@ -178,7 +178,7 @@ func putUpdateChannel(t *testing.T, userID, role int, body string) *httptest.Res
 	return recorder
 }
 
-func TestNewAPIChannelPluginBindingsRequireBindPermission(t *testing.T) {
+func TestAiGatewayChannelPluginBindingsRequireBindPermission(t *testing.T) {
 	setupTaskPluginBindChannelTest(t)
 	const key = "gateway-bind"
 	source := `
@@ -203,7 +203,7 @@ export function parseTaskResult() { return {}; }
 
 	baseURL := "https://gateway.example"
 	setting := `{"task_extend_plugin_keys":["gateway-bind"]}`
-	channel := model.Channel{Type: constant.ChannelTypeNewAPI, Status: common.ChannelStatusEnabled, Name: "existing-gateway", Models: "gateway-doc", Group: "default", Key: "sk", BaseURL: &baseURL, Setting: &setting}
+	channel := model.Channel{Type: constant.ChannelTypeAiGateway, Status: common.ChannelStatusEnabled, Name: "existing-gateway", Models: "gateway-doc", Group: "default", Key: "sk", BaseURL: &baseURL, Setting: &setting}
 	require.NoError(t, channel.Insert())
 	update := func(name, setting string) string {
 		return fmt.Sprintf(`{"id":%d,"type":60,"name":%q,"key":"sk","models":"gateway-doc","group":"default","base_url":"https://gateway.example","setting":%q}`, channel.Id, name, setting)

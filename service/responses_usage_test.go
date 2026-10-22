@@ -3,11 +3,11 @@ package service
 import (
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
-	"github.com/QuantumNous/new-api/tokenkit"
+	"github.com/BrandonVee/ai-gateway/common"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	"github.com/BrandonVee/ai-gateway/setting/operation_setting"
+	"github.com/BrandonVee/ai-gateway/tokenkit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

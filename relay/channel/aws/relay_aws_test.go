@@ -17,11 +17,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	relaytypes "github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	relaycommon "github.com/BrandonVee/ai-gateway/relay/common"
+	"github.com/BrandonVee/ai-gateway/relaykit/dto"
+	relaytypes "github.com/BrandonVee/ai-gateway/relaykit/types"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream"
 	"github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi"
@@ -300,7 +300,7 @@ func TestAwsHandlersCancelSdkRequestAndSkipRetry(t *testing.T) {
 	tests := []struct {
 		name    string
 		request any
-		handle  func(*gin.Context, *relaycommon.RelayInfo, *Adaptor) (*relaytypes.NewAPIError, *dto.Usage)
+		handle  func(*gin.Context, *relaycommon.RelayInfo, *Adaptor) (*relaytypes.AiGatewayError, *dto.Usage)
 	}{
 		{name: "non-stream", request: newAwsInvokeModelInput(), handle: awsHandler},
 		{name: "stream", request: newAwsStreamInput(), handle: awsStreamHandler},
@@ -323,7 +323,7 @@ func TestAwsHandlersCancelSdkRequestAndSkipRetry(t *testing.T) {
 			info := newAwsTestRelayInfo()
 
 			type handlerResult struct {
-				err   *relaytypes.NewAPIError
+				err   *relaytypes.AiGatewayError
 				usage *dto.Usage
 			}
 			results := make(chan handlerResult, 1)
@@ -444,7 +444,7 @@ func TestAwsStreamHandlerStopsAtClientCancellation(t *testing.T) {
 	adaptor := &Adaptor{AwsClient: client, AwsReq: newAwsStreamInput()}
 
 	type handlerResult struct {
-		err   *relaytypes.NewAPIError
+		err   *relaytypes.AiGatewayError
 		usage *dto.Usage
 	}
 	results := make(chan handlerResult, 1)
@@ -904,7 +904,7 @@ func TestMantleCanceledRequestSkipsRetry(t *testing.T) {
 	response, err := (&Adaptor{}).DoRequest(c, newMantleTestInfo(), strings.NewReader(`{"messages":[]}`))
 	require.Error(t, err)
 	assert.Nil(t, response)
-	var apiError *relaytypes.NewAPIError
+	var apiError *relaytypes.AiGatewayError
 	require.ErrorAs(t, err, &apiError)
 	assert.True(t, relaytypes.IsSkipRetryError(apiError))
 }

@@ -47,7 +47,7 @@ export const meta = {
     { label: "2.0 4s 720p", facts: { credits: 0, duration: 4, resolution: "720p" } },
     { label: "2.0 8s 720p", facts: { credits: 0, duration: 8, resolution: "720p" } },
   ],
-  // Vidu request and response bodies, for clients and for a downstream New API
+  // Vidu request and response bodies, for clients and for a downstream Ai-gateway
   // gateway.
   routes: [
     { method: "POST", path: "/vidu/ent/v2/text2video", type: "submit", decode: "createTask", render: "taskCreated" },
@@ -78,7 +78,7 @@ function plainObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : null;
 }
 
-// On a New API channel the same plugin answers on another gateway, which
+// On a Ai-gateway channel the same plugin answers on another gateway, which
 // serves the Vidu wire format on the prefixed native routes and takes its own
 // token as a Bearer header.
 function viaGateway(ctx) {

@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -119,7 +119,7 @@ func TestGetDeepSeekBalanceUSD(t *testing.T) {
 	}
 }
 
-func TestUpdateChannelNewAPIBalanceUsesTheSmallerRemainingQuota(t *testing.T) {
+func TestUpdateChannelAiGatewayBalanceUsesTheSmallerRemainingQuota(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
 		usage   string
@@ -149,7 +149,7 @@ func TestUpdateChannelNewAPIBalanceUsesTheSmallerRemainingQuota(t *testing.T) {
 			}))
 			defer server.Close()
 			baseURL := server.URL + "/"
-			channel := &model.Channel{Type: constant.ChannelTypeNewAPI, BaseURL: &baseURL, Key: "sk-upstream", Name: "new-api-upstream"}
+			channel := &model.Channel{Type: constant.ChannelTypeAiGateway, BaseURL: &baseURL, Key: "sk-upstream", Name: "ai-gateway-upstream"}
 			require.NoError(t, model.DB.Create(channel).Error)
 
 			result, err := updateChannelBalance(channel)

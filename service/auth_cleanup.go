@@ -3,8 +3,8 @@ package service
 import (
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/model"
 )
 
 const authArtifactCleanupInterval = time.Hour

@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
+	"github.com/BrandonVee/ai-gateway/constant"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/pkg/jsplugin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -68,9 +68,9 @@ export function parseTaskResult() { return {}; }
 	assert.Equal(t, explicit, *channel.BaseURL, "an administrator value is never replaced by the plugin default")
 }
 
-func TestValidateNewAPIChannelTaskPluginExtensions(t *testing.T) {
-	// gateway-ext-vendor never declares new_api, so it can only run against
-	// its vendor and must be refused on a New API channel.
+func TestValidateAiGatewayChannelTaskPluginExtensions(t *testing.T) {
+	// gateway-ext-vendor never declares ai_gateway, so it can only run against
+	// its vendor and must be refused on a Ai-gateway channel.
 	for key, upstreams := range map[string]string{"gateway-ext-a": `upstreams: ["vendor", "new_api"],`, "gateway-ext-b": `upstreams: ["new_api"],`, "gateway-ext-vendor": ""} {
 		source := `
 export const meta = {apiVersion: 1, key: "` + key + `", name: "Gateway", version: "1.0.0", author: {name: "Test"}, models: ["doc-` + key + `"], fetchMode: "per_task", ` + upstreams + `};
@@ -90,8 +90,8 @@ export function parseTaskResult() { return {}; }
 		{"single and extension keys", `{"task_plugin_key":"gateway-ext-a","task_extend_plugin_keys":["gateway-ext-b"]}`, ""},
 		{"extension keys only", `{"task_extend_plugin_keys":["gateway-ext-a","gateway-ext-b"]}`, ""},
 		{"unregistered", `{"task_extend_plugin_keys":["gateway-ext-a","missing"]}`, `task plugin "missing" is not registered`},
-		{"vendor-only plugin as extension", `{"task_extend_plugin_keys":["gateway-ext-a","gateway-ext-vendor"]}`, `task plugin "gateway-ext-vendor" does not support a New API upstream`},
-		{"vendor-only plugin as single key", `{"task_plugin_key":"gateway-ext-vendor"}`, `task plugin "gateway-ext-vendor" does not support a New API upstream`},
+		{"vendor-only plugin as extension", `{"task_extend_plugin_keys":["gateway-ext-a","gateway-ext-vendor"]}`, `task plugin "gateway-ext-vendor" does not support a Ai-gateway upstream`},
+		{"vendor-only plugin as single key", `{"task_plugin_key":"gateway-ext-vendor"}`, `task plugin "gateway-ext-vendor" does not support a Ai-gateway upstream`},
 		{"duplicate", `{"task_extend_plugin_keys":["gateway-ext-a","gateway-ext-a"]}`, "bound more than once"},
 		{"duplicate of single key", `{"task_plugin_key":"gateway-ext-a","task_extend_plugin_keys":["gateway-ext-a"]}`, "bound more than once"},
 		{"padded", `{"task_extend_plugin_keys":[" gateway-ext-a"]}`, "is invalid"},
@@ -99,7 +99,7 @@ export function parseTaskResult() { return {}; }
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			setting := tc.setting
-			channel := &model.Channel{Type: constant.ChannelTypeNewAPI, BaseURL: &baseURL, Setting: &setting}
+			channel := &model.Channel{Type: constant.ChannelTypeAiGateway, BaseURL: &baseURL, Setting: &setting}
 			err := validateChannel(channel, false)
 			if tc.wantErr == "" {
 				require.NoError(t, err)
@@ -111,5 +111,5 @@ export function parseTaskResult() { return {}; }
 
 	setting := `{"task_extend_plugin_keys":["gateway-ext-a"]}`
 	channel := &model.Channel{Type: constant.ChannelTypeOpenAI, Setting: &setting}
-	require.ErrorContains(t, validateChannel(channel, false), "only supported on New API channels")
+	require.ErrorContains(t, validateChannel(channel, false), "only supported on Ai-gateway channels")
 }

@@ -1,6 +1,6 @@
 package oauth
 
-import "github.com/QuantumNous/new-api/common"
+import "github.com/BrandonVee/ai-gateway/common"
 
 // OAuthToken represents the token received from OAuth provider
 type OAuthToken struct {

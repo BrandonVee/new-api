@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
+	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/constant"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -589,7 +589,7 @@ func TestRegistryValidatesChannelTypes(t *testing.T) {
 		{name: "zero rejected", channelTypes: []int{0}, wantErr: "positive channel types"},
 		{name: "negative rejected", channelTypes: []int{-1}, wantErr: "positive channel types"},
 		{name: "task plugin type rejected", channelTypes: []int{constant.ChannelTypeTaskPlugin}, wantErr: "task plugin channel type"},
-		{name: "new api type rejected", channelTypes: []int{constant.ChannelTypeNewAPI}, wantErr: "New API channel type"},
+		{name: "new api type rejected", channelTypes: []int{constant.ChannelTypeAiGateway}, wantErr: "Ai-gateway channel type"},
 		{name: "duplicates rejected", channelTypes: []int{1, 1}, wantErr: "must be unique"},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -1211,8 +1211,8 @@ usageProfiles: [{models:["image"], schema:{tokens:{type:"number", unit:"token"}}
 
 func TestUpstreamsManifestContract(t *testing.T) {
 	for _, tc := range []struct {
-		name, metadata string
-		valid, newAPI  bool
+		name, metadata   string
+		valid, aiGateway bool
 	}{
 		{"omitted implies vendor", "", true, false},
 		{"vendor only", `upstreams:["vendor"],`, true, false},
@@ -1231,7 +1231,7 @@ func TestUpstreamsManifestContract(t *testing.T) {
 			require.NoError(t, err)
 			require.NoError(t, ValidateV1Meta(plugin.Meta))
 			assert.True(t, plugin.Meta.SupportsUpstream(UpstreamKindVendor))
-			assert.Equal(t, tc.newAPI, plugin.Meta.SupportsUpstream(UpstreamKindNewAPI))
+			assert.Equal(t, tc.aiGateway, plugin.Meta.SupportsUpstream(UpstreamKindAiGateway))
 		})
 	}
 }
