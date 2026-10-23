@@ -41,7 +41,7 @@ This will:
 - Use the Rsbuild frontend development server on port 5173
 - Open an Electron window with DevTools enabled
 - Create a system tray icon (menu bar on macOS)
-- Store database in `../data/ai-gateway.db`
+- Use the manually started backend's database (`./ai-gateway.db` in the repository root by default, or its explicit `SQLITE_PATH` / `SQL_DSN`)
 
 ## Building for Production
 
@@ -74,12 +74,25 @@ const PORT = 3000; // Change to desired port
 ```
 
 ### Database Location
-- **Development**: `../data/ai-gateway.db` (project directory)
+- **Development**: the manually started backend's working directory, `./ai-gateway.db` by default
 - **Production**:
   - macOS: `~/Library/Application Support/Ai-gateway/data/`
   - Windows: `%APPDATA%/Ai-gateway/data/`
   - Linux: `~/.config/Ai-gateway/data/`
 
-After rebranding, the desktop app reuses an existing database from earlier
-installation directories when its current data directory has no database.
-The database filename stays unchanged so existing accounts and records remain available.
+New installations create `ai-gateway.db`. Explicit `SQLITE_PATH`, `SQL_DSN`, and
+`LOG_SQL_DSN` values are passed to the backend unchanged. The desktop app also searches earlier
+installation directories for existing databases and reuses a single existing
+file in place, including its WAL/SHM and rollback journal. It never renames or
+copies a potentially active database. Multiple candidates, non-regular files,
+and sidecars without a database stop automatic selection; set `SQLITE_PATH` to
+the intended database after checking and backing up the files.
+
+To rename an existing SQLite database, stop **every** process using it, back up
+the complete directory, then checkpoint it with SQLite (`PRAGMA wal_checkpoint(TRUNCATE);`)
+and confirm that checkpoint succeeds with no busy readers or writers. Close the
+SQLite connection cleanly before renaming the database to `ai-gateway.db`.
+If a WAL, SHM, or rollback journal remains, recover/checkpoint it first; never
+delete it or move only the main file. Do not overwrite an existing destination.
+Keep the backup until the app's accounts and records have been verified. The
+backend's automatic discovery follows the same policy in its working directory.

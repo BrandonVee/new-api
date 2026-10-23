@@ -212,7 +212,7 @@ docker compose logs -f ai-gateway
 | `SESSION_COOKIE_TRUSTED_URL` | Secure 模式必填：以逗号分隔的精确 HTTPS Origin，不含路径或通配符；本地 HTTP 模式不设置 |
 | `TRUSTED_PROXIES` | 可信反向代理 IP/CIDR，或 `none`；按实际网络显式配置 |
 
-完整配置见[环境变量示例](./.env.example)、[环境变量文档](https://docs.newapi.ai/zh/docs/installation/config-maintenance/environment-variables)和[鉴权与登录会话说明](./docs/authentication.md)。容器变量应通过 Compose 的 `environment` 或 `env_file` 注入；只复制 `.env.example` 不会自动将变量传入容器。
+完整配置见[环境变量示例](./.env.example)、[Compose 部署配置](./docker-compose.yml)和[鉴权与登录会话说明](./docs/authentication.md)。容器变量应通过 Compose 的 `environment` 或 `env_file` 注入；只复制 `.env.example` 不会自动将变量传入容器。
 
 正式部署时使用 HTTPS，并配置反向代理支持流式响应与 WebSocket 升级。持久化并备份数据库和挂载数据。多节点必须共用主数据库和鉴权密钥；独立 Redis 或内存限流器会按节点分别计数。不同拓扑下的会话传播行为见鉴权文档。
 
@@ -262,11 +262,14 @@ bun run dev -- --port 5173
 
 | 资源 | 入口 |
 | --- | --- |
-| 官方文档 | [使用指南](https://docs.newapi.ai/zh/docs) · [安装部署](https://docs.newapi.ai/zh/docs/installation) · [API 参考](https://docs.newapi.ai/zh/docs/api) |
-| 项目导读 | [DeepWiki](https://deepwiki.com/QuantumNous/new-api) |
-| 使用问题与交流 | [常见问题](https://docs.newapi.ai/zh/docs/support/faq) · [社区渠道](https://docs.newapi.ai/zh/docs/support/community-interaction) |
+| 项目文档 | [README](./README.zh_CN.md) · [文档目录](./docs/) · [部署说明](#deployment) |
+| API 规范 | [管理 API](./docs/openapi/api.json) · [转发 API](./docs/openapi/relay.json) |
 | 缺陷与功能建议 | [GitHub Issues](https://github.com/BrandonVee/new-api/issues) |
 | 安全漏洞 | 按[安全政策](./.github/SECURITY.md)进行私下报告 |
+
+产品名称为 Ai-gateway，实际仓库仍为 [BrandonVee/new-api](https://github.com/BrandonVee/new-api)。
+
+客户端配置导入使用 Ai-gateway 名称：AionUi 使用其 `custom` 平台，DeepChat 使用 `openai-compatible` 自定义供应商。Fluent 优先使用 `fluent-ai-gateway-container` 和 `id: ai-gateway`；旧扩展仍通过其固定协议桥接，避免已安装的扩展失效。Waffo Pancake 新建付款的买家标识使用 `ai-gateway-user-<用户ID>`，升级前已创建订单的签名回调仍按原用户身份验证。
 
 反馈问题时请附上版本、部署方式、复现步骤及脱敏日志。欢迎贡献文档、翻译、渠道适配和有针对性的回归测试。
 
@@ -285,8 +288,6 @@ bun run dev -- --port 5173
 
 | 项目 | 说明 |
 |------|------|
-| [new-api-key-tool](https://github.com/Calcium-Ion/new-api-key-tool) | Key 额度查询工具 |
-| [new-api-horizon](https://github.com/Calcium-Ion/new-api-horizon) | 上游网关高性能优化版 |
 
 ---
 
@@ -312,7 +313,7 @@ bun run dev -- --port 5173
 
 如果这个项目对你有帮助，欢迎给我们一个 ⭐️ Star！
 
-**[官方文档](https://docs.newapi.ai/zh/docs)** • **[问题反馈](https://github.com/BrandonVee/new-api/issues)** • **[最新发布](https://github.com/BrandonVee/new-api/releases)**
+**[项目文档](#documentation)** • **[问题反馈](https://github.com/BrandonVee/new-api/issues)** • **[最新发布](https://github.com/BrandonVee/new-api/releases)**
 
 <sub>Built with ❤️ by QuantumNous</sub>
 

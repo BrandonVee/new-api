@@ -72,7 +72,7 @@ describe('Ai-gateway channel', () => {
     }
 
     expect(
-      channelFormSchema.safeParse(aiGatewayForm('https://new-api.example'))
+      channelFormSchema.safeParse(aiGatewayForm('https://ai-gateway.example'))
         .success
     ).toBe(true)
   })
@@ -144,13 +144,13 @@ describe('Ai-gateway channel task plugin extensions', () => {
       name: 'Doubao',
       models: ['seedance'],
       channelTypes: [45],
-      upstreams: ['vendor', 'new_api'],
+      upstreams: ['vendor', 'ai_gateway'],
     },
     {
       key: 'kling',
       name: 'Kling',
       models: ['kling-v2'],
-      upstreams: ['new_api'],
+      upstreams: ['ai_gateway'],
     },
     {
       key: 'acme',
@@ -164,6 +164,7 @@ describe('Ai-gateway channel task plugin extensions', () => {
     expect(plugins.filter(supportsAiGatewayUpstream).map((p) => p.key)).toEqual(
       ['doubao', 'kling']
     )
+    expect(supportsAiGatewayUpstream({ upstreams: ['new_api'] })).toBe(false)
     expect(supportsAiGatewayUpstream({ upstreams: null })).toBe(false)
     expect(supportsAiGatewayUpstream({})).toBe(false)
   })

@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 使用文档 / Documentation
-    url: https://docs.newapi.ai/
-    about: 提交 issue 前请先查阅文档，确认现有说明无法解决你的问题。
-  - name: 使用问题 / Usage Questions
-    url: https://deepwiki.com/QuantumNous/new-api
-    about: 使用、配置、接入等问题请优先在 DeepWiki 查询或提问。
+  - name: 项目说明 / Project README
+    url: https://github.com/BrandonVee/new-api/blob/main/README.zh_CN.md
+    about: 提交 issue 前请先查阅本项目 README，确认现有说明无法解决你的问题。 / Read the project README before opening an issue.
+  - name: 项目文档 / Project Documentation
+    url: https://github.com/BrandonVee/new-api/tree/main/docs
+    about: 使用、配置、接入等问题请优先查阅本仓库文档。 / Check this repository's documentation for usage, configuration, and integration questions.

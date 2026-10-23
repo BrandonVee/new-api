@@ -38,6 +38,27 @@ afterEach(() => {
 })
 
 describe('index.html theme boot script', () => {
+  it('ignores an older installation’s dark preference before React mounts', () => {
+    mockSystemDarkMode(false)
+    localStorage.setItem('newapi:theme:v1:mode', 'dark')
+
+    runBootScript()
+
+    expect(document.documentElement).toHaveClass('light')
+    expect(document.documentElement).not.toHaveClass('dark')
+  })
+
+  it('prefers the current setting over an older installation’s setting', () => {
+    mockSystemDarkMode(true)
+    localStorage.setItem('newapi:theme:v1:mode', 'dark')
+    localStorage.setItem(THEME_STORAGE_KEYS.mode, 'light')
+
+    runBootScript()
+
+    expect(document.documentElement).toHaveClass('light')
+    expect(document.documentElement).not.toHaveClass('dark')
+  })
+
   it('applies the saved dark preference to html before React mounts', () => {
     mockSystemDarkMode(false)
     localStorage.setItem(THEME_STORAGE_KEYS.mode, 'dark')

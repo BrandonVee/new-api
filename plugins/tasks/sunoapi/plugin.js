@@ -15,7 +15,7 @@ export const meta = {
   models: ["suno_music", "suno_lyrics"],
   fetchMode: "batch",
   // Vendor paths already equal the /suno native routes, so no URL changes.
-  upstreams: ["vendor", "new_api"],
+  upstreams: ["vendor", "ai_gateway"],
   usageSchema: {
     // Number of generated music or lyrics clips.
     clips: {
@@ -190,7 +190,7 @@ function artifactData(ctx) {
 }
 
 function artifactKey(type, song) {
-  return type + "-" + utils.hmacSHA256(String(song.id), "new-api:suno:artifact-key");
+  return type + "-" + utils.hmacSHA256(String(song.id), "ai-gateway:suno:artifact-key");
 }
 
 export function listArtifacts(task) {

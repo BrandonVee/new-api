@@ -197,7 +197,7 @@ docker compose logs -f ai-gateway
 | `SESSION_COOKIE_TRUSTED_URL` | Secure モードでは必須。パスやワイルドカードを含まない正確な HTTPS オリジンをカンマ区切りで指定。ローカル HTTP では未設定にする |
 | `TRUSTED_PROXIES` | 信頼するリバースプロキシの IP/CIDR、または `none`。実際のネットワークに合わせて明示的に設定 |
 
-詳細は[環境変数の例](./.env.example)、[環境変数リファレンス](https://docs.newapi.ai/ja/docs/installation/config-maintenance/environment-variables)、[認証とセッションの説明](./docs/authentication.md)を参照してください。コンテナの変数は Compose の `environment` または `env_file` で渡します。`.env.example` のコピーだけではコンテナに反映されません。
+詳細は[環境変数の例](./.env.example)、[Compose 設定](./docker-compose.yml)、[認証とセッションの説明](./docs/authentication.md)を参照してください。コンテナの変数は Compose の `environment` または `env_file` で渡します。`.env.example` のコピーだけではコンテナに反映されません。
 
 本番環境では HTTPS を使い、リバースプロキシでストリーミングと WebSocket アップグレードを有効にします。データベースとマウントデータを永続化し、バックアップしてください。複数ノードはメインデータベースと認証シークレットを共有します。独立した Redis やメモリ内のレート制限はノードごとに計数します。構成別のセッション伝播については認証の説明を参照してください。
 
@@ -247,11 +247,12 @@ bun run dev -- --port 5173
 
 | リソース | リンク |
 | --- | --- |
-| 公式ドキュメント | [ガイド](https://docs.newapi.ai/ja/docs) · [インストール](https://docs.newapi.ai/ja/docs/installation) · [API リファレンス](https://docs.newapi.ai/ja/docs/api) |
-| プロジェクトの解説 | [DeepWiki](https://deepwiki.com/QuantumNous/new-api) |
-| 質問と交流 | [FAQ](https://docs.newapi.ai/ja/docs/support/faq) · [コミュニティ](https://docs.newapi.ai/ja/docs/support/community-interaction) |
+| 本プロジェクトのドキュメント | [README](./README.ja.md) · [ドキュメント一覧](./docs/) · [デプロイ手順](#deployment) |
+| API 仕様 | [管理 API](./docs/openapi/api.json) · [リレー API](./docs/openapi/relay.json) |
 | 不具合と機能提案 | [GitHub Issues](https://github.com/BrandonVee/new-api/issues) |
 | 脆弱性 | [セキュリティポリシー](./.github/SECURITY.md)に従って非公開で報告 |
+
+製品名は Ai-gateway ですが、実際のリポジトリは引き続き [BrandonVee/new-api](https://github.com/BrandonVee/new-api) です。
 
 不具合の報告には、バージョン、デプロイ方法、再現手順、機密情報を除いたログを添えてください。ドキュメント、翻訳、プロバイダー連携、対象を絞った回帰テストへの貢献も歓迎します。
 
@@ -270,8 +271,6 @@ bun run dev -- --port 5173
 
 | プロジェクト | 説明 |
 |------|------|
-| [new-api-key-tool](https://github.com/Calcium-Ion/new-api-key-tool) | キー使用量クォータ照会ツール |
-| [new-api-horizon](https://github.com/Calcium-Ion/new-api-horizon) | Ai-gateway高性能最適化版 |
 
 ---
 
@@ -297,7 +296,7 @@ AGPLv3 第 7 条に基づく[追加条項](./NOTICE)が適用されます。変�
 
 このプロジェクトがあなたのお役に立てたなら、ぜひ ⭐️ スターをください！
 
-**[公式ドキュメント](https://docs.newapi.ai/ja/docs)** • **[問題フィードバック](https://github.com/BrandonVee/new-api/issues)** • **[最新リリース](https://github.com/BrandonVee/new-api/releases)**
+**[本プロジェクトのドキュメント](#documentation)** • **[問題フィードバック](https://github.com/BrandonVee/new-api/issues)** • **[最新リリース](https://github.com/BrandonVee/new-api/releases)**
 
 <sub>❤️ で構築された QuantumNous</sub>
 

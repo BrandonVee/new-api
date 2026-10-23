@@ -275,7 +275,7 @@ export const meta = {
     "z-image-turbo",
   ].concat(IMAGE_MODEL_SNAPSHOTS),
   fetchMode: "per_task",
-  upstreams: ["vendor", "new_api"],
+  upstreams: ["vendor", "ai_gateway"],
   submitResponseTypes: ["json", "sse"],
   requiredCapabilities: ["duration-auto@1"],
   usageSchema: { ...WAN_IMAGE_USAGE_SCHEMA, ...wanVideoUsageSchema(WAN_VIDEO_RESOLUTIONS, false) },
@@ -341,7 +341,7 @@ function trimmed(value) {
 }
 
 function viaAiGateway(ctx) {
-  return !!(ctx.upstream && ctx.upstream.kind === "new_api");
+  return !!(ctx.upstream && ctx.upstream.kind === "ai_gateway");
 }
 
 // Another Ai-gateway gateway serves the DashScope wire format only on this

@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/QuantumNous/new-api/docs/plugin-api/v1.schema.json",
+  "$id": "urn:ai-gateway:task-plugin:v1",
+  "$comment": "Local Ai-gateway schema identity. Historical schema identity: https://github.com/QuantumNous/new-api/docs/plugin-api/v1.schema.json",
   "title": "ai-gateway Task Plugin v1 manifest",
   "type": "object",
   "additionalProperties": false,
@@ -105,7 +106,7 @@
       }
     },
     "route": {"type": "object", "additionalProperties": false, "required": ["method", "path", "type", "render"], "properties": {"method": {"enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]}, "path": {"type": "string", "pattern": "^/"}, "type": {"enum": ["submit", "query", "dynamic"]}, "action": {"type": "string"}, "taskIdParam": {"type": "string"}, "retainResult": {"type": "boolean"}, "decode": {"type": "string"}, "render": {"type": "string"}, "models": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}}, "allOf": [{"if": {"properties": {"type": {"const": "query"}}}, "then": {"allOf": [{"not": {"required": ["decode"]}}, {"not": {"required": ["models"]}}, {"not": {"required": ["retainResult"]}}]}}, {"if": {"properties": {"type": {"enum": ["submit", "dynamic"]}}}, "then": {"required": ["decode"]}}]},
-    "upstreamKind": {"enum": ["vendor", "new_api"]},
+    "upstreamKind": {"enum": ["vendor", "ai_gateway"]},
     "upstreamContext": {
       "type": "object",
       "additionalProperties": false,

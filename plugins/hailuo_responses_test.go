@@ -412,7 +412,7 @@ func TestHailuoQueryRequestEndpointByModel(t *testing.T) {
 		},
 		{
 			name: "a Ai-gateway gateway serves H3 on the prefixed v2 route",
-			ctx:  map[string]any{"taskId": "t1", "upstreamModel": "MiniMax-H3", "upstream": map[string]any{"kind": "new_api"}},
+			ctx:  map[string]any{"taskId": "t1", "upstreamModel": "MiniMax-H3", "upstream": map[string]any{"kind": "ai_gateway"}},
 			want: "https://api.minimax.example/hailuo/v2/query/video_generation/t1",
 		},
 	}
@@ -703,7 +703,7 @@ func TestHailuoThroughAiGatewayGateway(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			downstream := map[string]any{"requestBody": tc.requestBody, "model": tc.model, "upstreamModel": tc.model,
-				"baseUrl": "https://gateway.example", "apiKey": "sk-gateway", "upstream": map[string]any{"kind": "new_api"}}
+				"baseUrl": "https://gateway.example", "apiKey": "sk-gateway", "upstream": map[string]any{"kind": "ai_gateway"}}
 			sent := call("buildSubmitRequest", nil, downstream)
 			assert.Equal(t, "https://gateway.example"+tc.route, sent["url"])
 

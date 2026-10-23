@@ -299,7 +299,7 @@ func TestBuiltInPluginsAddressAiGatewayUpstreamOnNativeRoutes(t *testing.T) {
 	}{
 		{"vendor signal", map[string]any{"kind": "vendor"}, false, false},
 		{"no signal from an older host", nil, false, false},
-		{"ai_gateway signal", map[string]any{"kind": "new_api"}, true, false},
+		{"ai_gateway signal", map[string]any{"kind": "ai_gateway"}, true, false},
 		{"legacy sk- key without a signal", nil, true, true},
 	}
 	for _, tc := range cases {
@@ -388,7 +388,7 @@ func TestBuiltInPluginsAddressAiGatewayUpstreamOnNativeRoutes(t *testing.T) {
 			wantSSEHeader    bool
 		}{
 			{"vendor", map[string]any{"kind": "vendor"}, "sse", true},
-			{"new_api", map[string]any{"kind": "new_api"}, "json", false},
+			{"ai_gateway", map[string]any{"kind": "ai_gateway"}, "json", false},
 		} {
 			t.Run(variant.name, func(t *testing.T) {
 				value, err := plugin.Engine.Call(t.Context(), "buildSubmitRequest", map[string]any{

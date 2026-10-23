@@ -1,5 +1,22 @@
 # Frontend Development - Backend built from local source
 #
+# Existing deployments: back up databases and keep the original Compose project name
+# (docker compose -p <original-project> ...) so named volumes are reused. Do not run
+# down -v. POSTGRES_DB/MYSQL_DATABASE initialize empty volumes only; they do not
+# rename databases in existing volumes. Keep SQL_DSN/LOG_SQL_DSN pointed at the
+# existing database until an explicit, verified migration is complete.
+# To adopt the new PostgreSQL name: stop every gateway/DB client, connect to the
+# postgres maintenance database, rename the existing database to "ai-gateway"
+# (and a separate log DB to "ai-gateway-log"), then update DSNs and restart.
+# MySQL has no RENAME DATABASE: dump/restore into ai-gateway, verify, then switch
+# DSNs. Migrate ClickHouse logs explicitly into ai_gateway_logs before switching
+# LOG_SQL_DSN; keep the old databases/backups until data has been verified.
+# Renamed MySQL migration locks require stopping old gateway instances before
+# upgrading; do not run old and new masters concurrently during startup migration.
+# SQLite upgrades discover an existing database in place, preserving WAL/SHM.
+# dev_data and dev_pg_data must stay attached to their existing project.
+# New SQLite installs use ai-gateway.db; explicit SQLITE_PATH is never rewritten.
+#
 # Usage:
 #   1. docker compose -f docker-compose.dev.yml up -d
 #   2. make dev-web
@@ -27,7 +44,7 @@ services:
     volumes:
       - dev_data:/data
     environment:
-      - SQL_DSN=postgresql://root:123456@postgres:5432/new-api
+      - SQL_DSN=postgresql://root:123456@postgres:5432/ai-gateway
       - REDIS_CONN_STRING=redis://redis
       - TZ=Asia/Shanghai
       - BATCH_UPDATE_ENABLED=true
@@ -58,13 +75,13 @@ services:
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: new-api
+      POSTGRES_DB: ai-gateway
     volumes:
       - dev_pg_data:/var/lib/postgresql/data
     networks:
       - dev-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d new-api"]
+      test: ["CMD-SHELL", "pg_isready -U root -d ai-gateway"]
       interval: 5s
       timeout: 3s
       retries: 5

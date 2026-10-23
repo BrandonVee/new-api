@@ -68,8 +68,8 @@ func InitEnv() {
 		log.Fatal(err)
 	}
 	initUserSessionSettings()
-	if os.Getenv("SQLITE_PATH") != "" {
-		SQLitePath = os.Getenv("SQLITE_PATH")
+	if err := initSQLitePath(); err != nil {
+		log.Fatal(err)
 	}
 	if *LogDir != "" {
 		var err error

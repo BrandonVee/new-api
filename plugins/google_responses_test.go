@@ -59,7 +59,7 @@ func TestGoogleThroughAiGatewayGateway(t *testing.T) {
 		return decodePluginValue(t, value)
 	}
 	const veo = "veo-3.1-fast-generate-preview"
-	gateway := map[string]any{"kind": "new_api"}
+	gateway := map[string]any{"kind": "ai_gateway"}
 	submitParams := map[string]any{"model": veo + ":predictLongRunning"}
 
 	for _, tc := range []struct {

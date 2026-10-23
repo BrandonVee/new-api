@@ -94,7 +94,7 @@ export const meta = {
   channelTypes: [35],
   models: [H3_MODEL].concat(V1_MODELS),
   fetchMode: "per_task",
-  upstreams: ["vendor", "new_api"],
+  upstreams: ["vendor", "ai_gateway"],
   // Fallback for a channel alias that resolves to more than one model: the
   // union of every family's fields and resolutions.
   usageSchema: Object.assign({}, H3_USAGE_SCHEMA, {
@@ -183,7 +183,7 @@ function definedFields(source, keys) {
 // On a Ai-gateway channel the same plugin answers on another gateway, which
 // serves the MiniMax wire format only on the prefixed native routes.
 function viaGateway(ctx) {
-  return Boolean(ctx.upstream && ctx.upstream.kind === "new_api");
+  return Boolean(ctx.upstream && ctx.upstream.kind === "ai_gateway");
 }
 
 function apiRoot(ctx) {

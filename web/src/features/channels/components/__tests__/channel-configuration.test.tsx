@@ -45,7 +45,7 @@ const plugins: TaskPluginOption[] = [
     icon: 'text:VA',
     baseUrl: 'https://a.example',
     models: ['video-a-1'],
-    upstreams: ['vendor', 'new_api'],
+    upstreams: ['vendor', 'ai_gateway'],
   },
   {
     key: 'video-b',
@@ -53,7 +53,7 @@ const plugins: TaskPluginOption[] = [
     icon: 'text:VB',
     baseUrl: 'https://b.example',
     models: ['video-b-1'],
-    upstreams: ['vendor', 'new_api'],
+    upstreams: ['vendor', 'ai_gateway'],
   },
   {
     // Vendor-only: bindable to a Task Plugin channel, never to a Ai-gateway one.

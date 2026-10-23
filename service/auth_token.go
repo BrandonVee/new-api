@@ -23,8 +23,8 @@ const (
 	RefreshReplayWindow   = 30 * time.Second
 	accessTokenUse        = "access"
 	securityProofTokenUse = "security_proof"
-	authTokenIssuer       = "new-api"
-	authTokenAudience     = "new-api-dashboard"
+	authTokenIssuer       = "ai-gateway"
+	authTokenAudience     = "ai-gateway-dashboard"
 )
 
 var (
@@ -53,7 +53,7 @@ type authClaims struct {
 
 func authSigningKey(purpose string) []byte {
 	mac := hmac.New(sha256.New, []byte(common.SessionSecret))
-	_, _ = mac.Write([]byte("new-api/auth/" + purpose + "/v1"))
+	_, _ = mac.Write([]byte("ai-gateway/auth/" + purpose + "/v1"))
 	return mac.Sum(nil)
 }
 

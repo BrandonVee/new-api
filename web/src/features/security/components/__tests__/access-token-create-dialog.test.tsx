@@ -217,7 +217,7 @@ describe('create access token dialog', () => {
       return {
         data: {
           success: true,
-          data: { token: 'nap_private-plaintext', item: {} },
+          data: { token: 'ai_gateway_private-plaintext', item: {} },
         },
       }
     })
@@ -254,7 +254,7 @@ describe('create access token dialog', () => {
   })
 
   it('warns about tokens that never expire and shows the plaintext only once', async () => {
-    const token = 'nap_one-time-private-token'
+    const token = 'ai_gateway_one-time-private-token'
     vi.mocked(api.post).mockImplementation(async (url, data) => {
       if (url === '/api/verify') {
         return passwordProof((data as { scope: string }).scope)

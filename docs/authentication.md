@@ -1,6 +1,6 @@
 # 用户鉴权与登录会话
 
-面板鉴权采用短期 Access Token、HttpOnly Refresh Cookie 与服务端登录会话控制面的组合。面板请求不再依赖 Gin session，也不再要求 `New-Api-User` 请求头。
+面板鉴权采用短期 Access Token、HttpOnly Refresh Cookie 与服务端登录会话控制面的组合。面板请求不再依赖 Gin session，也不再要求旧的用户编号请求头。
 
 ## 鉴权模型
 
@@ -143,9 +143,9 @@ Redis 限流使用原子 Lua 固定窗口，替代旧的近似滑动窗口 List 
 
 ## PAT 调用契约
 
-面板 PAT（个人访问令牌）通过 `Authorization: Bearer <pat>` 发送，也兼容单值 `Authorization: <pat>`；不接受 URL 参数。`New-Api-User` 不参与鉴权。
+面板 PAT（个人访问令牌）通过 `Authorization: Bearer <pat>` 发送，也兼容单值 `Authorization: <pat>`；不接受 URL 参数。旧的用户编号请求头不参与鉴权。
 
-- 令牌格式为 `nap_` 加 43 位 base62 随机串（约 256 bit）。明文只在创建时返回一次，数据库只保存 SHA-256 摘要，该摘要同时作为审计记录中的 `token_ref`。
+- 新令牌格式为 `ai_gateway_` 加 43 位 base62 随机串（约 256 bit）。此前签发的 `nap_` 令牌继续按同样的 scope、有效期与撤销规则验证，不会降级为无 scope 的旧版令牌。明文只在创建时返回一次，数据库只保存 SHA-256 摘要，该摘要同时作为审计记录中的 `token_ref`；列表仅显示末尾提示，避免猜测已签发令牌的前缀。
 - 每个用户最多 20 个令牌，存放在 `user_access_tokens` 表。创建时必须选择 scope 和过期时间：默认 30 天，最短 1 小时，也允许永不过期（界面会提示风险）。过期令牌立即失效，超过保留期后由 master 节点清理。
 - scope 形如 `resource:action`。个人权限（资料、API 令牌、用量、钱包、账户安全）和部分后台权限由令牌目录定义；受 Casbin 保护的后台权限直接复用管理员权限矩阵的 resource 与 action。只能授予自己当前拥有的权限，并且每个请求都会重新读取角色和权限：撤回某项管理员权限后，携带该 scope 的令牌立即失去对应能力。
 - 每条面板路由都必须声明所需 scope。未声明的路由一律拒绝（403 `ACCESS_TOKEN_ROUTE_UNDECLARED`），scope 不足返回 403 `ACCESS_TOKEN_SCOPE_DENIED`，令牌过期返回 401 `ACCESS_TOKEN_EXPIRED`。
@@ -185,6 +185,10 @@ Proof 同时绑定用户、登录会话、用户鉴权版本、会话版本和 s
 
 ## 升级注意事项
 
+- Ai-gateway 使用 `ai-gateway` JWT issuer、`ai-gateway-dashboard` audience 和独立的 `ai-gateway/auth/<purpose>/v1` 签名密钥派生域；Refresh Cookie 与登录提示 Cookie 分别命名为 `ai_gateway_refresh`、`ai_gateway_has_session`。旧版面板 Access Token、Security Proof 和 Refresh Cookie 不再接受，升级后需要重新登录；用户账号和 API Key 不受影响。
+- 面板标签页同步频道和刷新互斥锁改为 `ai-gateway:*`。部署时应同步更新所有节点并刷新已有标签页，避免混用两套签名域或同步频道。Redis 的渠道亲和性、订阅缓存和 WebSocket 关闭广播同样使用 `ai-gateway:*`；缓存会重新建立。
+- 网关错误类型改为 `ai_gateway_error` / `ai_gateway_panic`，版本和任务计费倍率响应头改为 `X-Ai-Gateway-Version` / `X-Ai-Gateway-Other-Ratios`；读取这些字段的客户端应同步更新。新日志文件使用 `ai-gateway-<时间戳>.log`；历史日志仍可查看和清理，按数量保留时会跨文件名前缀比较时间戳。
+- 认证改名保留 HS256 算法白名单、issuer/audience/有效期/用途校验，Refresh Cookie 的 HttpOnly、Secure 配置、SameSite=Strict 与路径约束，以及服务端刷新轮换、来源检查和 Proof 单次消费。针对性回归对应 [OWASP ASVS 5.0.0](https://github.com/OWASP/ASVS/tree/v5.0.0_release) 9.1.1–9.1.3、9.2.1–9.2.3、7.2.1、7.4.1，并参考 [Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)、[Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html) 与 [CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) Cheat Sheets；这些回归仅覆盖本次标识变更，不代表整站 ASVS 认证。
 - 旧 `session` Cookie 不再使用；升级后现有面板登录会失效，用户需要重新登录。
 - 数据库迁移会新增 `user_sessions`、`auth_flows`、`external_identity_claims` 和 `users.auth_version`，并为已有用户初始化鉴权版本、回填 Telegram 账号唯一归属；若历史数据中同一 Telegram ID 已绑定多个用户，迁移会拒绝继续启动，需先消除歧义。
 - 数据库迁移会为 Session 签发计数和分批清理新增索引；已有 `user_sessions` 很大时应为首次启动预留维护窗口。
@@ -193,7 +197,7 @@ Proof 同时绑定用户、登录会话、用户鉴权版本、会话版本和 s
 - 未配置 `TRUSTED_PROXIES` 时会兼容信任回环和常见私网代理；使用公网负载均衡器、`100.64.0.0/10`、链路本地地址或自定义 CNI 网段的部署仍需显式配置。需要严格忽略所有转发头时设置为 `none`。
 - Redis 限流从近似滑动窗口改为原子固定窗口，存在明确的边界双倍突发语义。
 - 用户级模型成功请求限流的 UTC 时间戳在滚动升级期间存在一个窗口的混合格式过渡，期间可能临时误放行或误拒绝。
-- 自建客户端应按新的 AuthBundle、`flow_token` 和 Security Proof 契约升级；PAT 客户端可直接移除 `New-Api-User`。
+- 自建客户端应按新的 AuthBundle、`flow_token` 和 Security Proof 契约升级；PAT 客户端可直接移除旧的用户编号请求头。
 - 旧版 PAT 保留在 `users.access_token` 中，自新版首次启动起 30 天内照常可用，之后自动停用并返回 401 `ACCESS_TOKEN_LEGACY_RETIRED`。停用日期记录在 `options` 表的 `LegacyAccessTokenRetireAt`，由服务端写入，不能通过设置接口修改。过渡期内不能再生成旧版令牌，但可以撤销。
 - 删除了 `/api/user/token*` 接口，改为 `/api/user/access_tokens`。
 - 降级到旧版本后，新令牌不可用；未撤销的旧版令牌会重新可用，因为旧版本不认停用日期。

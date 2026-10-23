@@ -212,7 +212,7 @@ docker compose logs -f ai-gateway
 | `SESSION_COOKIE_TRUSTED_URL` | Required in Secure mode: comma-separated exact HTTPS origins, without paths or wildcards; leave unset for local HTTP |
 | `TRUSTED_PROXIES` | Trusted reverse-proxy IPs/CIDRs, or `none`; explicitly configure for your network |
 
-See the [environment example](./.env.example), [environment reference](https://docs.newapi.ai/en/docs/installation/config-maintenance/environment-variables), and [authentication and session guide](./docs/authentication.md) for full configuration. Configure container variables in Compose's `environment` or `env_file`; copying `.env.example` alone does not inject variables into the container.
+See the [environment example](./.env.example), [Compose configuration](./docker-compose.yml), and [authentication and session guide](./docs/authentication.md) for full configuration. Configure container variables in Compose's `environment` or `env_file`; copying `.env.example` alone does not inject variables into the container.
 
 For production, put the console behind HTTPS and configure your reverse proxy for streaming and WebSocket upgrades. Persist and back up the database and mounted data. Multi-node deployments must share the main database and authentication secrets; separate Redis instances or in-memory rate limiters count limits independently per node. The session guide describes propagation behavior for each topology.
 
@@ -262,11 +262,12 @@ Read [AGENTS.md](./AGENTS.md) before contributing. Run checks appropriate to you
 
 | Resource | Link |
 | --- | --- |
-| Official documentation | [Guides](https://docs.newapi.ai/en/docs) · [Installation](https://docs.newapi.ai/en/docs/installation) · [API reference](https://docs.newapi.ai/en/docs/api) |
-| Project exploration | [DeepWiki](https://deepwiki.com/QuantumNous/new-api) |
-| Questions and discussion | [FAQ](https://docs.newapi.ai/en/docs/support/faq) · [Community](https://docs.newapi.ai/en/docs/support/community-interaction) |
+| Project documentation | [README](./README.md) · [Documentation directory](./docs/) · [Deployment](#deployment) |
+| API specifications | [Management API](./docs/openapi/api.json) · [Relay API](./docs/openapi/relay.json) |
 | Bugs and feature requests | [GitHub Issues](https://github.com/BrandonVee/new-api/issues) |
 | Security reports | Follow the [security policy](./.github/SECURITY.md) for private reporting |
+
+The product name is Ai-gateway; the repository remains [BrandonVee/new-api](https://github.com/BrandonVee/new-api).
 
 For bug reports, include the version, deployment method, reproduction steps, and redacted logs. Documentation, translations, provider integrations, and focused regression tests are all welcome contributions.
 
@@ -285,8 +286,6 @@ For bug reports, include the version, deployment method, reproduction steps, and
 
 | Project | Description |
 |------|------|
-| [new-api-key-tool](https://github.com/Calcium-Ion/new-api-key-tool) | Key quota query tool |
-| [new-api-horizon](https://github.com/Calcium-Ion/new-api-horizon) | Upstream high-performance gateway |
 
 ---
 
@@ -318,7 +317,7 @@ See [NOTICE](./NOTICE) and [third-party licenses](./THIRD-PARTY-LICENSES.md) for
 
 If this project is helpful to you, welcome to give us a ⭐️ Star！
 
-**[Official Documentation](https://docs.newapi.ai/en/docs)** • **[Issue Feedback](https://github.com/BrandonVee/new-api/issues)** • **[Latest Release](https://github.com/BrandonVee/new-api/releases)**
+**[Project Documentation](#documentation)** • **[Issue Feedback](https://github.com/BrandonVee/new-api/issues)** • **[Latest Release](https://github.com/BrandonVee/new-api/releases)**
 
 <sub>Built with ❤️ by QuantumNous</sub>
 

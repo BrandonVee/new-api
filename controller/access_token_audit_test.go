@@ -386,7 +386,7 @@ func TestAccessTokenCreationChecksGrantBeforeConsumingProof(t *testing.T) {
 	}
 	require.NoError(t, common.Unmarshal(response.Body.Bytes(), &created))
 	raw := created.Data.Token
-	require.True(t, strings.HasPrefix(raw, model.AccessTokenPrefix))
+	require.True(t, strings.HasPrefix(raw, "ai_gateway_"))
 	assert.Len(t, raw, len(model.AccessTokenPrefix)+43)
 	assert.Equal(t, "ci", created.Data.Item.Name)
 	assert.Equal(t, []string{"profile:read", "usage:read"}, created.Data.Item.Scopes)

@@ -198,7 +198,7 @@ func getLogFiles() ([]LogFileInfo, error) {
 			continue
 		}
 		name := entry.Name()
-		if !strings.HasPrefix(name, "oneapi-") || !strings.HasSuffix(name, ".log") {
+		if (!strings.HasPrefix(name, "ai-gateway-") && !strings.HasPrefix(name, "oneapi-")) || !strings.HasSuffix(name, ".log") {
 			continue
 		}
 		info, err := entry.Info()
@@ -211,9 +211,11 @@ func getLogFiles() ([]LogFileInfo, error) {
 			ModTime: info.ModTime(),
 		})
 	}
-	// 按文件名降序排列（最新在前）
+	// Compare the timestamp suffix so historical log prefixes do not affect retention.
 	sort.Slice(files, func(i, j int) bool {
-		return files[i].Name > files[j].Name
+		left := files[i].Name[strings.LastIndexByte(files[i].Name, '-')+1:]
+		right := files[j].Name[strings.LastIndexByte(files[j].Name, '-')+1:]
+		return left > right
 	})
 	return files, nil
 }

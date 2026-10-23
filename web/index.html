@@ -21,7 +21,9 @@
       ;(function () {
         var theme = 'system'
         try {
-          theme = localStorage.getItem('newapi:theme:v1:mode') || 'system'
+          theme =
+            localStorage.getItem('ai-gateway:theme:v1:mode') ??
+            'system'
         } catch (e) {}
         if (theme !== 'dark' && theme !== 'light') {
           theme = window.matchMedia('(prefers-color-scheme: dark)').matches

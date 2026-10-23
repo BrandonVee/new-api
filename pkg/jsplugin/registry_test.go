@@ -589,7 +589,7 @@ func TestRegistryValidatesChannelTypes(t *testing.T) {
 		{name: "zero rejected", channelTypes: []int{0}, wantErr: "positive channel types"},
 		{name: "negative rejected", channelTypes: []int{-1}, wantErr: "positive channel types"},
 		{name: "task plugin type rejected", channelTypes: []int{constant.ChannelTypeTaskPlugin}, wantErr: "task plugin channel type"},
-		{name: "new api type rejected", channelTypes: []int{constant.ChannelTypeAiGateway}, wantErr: "Ai-gateway channel type"},
+		{name: "ai-gateway type rejected", channelTypes: []int{constant.ChannelTypeAiGateway}, wantErr: "Ai-gateway channel type"},
 		{name: "duplicates rejected", channelTypes: []int{1, 1}, wantErr: "must be unique"},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -1216,10 +1216,11 @@ func TestUpstreamsManifestContract(t *testing.T) {
 	}{
 		{"omitted implies vendor", "", true, false},
 		{"vendor only", `upstreams:["vendor"],`, true, false},
-		{"vendor and new api", `upstreams:["vendor","new_api"],`, true, true},
-		{"new api only still serves its vendor", `upstreams:["new_api"],`, true, true},
+		{"vendor and ai-gateway", `upstreams:["vendor","ai_gateway"],`, true, true},
+		{"ai-gateway only still serves its vendor", `upstreams:["ai_gateway"],`, true, true},
+		{"legacy upstream kind rejected", `upstreams:["new_api"],`, false, false},
 		{"unknown kind", `upstreams:["gateway"],`, false, false},
-		{"duplicate", `upstreams:["new_api","new_api"],`, false, false},
+		{"duplicate", `upstreams:["ai_gateway","ai_gateway"],`, false, false},
 		{"null", `upstreams:null,`, false, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

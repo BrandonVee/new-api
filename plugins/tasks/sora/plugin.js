@@ -13,7 +13,7 @@ export const meta = {
   models: ["sora-2", "sora-2-pro"],
   fetchMode: "per_task",
   // A Ai-gateway gateway serves /v1/videos as a host protocol, so no URL changes.
-  upstreams: ["vendor", "new_api"],
+  upstreams: ["vendor", "ai_gateway"],
   usageSchema: {
     // Requested video duration in seconds.
     seconds: {

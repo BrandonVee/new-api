@@ -1,10 +1,10 @@
 export const THEME_STORAGE_KEYS = {
-  mode: 'newapi:theme:v1:mode',
-  preset: 'newapi:theme:v1:preset',
-  font: 'newapi:theme:v1:font',
-  radius: 'newapi:theme:v1:radius',
-  scale: 'newapi:theme:v1:scale',
-  contentLayout: 'newapi:theme:v1:content-layout',
+  mode: 'ai-gateway:theme:v1:mode',
+  preset: 'ai-gateway:theme:v1:preset',
+  font: 'ai-gateway:theme:v1:font',
+  radius: 'ai-gateway:theme:v1:radius',
+  scale: 'ai-gateway:theme:v1:scale',
+  contentLayout: 'ai-gateway:theme:v1:content-layout',
 } as const
 
 export function readThemePreference<T extends string>(
@@ -15,8 +15,6 @@ export function readThemePreference<T extends string>(
   if (typeof window === 'undefined') return fallback
 
   try {
-    // Legacy cookies are shared across ports, so importing them would restore
-    // preferences that may belong to another local instance.
     const value = window.localStorage.getItem(key)
     return value && allowed.has(value as T) ? (value as T) : fallback
   } catch {

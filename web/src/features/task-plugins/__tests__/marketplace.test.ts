@@ -5,9 +5,7 @@ import { describe, test } from 'vitest'
 import {
   deriveInstallState,
   findMarketplaceVersion,
-  GITHUB_MARKETPLACE_INDEX_URL,
   indexHasIntegrityHashes,
-  isDefaultMarketplaceSource,
   isStaleFactoryOverride,
   marketplaceBuiltInVersion,
   parseMarketplaceIndex,
@@ -19,7 +17,7 @@ import type {
   TaskPluginListItem,
 } from '../types'
 
-const OFFICIAL_INDEX_URL = 'https://www.newapi.ai/api/v1/plugins/index.json'
+const INDEX_URL = 'https://plugins.example/api/v1/plugins/index.json'
 
 function marketplacePlugin(
   overrides: Partial<MarketplacePlugin> = {}
@@ -88,8 +86,8 @@ describe('marketplace source path resolution', () => {
 
   test('resolves against a root index without dropping the path', () => {
     assert.equal(
-      resolvePluginSourceUrl(OFFICIAL_INDEX_URL, 'x/1.0.0/plugin.js'),
-      'https://www.newapi.ai/api/v1/plugins/x/1.0.0/plugin.js'
+      resolvePluginSourceUrl(INDEX_URL, 'x/1.0.0/plugin.js'),
+      'https://plugins.example/api/v1/plugins/x/1.0.0/plugin.js'
     )
   })
 
@@ -114,7 +112,7 @@ describe('marketplace source path resolution', () => {
   })
 
   test('rejects an empty path', () => {
-    assert.equal(resolvePluginSourceUrl(OFFICIAL_INDEX_URL, '  '), null)
+    assert.equal(resolvePluginSourceUrl(INDEX_URL, '  '), null)
   })
 
   test('rejects an index URL that is not a valid absolute URL', () => {
@@ -555,7 +553,7 @@ describe('marketplace version lookup', () => {
   })
 })
 
-describe('source integrity and trust labels', () => {
+describe('source integrity', () => {
   function index(plugins: MarketplacePlugin[]): MarketplaceIndex {
     return { indexVersion: 1, name: 'test', plugins }
   }
@@ -594,19 +592,6 @@ describe('source integrity and trust labels', () => {
 
   test('treats an empty index as unverified rather than trivially verified', () => {
     assert.equal(indexHasIntegrityHashes(index([])), false)
-  })
-
-  test('labels both built-in index URLs as official sources', () => {
-    assert.equal(isDefaultMarketplaceSource(OFFICIAL_INDEX_URL), true)
-    assert.equal(isDefaultMarketplaceSource(` ${OFFICIAL_INDEX_URL} `), true)
-    assert.equal(isDefaultMarketplaceSource(GITHUB_MARKETPLACE_INDEX_URL), true)
-  })
-
-  test('labels any other index URL as third-party', () => {
-    assert.equal(
-      isDefaultMarketplaceSource('https://mirror.example/index.json'),
-      false
-    )
   })
 })
 

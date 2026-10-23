@@ -83,7 +83,7 @@ function analyzeError(errorLogs) {
       type: '数据文件被占用',
       title: '无法访问数据文件',
       message: '应用的数据文件正被其他程序占用',
-      solution: '可能的解决方案：\n\n1. 检查是否已经打开了另一个 Ai-gateway 窗口\n   - 查看任务栏/Dock 中是否有其他 Ai-gateway 图标\n   - 查看系统托盘（Windows）或菜单栏（Mac）中是否有 Ai-gateway 图标\n\n2. 如果刚刚关闭过应用，请等待 10 秒后再试\n\n3. 重启电脑以释放被占用的文件\n\n4. 如果问题持续，可以尝试：\n   - 退出所有 Ai-gateway 实例\n   - 删除数据目录中的临时文件（.db-shm 和 .db-wal）\n   - 重新启动应用'
+      solution: '可能的解决方案：\n\n1. 检查是否已经打开了另一个 Ai-gateway 窗口\n   - 查看任务栏/Dock 中是否有其他 Ai-gateway 图标\n   - 查看系统托盘（Windows）或菜单栏（Mac）中是否有 Ai-gateway 图标\n\n2. 如果刚刚关闭过应用，请等待 10 秒后再试\n\n3. 重启电脑以释放被占用的文件\n\n4. 如果问题持续，可以尝试：\n   - 退出所有使用该数据库的程序\n   - 备份整个数据目录，保留 .db-wal 和 .db-shm 文件\n   - 重新启动应用；请勿删除这些文件，以免丢失尚未写回的数据'
     };
   }
   
@@ -223,19 +223,52 @@ function startServer() {
   return new Promise((resolve, reject) => {
     const isDev = process.env.NODE_ENV === 'development';
 
-    const userDataPath = app.getPath('userData');
-    let dataDir = path.join(userDataPath, 'data');
-    // Reuse an existing installation's database when the renamed app first starts.
-    if (!fs.existsSync(path.join(dataDir, 'new-api.db'))) {
+    let dataDir = path.join(app.getPath('userData'), 'data');
+    let databasePath = path.join(dataDir, 'ai-gateway.db');
+    const usesSQLite = !process.env.SQL_DSN || process.env.SQL_DSN.startsWith('local') ||
+      (process.env.LOG_SQL_DSN && process.env.LOG_SQL_DSN.startsWith('local'));
+    if (!isDev && !process.env.SQLITE_PATH && usesSQLite) {
+      // Read old installations in place so open databases and WAL/SHM keep
+      // their original paths. Multiple candidates require an explicit choice.
+      const directories = new Set([dataDir]);
       for (const legacyName of ['New-API-App', 'New API', 'new-api-electron']) {
-        const legacyDataDir = path.join(app.getPath('appData'), legacyName, 'data');
-        if (fs.existsSync(path.join(legacyDataDir, 'new-api.db'))) {
-          dataDir = legacyDataDir;
-          break;
+        directories.add(path.join(app.getPath('appData'), legacyName, 'data'));
+      }
+      const databases = [];
+      for (const directory of directories) {
+        for (const filename of ['ai-gateway.db', 'new-api.db', 'one-api.db']) {
+          const candidate = path.join(directory, filename);
+          let hasDatabase = false;
+          let hasSidecar = false;
+          for (const suffix of ['', '-wal', '-shm', '-journal']) {
+            let info;
+            try {
+              info = fs.lstatSync(candidate + suffix);
+            } catch (error) {
+              if (error.code === 'ENOENT') continue;
+              throw error;
+            }
+            if (!info.isFile()) {
+              throw new Error(`SQLite file ${candidate + suffix} is not a regular file; set SQLITE_PATH explicitly`);
+            }
+            if (suffix === '') hasDatabase = true;
+            else hasSidecar = true;
+          }
+          if (!hasDatabase && hasSidecar) {
+            throw new Error(`SQLite sidecars exist without ${candidate}; recover the database or set SQLITE_PATH explicitly`);
+          }
+          if (hasDatabase) databases.push(candidate);
         }
       }
+      if (databases.length > 1) {
+        throw new Error(`Multiple SQLite databases found; set SQLITE_PATH explicitly: ${databases.join(', ')}`);
+      }
+      if (databases.length === 1) {
+        databasePath = databases[0];
+        dataDir = path.dirname(databasePath);
+      }
     }
-    
+
     // 设置环境变量供 preload.js 使用
     process.env.ELECTRON_DATA_DIR = dataDir;
     
@@ -271,12 +304,14 @@ function startServer() {
       fs.mkdirSync(dataDir, { recursive: true });
     }
 
-    env.SQLITE_PATH = path.join(dataDir, 'new-api.db');
+    if (!env.SQLITE_PATH && usesSQLite) {
+      env.SQLITE_PATH = databasePath;
+    }
     
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('📁 您的数据存储位置：');
     console.log('   ' + dataDir);
-    console.log('   💡 备份提示：复制此目录即可备份所有数据');
+    console.log('   💡 备份前请停止所有使用该数据库的程序，并复制整个数据目录');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
     const binaryPath = getBinaryPath();

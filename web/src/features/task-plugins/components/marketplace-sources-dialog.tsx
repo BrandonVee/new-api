@@ -20,7 +20,6 @@ import { Label } from '@/components/ui/label'
 import { handleServerError } from '@/lib/handle-server-error'
 
 import { listMarketplaceSources, updateMarketplaceSources } from '../api'
-import { isDefaultMarketplaceSource } from '../lib/marketplace'
 import type { MarketplaceSource } from '../types'
 
 type MarketplaceSourcesDialogProps = {
@@ -107,13 +106,9 @@ export function MarketplaceSourcesDialog(props: MarketplaceSourcesDialogProps) {
                   {t('Source name')}
                 </Label>
                 <div className='flex items-center gap-2'>
-                  {isDefaultMarketplaceSource(row.index_url) ? (
-                    <Badge variant='secondary'>{t('Official')}</Badge>
-                  ) : (
-                    <Badge variant='destructive'>
-                      {t('Third-party — use at your own risk')}
-                    </Badge>
-                  )}
+                  <Badge variant='destructive'>
+                    {t('Third-party — use at your own risk')}
+                  </Badge>
                   <Button
                     variant='ghost'
                     size='icon-sm'

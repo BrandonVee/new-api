@@ -3,12 +3,7 @@ import { parseDocument } from 'yaml'
 import { z } from 'zod'
 
 import type { MarketplacePlugin } from '../types'
-import {
-  DEFAULT_MARKETPLACE_INDEX_URL,
-  GITHUB_MARKETPLACE_INDEX_URL,
-  findMarketplaceVersion,
-  resolvePluginSourceUrl,
-} from './marketplace'
+import { findMarketplaceVersion, resolvePluginSourceUrl } from './marketplace'
 
 export const CHANGELOG_CATEGORIES = [
   'Added',
@@ -52,7 +47,7 @@ export function changelogLocale(language: string): string {
   }
 }
 
-/** Resolve the sidecar for an index-registered version, including the official proxy index. */
+/** Resolve the sidecar beside the index-registered plugin source. */
 export function resolvePluginChangelogUrl(
   indexUrl: string,
   plugin: MarketplacePlugin,
@@ -65,23 +60,6 @@ export function resolvePluginChangelogUrl(
   const url = new URL(source)
   if (url.username || url.password || !url.pathname.endsWith('/plugin.js')) {
     return null
-  }
-  // The official website rewrites plugin paths into download API URLs. Its
-  // release sidecars still live beside the same key/version in the official repo.
-  if (indexUrl.trim() === DEFAULT_MARKETPLACE_INDEX_URL) {
-    if (
-      ![plugin.key, version].every(
-        (id) => /^[A-Za-z0-9._-]+$/.test(id) && id !== '.' && id !== '..'
-      )
-    ) {
-      return null
-    }
-    const expected = new URL(`${plugin.key}/${version}/plugin.js`, indexUrl)
-    if (url.pathname !== expected.pathname) return null
-    return new URL(
-      `plugins/tasks/${plugin.key}/${version}/CHANGELOG.md`,
-      GITHUB_MARKETPLACE_INDEX_URL
-    ).href
   }
   return new URL('CHANGELOG.md', url).href
 }

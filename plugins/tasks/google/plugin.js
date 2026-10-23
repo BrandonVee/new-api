@@ -12,7 +12,7 @@ export const meta = {
   channelTypes: [24],
   models: ["veo-3.0-generate-001", "veo-3.0-fast-generate-001", "veo-3.1-generate-preview", "veo-3.1-fast-generate-preview"],
   fetchMode: "per_task",
-  upstreams: ["vendor", "new_api"],
+  upstreams: ["vendor", "ai_gateway"],
   usageSchema: {
     // Requested video duration in seconds. Allowed values: 4, 6, 8.
     seconds: {
@@ -56,7 +56,7 @@ function plainObject(value) {
 // serves the Gemini API wire format on the prefixed native routes and takes
 // its own token as a Bearer header.
 function viaGateway(ctx) {
-  return Boolean(ctx.upstream && ctx.upstream.kind === "new_api");
+  return Boolean(ctx.upstream && ctx.upstream.kind === "ai_gateway");
 }
 
 function apiRoot(ctx) {

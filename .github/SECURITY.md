@@ -1,7 +1,7 @@
 # Security Policy
 
 > [!IMPORTANT]
-> **Bulk Reporting Policy:** If you need to submit multiple vulnerability reports in bulk, **you must contact us first** ([support@quantumnous.com](mailto:support@quantumnous.com)) to coordinate the submission process. Uncoordinated bulk submissions have caused significant disruption to our team, and we will take the following actions:
+> **Bulk Reporting Policy:** If you need to submit multiple vulnerability reports in bulk, **you must contact the [Ai-gateway repository owner](https://github.com/BrandonVee) first** through a private contact method they provide to coordinate the submission process. Uncoordinated bulk submissions have caused significant disruption to our team, and we will take the following actions:
 >
 > 1. **All uncoordinated bulk reports will be closed without review.**
 > 2. **Repeated offenders may be blocked** from further submissions.
@@ -29,12 +29,13 @@ We take security vulnerability reports very seriously. If you discover a securit
 
 **Do NOT** report security vulnerabilities in public GitHub Issues.
 
-To report a security issue, please use the GitHub Security Advisories tab to "[Open a draft security advisory](https://github.com/QuantumNous/new-api/security/advisories/new)". This is the preferred method as it provides a built-in private communication channel.
+For issues affecting [Ai-gateway](https://github.com/BrandonVee/new-api), check this repository's [Security Advisories](https://github.com/BrandonVee/new-api/security/advisories). When private reporting is enabled, use "[Report a vulnerability](https://github.com/BrandonVee/new-api/security/advisories/new)" to open a private report.
 
-Alternatively, you can report via email:
+Private vulnerability reporting is currently disabled, and no private contact address for this repository has been verified. Use a private contact method published by the [repository owner](https://github.com/BrandonVee) when one becomes available; do not post vulnerability details publicly.
 
-- **Email:** [support@quantumnous.com](mailto:support@quantumnous.com)
-- **Subject:** `[SECURITY] Security Vulnerability Report`
+- **Subject:** `[SECURITY] Ai-gateway Security Vulnerability Report`
+
+For issues confirmed to affect upstream New API, follow the [upstream security policy](https://github.com/QuantumNous/new-api/security/policy). Its reporting channels belong to the upstream project.
 
 ### What to Include
 
@@ -89,7 +90,7 @@ Please ensure the following security-related environment variables and settings 
 - `SQL_DSN` - Ensure database connection uses secure configuration
 - `REDIS_CONN_STRING` - If using Redis, ensure secure connection
 
-For detailed configuration instructions, please refer to the project documentation.
+For detailed configuration instructions, please refer to the [project README](../README.md#deployment), [environment example](../.env.example), and [Compose configuration](../docker-compose.yml).
 
 ## Disclaimer
 

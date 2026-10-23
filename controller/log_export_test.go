@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -79,6 +80,35 @@ func useLogExportDatabases(t *testing.T, mainDB *gorm.DB, logDB *gorm.DB, mainTy
 		common.SetDatabaseTypes(previousMain, previousLog)
 		common.RedisEnabled, common.MemoryCacheEnabled = previousRedis, previousMemory
 	})
+}
+
+func TestGatewayLogFilesRemainVisibleAndRetainNewestAcrossRename(t *testing.T) {
+	previousLogDir := common.LogDir
+	logDir := t.TempDir()
+	common.LogDir = &logDir
+	t.Cleanup(func() { common.LogDir = previousLogDir })
+	newest := "ai-gateway-20261020010101.log"
+	older := "oneapi-20261019010101.log"
+	unrelated := "other-service.log"
+	for _, name := range []string{older, newest, unrelated} {
+		require.NoError(t, os.WriteFile(filepath.Join(logDir, name), []byte("log entry"), 0600))
+	}
+
+	files, err := getLogFiles()
+	require.NoError(t, err)
+	require.Len(t, files, 2)
+	assert.Equal(t, newest, files[0].Name)
+	assert.Equal(t, older, files[1].Name)
+
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest(http.MethodDelete, "/api/performance/logs?mode=by_count&value=1", nil)
+	CleanupLogFiles(ctx)
+	assert.Equal(t, http.StatusOK, recorder.Code)
+	assert.Contains(t, recorder.Body.String(), `"deleted_count":1`)
+	assert.FileExists(t, filepath.Join(logDir, newest))
+	assert.NoFileExists(t, filepath.Join(logDir, older))
+	assert.FileExists(t, filepath.Join(logDir, unrelated))
 }
 
 func TestLogExportDatabaseMatrix(t *testing.T) {

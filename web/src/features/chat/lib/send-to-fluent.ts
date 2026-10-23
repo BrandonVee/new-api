@@ -3,15 +3,20 @@ export function sendToFluent(apiKey: string, serverAddress?: string): boolean {
     return false
   }
 
-  const container = document.getElementById('fluent-new-api-container')
+  const gatewayContainer = document.querySelector(
+    '#fluent-ai-gateway-container'
+  )
+  // Older extension versions only expose their original integration bridge.
+  const container =
+    gatewayContainer ?? document.querySelector('#fluent-new-api-container')
   if (!container) {
     return false
   }
 
   const payload = {
-    id: 'new-api',
+    id: gatewayContainer ? 'ai-gateway' : 'new-api',
     baseUrl: serverAddress || window.location.origin,
-    apiKey: `sk-${apiKey}`,
+    apiKey: apiKey.startsWith('sk-') ? apiKey : `sk-${apiKey}`,
   }
 
   container.dispatchEvent(

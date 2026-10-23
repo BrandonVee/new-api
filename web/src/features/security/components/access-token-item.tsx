@@ -64,7 +64,7 @@ export function AccessTokenItem(props: AccessTokenItemProps) {
         <div className='flex flex-wrap items-center gap-x-2 gap-y-1'>
           <p className='font-medium break-all'>{token.name}</p>
           <code className='text-muted-foreground text-xs'>
-            nap_…{token.token_hint}
+            …{token.token_hint}
           </code>
         </div>
         <div className='flex flex-wrap gap-1'>

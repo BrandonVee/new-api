@@ -52,8 +52,8 @@ func setupDashboardAuthMiddlewareTest(t *testing.T) {
 func issueExpiredDashboardAccessToken(t *testing.T, identity service.AuthIdentity) string {
 	t.Helper()
 	claims := jwt.MapClaims{
-		"iss":       "new-api",
-		"aud":       []string{"new-api-dashboard"},
+		"iss":       "ai-gateway",
+		"aud":       []string{"ai-gateway-dashboard"},
 		"sub":       fmt.Sprintf("%d", identity.UserID),
 		"token_use": "access",
 		"sid":       identity.SessionID,
@@ -64,7 +64,7 @@ func issueExpiredDashboardAccessToken(t *testing.T, identity service.AuthIdentit
 		"iat":       time.Now().Add(-2 * time.Minute).Unix(),
 	}
 	mac := hmac.New(sha256.New, []byte(common.SessionSecret))
-	_, err := mac.Write([]byte("new-api/auth/access/v1"))
+	_, err := mac.Write([]byte("ai-gateway/auth/access/v1"))
 	require.NoError(t, err)
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(mac.Sum(nil))
 	require.NoError(t, err)
@@ -390,6 +390,37 @@ func TestUserAuthAppliesAccessTokenRouteRules(t *testing.T) {
 	assert.Equal(t, http.StatusOK, response.Code)
 	assert.JSONEq(t, `{"id":0}`, response.Body.String(), "optional authentication treats a retired token as anonymous")
 	assert.Equal(t, http.StatusOK, middlewareBearerRequest(router, "/api/user/self", profile).Code, "the deadline only retires legacy tokens")
+}
+
+func TestUserAuthPreservesScopedRulesForIssuedCredentialPrefixes(t *testing.T) {
+	setupDashboardAuthMiddlewareTest(t)
+	gin.SetMode(gin.TestMode)
+	user := createMiddlewarePATUser(t, "branded-token-owner", "unscoped-legacy")
+	router := gin.New()
+	ok := func(c *gin.Context) { c.Status(http.StatusOK) }
+	router.GET("/api/user/self", UserAuth(), ok)
+	router.GET("/api/undeclared", UserAuth(), ok)
+
+	for _, prefix := range []string{"ai_gateway_", "nap_"} {
+		t.Run(prefix, func(t *testing.T) {
+			raw := prefix + strings.Repeat("A", 43)
+			token := &model.UserAccessToken{
+				Name: prefix, TokenHash: model.AccessTokenFingerprint(raw),
+				TokenHint: model.AccessTokenHint(raw),
+			}
+			require.NoError(t, token.SetScopes([]string{"profile:read"}))
+			require.NoError(t, model.CreateUserAccessToken(user.Id, token, service.AccessTokenMaxPerUser))
+			assert.Equal(t, http.StatusOK, middlewareBearerRequest(router, "/api/user/self", raw).Code)
+			denied := middlewareBearerRequest(router, "/api/undeclared", raw)
+			assert.Equal(t, http.StatusForbidden, denied.Code)
+			assert.Contains(t, denied.Body.String(), "ACCESS_TOKEN_ROUTE_UNDECLARED")
+
+			require.NoError(t, model.DB.Model(token).Update("expires_at", time.Now().Unix()-1).Error)
+			expired := middlewareBearerRequest(router, "/api/user/self", raw)
+			assert.Equal(t, http.StatusUnauthorized, expired.Code)
+			assert.Contains(t, expired.Body.String(), "ACCESS_TOKEN_EXPIRED")
+		})
+	}
 }
 
 func TestAccessTokenIdentityAndSingleLookup(t *testing.T) {

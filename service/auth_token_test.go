@@ -1,12 +1,17 @@
 package service
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/BrandonVee/ai-gateway/common"
 	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,6 +43,43 @@ func TestAccessTokenRoundTripAndPurposeIsolation(t *testing.T) {
 	require.NoError(t, err)
 	_, err = ParseAccessToken(proof)
 	assert.ErrorIs(t, err, ErrAuthTokenInvalid)
+}
+
+func TestAccessTokenUsesGatewayIdentityAndRejectsForeignClaims(t *testing.T) {
+	useTestSessionSecret(t)
+	identity := AuthIdentity{UserID: 42, SessionID: "gateway-session", UserAuthVersion: 1, SessionVersion: 1}
+	raw, _, err := IssueAccessToken(identity)
+	require.NoError(t, err)
+	claims := &authClaims{}
+	_, _, err = jwt.NewParser().ParseUnverified(raw, claims)
+	require.NoError(t, err)
+	assert.Equal(t, "ai-gateway", claims.Issuer)
+	assert.Equal(t, jwt.ClaimStrings{"ai-gateway-dashboard"}, claims.Audience)
+
+	mac := hmac.New(sha256.New, []byte(common.SessionSecret))
+	_, err = mac.Write([]byte("ai-gateway/auth/access/v1"))
+	require.NoError(t, err)
+	_, err = jwt.ParseWithClaims(raw, &authClaims{}, func(*jwt.Token) (any, error) {
+		return mac.Sum(nil), nil
+	}, jwt.WithValidMethods([]string{"HS256"}), jwt.WithIssuer("ai-gateway"), jwt.WithAudience("ai-gateway-dashboard"))
+	require.NoError(t, err)
+
+	for _, tc := range []struct {
+		name, issuer, audience string
+	}{
+		{name: "foreign issuer", issuer: "other-gateway", audience: "ai-gateway-dashboard"},
+		{name: "foreign audience", issuer: "ai-gateway", audience: "other-dashboard"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			modified := *claims
+			modified.Issuer = tc.issuer
+			modified.Audience = jwt.ClaimStrings{tc.audience}
+			signed, err := jwt.NewWithClaims(jwt.SigningMethodHS256, modified).SignedString(authSigningKey(accessTokenUse))
+			require.NoError(t, err)
+			_, err = ParseAccessToken(signed)
+			assert.ErrorIs(t, err, ErrAuthTokenInvalid)
+		})
+	}
 }
 
 func TestAccessTokenRejectsTampering(t *testing.T) {
@@ -180,5 +222,46 @@ func TestSecurityProofBindsAccessTokenSession(t *testing.T) {
 		other.SessionID = sessionID
 		_, err = verifySecurityProof(proof, other, binding)
 		assert.ErrorIs(t, err, ErrAuthTokenInvalid, sessionID)
+	}
+}
+
+func TestGatewayRefreshCookiesPreserveSecurityAttributesAndClearTogether(t *testing.T) {
+	previousSecure := common.SessionCookieSecure
+	common.SessionCookieSecure = true
+	t.Cleanup(func() { common.SessionCookieSecure = previousSecure })
+	gin.SetMode(gin.TestMode)
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	WriteRefreshCookie(ctx, "cookie-test-value")
+	cookies := recorder.Result().Cookies()
+	require.Len(t, cookies, 2)
+	assert.Equal(t, "ai_gateway_refresh", cookies[0].Name)
+	assert.Equal(t, "/api/user/auth", cookies[0].Path)
+	assert.True(t, cookies[0].HttpOnly)
+	assert.True(t, cookies[0].Secure)
+	assert.Equal(t, http.SameSiteStrictMode, cookies[0].SameSite)
+	assert.Positive(t, cookies[0].MaxAge)
+	assert.Equal(t, "ai_gateway_has_session", cookies[1].Name)
+	assert.Equal(t, "/", cookies[1].Path)
+	assert.Equal(t, "1", cookies[1].Value)
+	assert.False(t, cookies[1].HttpOnly)
+	assert.True(t, cookies[1].Secure)
+	assert.Equal(t, http.SameSiteStrictMode, cookies[1].SameSite)
+	assert.Equal(t, cookies[0].MaxAge, cookies[1].MaxAge)
+	assert.Equal(t, cookies[0].Expires, cookies[1].Expires)
+
+	clearedRecorder := httptest.NewRecorder()
+	clearedContext, _ := gin.CreateTestContext(clearedRecorder)
+	ClearRefreshCookie(clearedContext)
+	cleared := clearedRecorder.Result().Cookies()
+	require.Len(t, cleared, 2)
+	for index, cookie := range cleared {
+		assert.Equal(t, cookies[index].Name, cookie.Name)
+		assert.Equal(t, cookies[index].Path, cookie.Path)
+		assert.Equal(t, cookies[index].HttpOnly, cookie.HttpOnly)
+		assert.True(t, cookie.Secure)
+		assert.Equal(t, http.SameSiteStrictMode, cookie.SameSite)
+		assert.Equal(t, -1, cookie.MaxAge)
+		assert.Empty(t, cookie.Value)
 	}
 }

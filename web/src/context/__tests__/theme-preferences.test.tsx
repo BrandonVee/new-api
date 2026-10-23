@@ -10,12 +10,12 @@ import { ThemeProvider, useTheme } from '@/context/theme-provider'
 import { initializeFrontendCache } from '@/lib/frontend-cache'
 
 const savedPreferences = {
-  'newapi:theme:v1:mode': 'dark',
-  'newapi:theme:v1:preset': 'rose-garden',
-  'newapi:theme:v1:font': 'serif',
-  'newapi:theme:v1:radius': 'lg',
-  'newapi:theme:v1:scale': 'sm',
-  'newapi:theme:v1:content-layout': 'centered',
+  'ai-gateway:theme:v1:mode': 'dark',
+  'ai-gateway:theme:v1:preset': 'rose-garden',
+  'ai-gateway:theme:v1:font': 'serif',
+  'ai-gateway:theme:v1:radius': 'lg',
+  'ai-gateway:theme:v1:scale': 'sm',
+  'ai-gateway:theme:v1:content-layout': 'centered',
 }
 
 function ThemeControls() {
@@ -95,6 +95,26 @@ afterEach(() => {
 })
 
 describe('theme preference persistence', () => {
+  it('ignores retired theme preferences even when the frontend cache is current', () => {
+    for (const [key, value] of Object.entries(savedPreferences)) {
+      localStorage.setItem(key.replace('ai-gateway:', 'newapi:'), value)
+    }
+    localStorage.setItem('ai-gateway:default:cache-version', 'default-v1')
+
+    initializeFrontendCache()
+    render(<ThemeFixture />)
+
+    expect(screen.getByLabelText('Theme mode')).toHaveTextContent('system')
+    expect(document.body).not.toHaveAttribute('data-theme-preset')
+    expect(document.body).toHaveAttribute('data-theme-font', 'system')
+    expect(document.body).not.toHaveAttribute('data-theme-radius')
+    expect(document.body).not.toHaveAttribute('data-theme-scale')
+    expect(document.body).toHaveAttribute('data-theme-content-layout', 'full')
+    for (const key of Object.keys(savedPreferences)) {
+      expect(localStorage.getItem(key)).toBeNull()
+    }
+  })
+
   it('starts with defaults when only shared legacy theme cookies exist', () => {
     document.cookie = 'theme_preset=ocean-breeze; path=/'
     document.cookie = 'vite-ui-theme=dark; path=/'
@@ -244,7 +264,7 @@ describe('theme font selection', () => {
     render(<ThemeFixture />)
 
     expect(document.body).toHaveAttribute('data-theme-font', 'sans')
-    expect(localStorage.getItem('newapi:theme:v1:font')).toBe('sans')
+    expect(localStorage.getItem('ai-gateway:theme:v1:font')).toBe('sans')
 
     await user.click(screen.getByRole('button', { name: 'Anthropic preset' }))
 
@@ -252,14 +272,14 @@ describe('theme font selection', () => {
   })
 
   it('restores the browser font after selecting Auto and remounting', async () => {
-    localStorage.setItem('newapi:theme:v1:font', 'sans')
+    localStorage.setItem('ai-gateway:theme:v1:font', 'sans')
     const user = userEvent.setup()
     const first = render(<ThemeFixture />)
 
     await user.click(screen.getByRole('button', { name: 'Auto font' }))
 
     expect(document.body).toHaveAttribute('data-theme-font', 'system')
-    expect(localStorage.getItem('newapi:theme:v1:font')).toBeNull()
+    expect(localStorage.getItem('ai-gateway:theme:v1:font')).toBeNull()
 
     first.unmount()
     render(<ThemeFixture />)
@@ -278,6 +298,6 @@ describe('theme font selection', () => {
     await user.click(screen.getByRole('button', { name: 'Default preset' }))
 
     expect(document.body).toHaveAttribute('data-theme-font', 'system')
-    expect(localStorage.getItem('newapi:theme:v1:font')).toBeNull()
+    expect(localStorage.getItem('ai-gateway:theme:v1:font')).toBeNull()
   })
 })

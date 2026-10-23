@@ -146,6 +146,8 @@ export function resolveChatUrl({
   if (url.includes('{cherryConfig}')) {
     const payload = {
       id: 'ai-gateway',
+      name: DEFAULT_SYSTEM_NAME,
+      type: 'openai',
       baseUrl: safeServerAddress,
       apiKey: safeApiKey,
     }
@@ -155,9 +157,10 @@ export function resolveChatUrl({
 
   if (url.includes('{aionuiConfig}')) {
     const payload = {
-      platform: 'new-api',
-      baseUrl: safeServerAddress,
-      apiKey: safeApiKey,
+      platform: 'custom',
+      name: DEFAULT_SYSTEM_NAME,
+      base_url: safeServerAddress,
+      api_key: safeApiKey,
     }
     const encoded = encodeURIComponent(toBase64(JSON.stringify(payload)))
     return replaceToken(url, '{aionuiConfig}', encoded)
@@ -165,7 +168,8 @@ export function resolveChatUrl({
 
   if (url.includes('{deepchatConfig}')) {
     const payload = {
-      id: 'new-api',
+      name: DEFAULT_SYSTEM_NAME,
+      type: 'openai-compatible',
       baseUrl: safeServerAddress,
       apiKey: safeApiKey,
     }

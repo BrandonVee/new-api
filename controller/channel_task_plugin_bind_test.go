@@ -182,7 +182,7 @@ func TestAiGatewayChannelPluginBindingsRequireBindPermission(t *testing.T) {
 	setupTaskPluginBindChannelTest(t)
 	const key = "gateway-bind"
 	source := `
-export const meta = {apiVersion: 1, key: "gateway-bind", name: "Gateway", version: "1.0.0", author: {name: "Test"}, models: ["gateway-doc"], fetchMode: "per_task", upstreams: ["vendor", "new_api"]};
+export const meta = {apiVersion: 1, key: "gateway-bind", name: "Gateway", version: "1.0.0", author: {name: "Test"}, models: ["gateway-doc"], fetchMode: "per_task", upstreams: ["vendor", "ai_gateway"]};
 export function buildSubmitRequest() { return {}; }
 export function parseSubmitResponse() { return {}; }
 export function buildQueryRequest() { return {}; }

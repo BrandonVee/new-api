@@ -76,7 +76,7 @@ func TestViduThroughAiGatewayGateway(t *testing.T) {
 		require.NoError(t, err)
 		return decodePluginValue(t, value)
 	}
-	gateway := map[string]any{"kind": "new_api"}
+	gateway := map[string]any{"kind": "ai_gateway"}
 
 	for _, tc := range []struct {
 		name        string

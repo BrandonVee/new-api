@@ -10,6 +10,7 @@ import {
   isAuthBundle,
   type AuthRefreshRuntime,
 } from './auth-session'
+import { hasSessionHint } from './session-hint'
 
 const bundle: AuthBundle = {
   access_token: 'access-token',
@@ -34,9 +35,21 @@ const bundle: AuthBundle = {
 
 afterEach(() => {
   useAuthStore.getState().auth.reset('idle')
+  document.cookie = 'ai_gateway_has_session=; path=/; max-age=0'
 })
 
 describe('authentication session coordination', () => {
+  test('recognizes the gateway session hint without treating it as authentication', () => {
+    useAuthStore.getState().auth.reset('idle')
+    document.cookie = 'ai_gateway_has_session=1; path=/'
+
+    expect(hasSessionHint()).toBe(true)
+    expect(useAuthStore.getState().auth.accessToken).toBeNull()
+
+    document.cookie = 'ai_gateway_has_session=; path=/; max-age=0'
+    expect(hasSessionHint()).toBe(false)
+  })
+
   test('bootstrap distinguishes a completed anonymous check from an active session', async () => {
     useAuthStore.getState().auth.reset('complete')
     expect(await bootstrapAuthentication()).toEqual({ kind: 'anonymous' })

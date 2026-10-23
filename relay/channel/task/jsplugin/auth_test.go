@@ -101,7 +101,7 @@ func TestUpstreamContextsUseGatewayBearerOnAiGatewayChannels(t *testing.T) {
 		wantAuthHeader string
 		wantAPIKey     any // nil when the raw key must stay hidden from the plugin
 	}{
-		{"api key plugin on a Ai-gateway channel", "", constant.ChannelTypeAiGateway, "sk-gateway", pluginruntime.UpstreamKindAiGateway, "Bearer sk-gateway", "sk-gateway"},
+		{"api key plugin on a Ai-gateway channel", "", constant.ChannelTypeAiGateway, "sk-gateway", "ai_gateway", "Bearer sk-gateway", "sk-gateway"},
 		{"api key plugin on a Task Plugin channel", "", constant.ChannelTypeTaskPlugin, "vendor-key", pluginruntime.UpstreamKindVendor, "vendor-key", "vendor-key"},
 		{"api key plugin on a legacy channel", "", 1002, "vendor-key", pluginruntime.UpstreamKindVendor, "vendor-key", "vendor-key"},
 		{"oauth2_jwt plugin on a Ai-gateway channel", `,auth:{type:"oauth2_jwt"}`, constant.ChannelTypeAiGateway, "sk-gateway", pluginruntime.UpstreamKindAiGateway, "Bearer sk-gateway", "sk-gateway"},
@@ -110,7 +110,7 @@ func TestUpstreamContextsUseGatewayBearerOnAiGatewayChannels(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			source := `
-export const meta = {apiVersion:1,key:"upstream-probe",name:"Upstream Probe",version:"1.0.0",author:{name:"Test"},channelTypes:[1002],models:["probe"],fetchMode:"per_task",upstreams:["vendor","new_api"]` + tc.auth + `};
+export const meta = {apiVersion:1,key:"upstream-probe",name:"Upstream Probe",version:"1.0.0",author:{name:"Test"},channelTypes:[1002],models:["probe"],fetchMode:"per_task",upstreams:["vendor","ai_gateway"]` + tc.auth + `};
 export function buildSubmitRequest(ctx){return {url:ctx.baseUrl+"/submit"}}
 export function parseSubmitResponse(){return {taskId:"1"}}
 export function buildQueryRequest(ctx){return {url:ctx.baseUrl+"/tasks/"+ctx.taskId}}

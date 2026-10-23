@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	AccessTokenPrefix                = "nap_"
+	AccessTokenPrefix                = "ai_gateway_"
 	AccessTokenSessionPrefix         = "pat:"
 	AccessTokenSessionVersion        = 1
 	legacyAccessTokenRetireAtKey     = "LegacyAccessTokenRetireAt"

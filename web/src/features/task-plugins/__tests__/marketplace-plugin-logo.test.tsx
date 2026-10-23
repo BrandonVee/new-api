@@ -10,7 +10,7 @@ vi.mock('@/lib/lobe-icon', () => ({
 }))
 
 const INDEX_URL =
-  'https://raw.githubusercontent.com/QuantumNous/new-api-plugins/main/index.json'
+  'https://raw.githubusercontent.com/example/plugins/main/index.json'
 
 function plugin(overrides?: Partial<MarketplacePlugin>): MarketplacePlugin {
   return {
@@ -66,7 +66,7 @@ describe('marketplace card logo', () => {
       )
     })
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://raw.githubusercontent.com/QuantumNous/new-api-plugins/main/plugins/tasks/incho/icon.svg',
+      'https://raw.githubusercontent.com/example/plugins/main/plugins/tasks/incho/icon.svg',
       expect.anything()
     )
   })

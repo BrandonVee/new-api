@@ -253,7 +253,8 @@ func lookupAccessToken(c *gin.Context, raw string) *accessTokenLookup {
 	}
 	lookup := &accessTokenLookup{ref: ref}
 	c.Set(accessTokenLookupContextKey, lookup)
-	if !strings.HasPrefix(raw, model.AccessTokenPrefix) {
+	// Previously issued scoped tokens keep the same authorization rules.
+	if !strings.HasPrefix(raw, model.AccessTokenPrefix) && !strings.HasPrefix(raw, "nap_") {
 		lookup.legacy = true
 		legacyUser, err := model.ValidateAccessToken(raw)
 		if err != nil || legacyUser == nil || legacyUser.Id <= 0 {

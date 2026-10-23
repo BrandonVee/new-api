@@ -1,4 +1,4 @@
-export const CHANNEL_CONNECTION_INFO_TYPE = 'newapi_channel_conn'
+export const CHANNEL_CONNECTION_INFO_TYPE = 'ai_gateway_channel_conn'
 
 export type ChannelConnectionInfo = {
   key: string
@@ -26,7 +26,8 @@ export function parseChannelConnectionInfo(
     const parsed: unknown = JSON.parse(text.trim())
     if (
       isRecord(parsed) &&
-      parsed._type === CHANNEL_CONNECTION_INFO_TYPE &&
+      (parsed._type === CHANNEL_CONNECTION_INFO_TYPE ||
+        parsed._type === 'newapi_channel_conn') &&
       typeof parsed.key === 'string' &&
       typeof parsed.url === 'string'
     ) {

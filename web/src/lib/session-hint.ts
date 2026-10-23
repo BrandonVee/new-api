@@ -15,7 +15,7 @@
  * "not worth a request right now", not as "signed out", and must still be able
  * to reach the server when authentication actually matters.
  */
-export const SESSION_HINT_COOKIE_NAME = 'new_api_has_session'
+export const SESSION_HINT_COOKIE_NAME = 'ai_gateway_has_session'
 
 /** Read a cookie value out of a `document.cookie`-shaped string. */
 export function readCookie(cookieHeader: string, name: string): string | null {

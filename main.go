@@ -187,8 +187,8 @@ func main() {
 		common.SysLog(common.LogText("panic detected: %v", err))
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": gin.H{
-				"message": fmt.Sprintf("Panic detected, error: %v. Please submit a issue here: https://github.com/Calcium-Ion/new-api", err),
-				"type":    "new_api_panic",
+				"message": fmt.Sprintf("Panic detected, error: %v. Please submit an issue here: https://github.com/BrandonVee/new-api/issues", err),
+				"type":    "ai_gateway_panic",
 			},
 		})
 	}))

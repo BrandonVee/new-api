@@ -2,12 +2,18 @@ package controller
 
 import (
 	"maps"
+	"strings"
 	"testing"
 
 	"github.com/BrandonVee/ai-gateway/common"
+	"github.com/BrandonVee/ai-gateway/model"
+	"github.com/BrandonVee/ai-gateway/service"
 	"github.com/BrandonVee/ai-gateway/setting"
 	"github.com/BrandonVee/ai-gateway/setting/operation_setting"
+	"github.com/glebarez/sqlite"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 func TestFormatWaffoPancakeAmount_UsesDisplayPriceString(t *testing.T) {
@@ -85,6 +91,66 @@ func TestGetWaffoPancakePayMoney(t *testing.T) {
 			operation_setting.GetGeneralSetting().QuotaDisplayType = tc.quotaDisplayType
 			actual := getWaffoPancakePayMoney(tc.amount, tc.group)
 			require.InDelta(t, tc.expected, actual, 0.000001)
+		})
+	}
+}
+
+func TestWaffoPancakeBuyerRenamePreservesOrderOwnership(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	sqlDB.SetMaxOpenConns(1)
+	require.NoError(t, db.AutoMigrate(&model.TopUp{}, &model.SubscriptionOrder{}))
+	previousDB := model.DB
+	model.DB = db
+	t.Cleanup(func() {
+		model.DB = previousDB
+		require.NoError(t, sqlDB.Close())
+	})
+
+	assert.Equal(t, "ai-gateway-user-42", getWaffoPancakeBuyerIdentity(&model.User{Id: 42}))
+	for _, tc := range []struct {
+		name, buyer, provider string
+		valid                 bool
+	}{
+		{name: "gateway buyer", buyer: "ai-gateway-user-42", valid: true},
+		{name: "already issued checkout", buyer: "new-api-user-42", valid: true},
+		{name: "another gateway user", buyer: "ai-gateway-user-7"},
+		{name: "another historical user", buyer: "new-api-user-7"},
+		{name: "missing buyer"},
+		{name: "different payment provider", buyer: "ai-gateway-user-42", provider: model.PaymentProviderEpay},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			provider := tc.provider
+			if provider == "" {
+				provider = model.PaymentProviderWaffoPancake
+			}
+			tradeNo := "buyer-wallet-" + strings.ReplaceAll(tc.name, " ", "-")
+			require.NoError(t, db.Create(&model.TopUp{UserId: 42, TradeNo: tradeNo, PaymentProvider: provider}).Error)
+			event := &service.WaffoPancakeWebhookEvent{}
+			event.Data.OrderMerchantExternalID = tradeNo
+			event.Data.MerchantProvidedBuyerIdentity = tc.buyer
+			resolved, err := service.ResolveWaffoPancakeTradeNo(event)
+			if tc.valid {
+				require.NoError(t, err)
+				assert.Equal(t, tradeNo, resolved)
+			} else {
+				assert.Error(t, err)
+				assert.Empty(t, resolved)
+			}
+
+			tradeNo = "buyer-sub-" + strings.ReplaceAll(tc.name, " ", "-")
+			require.NoError(t, db.Create(&model.SubscriptionOrder{UserId: 42, TradeNo: tradeNo, PaymentProvider: provider}).Error)
+			event.Data.OrderMerchantExternalID = tradeNo
+			resolved, err = service.ResolveWaffoPancakeSubscriptionTradeNo(event)
+			if tc.valid {
+				require.NoError(t, err)
+				assert.Equal(t, tradeNo, resolved)
+			} else {
+				assert.Error(t, err)
+				assert.Empty(t, resolved)
+			}
 		})
 	}
 }

@@ -197,7 +197,7 @@ docker compose logs -f ai-gateway
 | `SESSION_COOKIE_TRUSTED_URL` | Secure 模式必填：以逗號分隔的精確 HTTPS Origin，不含路徑或萬用字元；本機 HTTP 模式不設定 |
 | `TRUSTED_PROXIES` | 可信反向代理 IP/CIDR，或 `none`；依實際網路明確設定 |
 
-完整設定見[環境變數範例](./.env.example)、[環境變數文件](https://docs.newapi.ai/zh/docs/installation/config-maintenance/environment-variables)和[驗證與登入工作階段說明](./docs/authentication.md)。容器變數應透過 Compose 的 `environment` 或 `env_file` 注入；只複製 `.env.example` 不會自動將變數傳入容器。
+完整設定見[環境變數範例](./.env.example)、[Compose 部署設定](./docker-compose.yml)和[驗證與登入工作階段說明](./docs/authentication.md)。容器變數應透過 Compose 的 `environment` 或 `env_file` 注入；只複製 `.env.example` 不會自動將變數傳入容器。
 
 正式部署時使用 HTTPS，並設定反向代理支援串流回應與 WebSocket 升級。持久化並備份資料庫和掛載資料。多節點必須共用主資料庫和驗證金鑰；獨立 Redis 或記憶體限流器會按節點分別計數。不同拓撲下的工作階段傳播行為見驗證文件。
 
@@ -247,11 +247,12 @@ bun run dev -- --port 5173
 
 | 資源 | 入口 |
 | --- | --- |
-| 官方文件 | [使用指南](https://docs.newapi.ai/zh/docs) · [安裝部署](https://docs.newapi.ai/zh/docs/installation) · [API 參考](https://docs.newapi.ai/zh/docs/api) |
-| 專案導讀 | [DeepWiki](https://deepwiki.com/QuantumNous/new-api) |
-| 使用問題與交流 | [常見問題](https://docs.newapi.ai/zh/docs/support/faq) · [社群管道](https://docs.newapi.ai/zh/docs/support/community-interaction) |
+| 專案文件 | [README](./README.zh_TW.md) · [文件目錄](./docs/) · [部署說明](#deployment) |
+| API 規格 | [管理 API](./docs/openapi/api.json) · [轉發 API](./docs/openapi/relay.json) |
 | 缺陷與功能建議 | [GitHub Issues](https://github.com/BrandonVee/new-api/issues) |
 | 安全漏洞 | 依[安全政策](./.github/SECURITY.md)私下回報 |
+
+產品名稱為 Ai-gateway，實際儲存庫仍為 [BrandonVee/new-api](https://github.com/BrandonVee/new-api)。
 
 回報問題時請附上版本、部署方式、重現步驟及去識別化日誌。歡迎貢獻文件、翻譯、渠道介接和有針對性的回歸測試。
 
@@ -270,8 +271,6 @@ bun run dev -- --port 5173
 
 | 項目 | 說明 |
 |------|------|
-| [new-api-key-tool](https://github.com/Calcium-Ion/new-api-key-tool) | Key 額度查詢工具 |
-| [new-api-horizon](https://github.com/Calcium-Ion/new-api-horizon) | 上游閘道高性能優化版 |
 
 ---
 
@@ -297,7 +296,7 @@ bun run dev -- --port 5173
 
 如果這個項目對你有幫助，歡迎給我們一個 ⭐️ Star！
 
-**[官方文件](https://docs.newapi.ai/zh/docs)** • **[問題回饋](https://github.com/BrandonVee/new-api/issues)** • **[最新發布](https://github.com/BrandonVee/new-api/releases)**
+**[專案文件](#documentation)** • **[問題回饋](https://github.com/BrandonVee/new-api/issues)** • **[最新發布](https://github.com/BrandonVee/new-api/releases)**
 
 <sub>Built with ❤️ by QuantumNous</sub>
 

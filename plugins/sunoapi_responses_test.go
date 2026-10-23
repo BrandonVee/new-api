@@ -113,8 +113,8 @@ func TestSunoResponsesProtocol(t *testing.T) {
 		assert.Equal(t, map[string]any{"clips": int64(2), "action": "music"}, value)
 	})
 
-	const firstAudioKey = "audio-5fc0a0cd3367274b4b6de056fc754263f8726a704bb4814ffeb88495f22dad35"
-	const secondAudioKey = "audio-a9c04b840373f4ef4e8d80140b745c6f647819fa375bc34368cdccced7e2b455"
+	const firstAudioKey = "audio-8b24ba070a964197bf3f24e062113c0be9457d213de3add4772bcbd288e54ac1"
+	const secondAudioKey = "audio-ed95e6e57f7fe0fc9b554e9c15f619f9301174c5b3721fe0944eee3b0e14b100"
 	protocolContext := map[string]any{
 		"model":  "suno_music",
 		"stream": true,
@@ -126,10 +126,38 @@ func TestSunoResponsesProtocol(t *testing.T) {
 	successTask := map[string]any{
 		"task_id": "task-public", "status": "SUCCESS", "progress": "100%", "created_at": 10, "updated_at": 20,
 		"data": []any{
-			map[string]any{"id": "song-1", "title": "First", "text": "First lyrics", "audio_url": "https://upstream.example/one.mp3"},
+			map[string]any{"id": "song-1", "title": "First", "text": "First lyrics", "audio_url": "https://upstream.example/one.mp3", "image_url": "https://upstream.example/one.png"},
 			map[string]any{"id": "song-2", "title": "Second", "text": "Second lyrics", "audio_url": "https://upstream.example/two.mp3"},
 		},
 	}
+
+	t.Run("lists audio and cover artifacts that resolve through the content hook", func(t *testing.T) {
+		value, callErr := plugin.Engine.Call(t.Context(), "listArtifacts", successTask)
+		require.NoError(t, callErr)
+		encoded, marshalErr := common.Marshal(value)
+		require.NoError(t, marshalErr)
+		var artifacts []struct {
+			Key      string `json:"key"`
+			Type     string `json:"type"`
+			MimeType string `json:"mimeType"`
+		}
+		require.NoError(t, common.Unmarshal(encoded, &artifacts))
+		require.Len(t, artifacts, 3)
+		for index, expected := range []struct{ key, kind, mimeType, url string }{
+			{firstAudioKey, "audio", "audio/mpeg", "https://upstream.example/one.mp3"},
+			{"cover-8b24ba070a964197bf3f24e062113c0be9457d213de3add4772bcbd288e54ac1", "image", "", "https://upstream.example/one.png"},
+			{secondAudioKey, "audio", "audio/mpeg", "https://upstream.example/two.mp3"},
+		} {
+			assert.Equal(t, expected.key, artifacts[index].Key)
+			assert.Equal(t, expected.kind, artifacts[index].Type)
+			assert.Equal(t, expected.mimeType, artifacts[index].MimeType)
+			value, callErr = plugin.Engine.Call(t.Context(), "buildContentRequest", map[string]any{
+				"artifactKey": artifacts[index].Key, "data": successTask["data"], "clientRequest": map[string]any{"method": "GET"},
+			})
+			require.NoError(t, callErr)
+			assert.Equal(t, map[string]any{"url": expected.url, "method": "GET", "credentialless": true}, decodeMap(t, value))
+		}
+	})
 
 	t.Run("renders stream state transitions", func(t *testing.T) {
 		progressValue := callProtocol(t, "renderEvents", protocolContext, map[string]any{"status": "IN_PROGRESS", "progress": "40%"})

@@ -219,7 +219,7 @@ func TestVertexAIThroughAiGatewayGateway(t *testing.T) {
 	}
 	const veo = "veo-3.0-generate-001"
 	const route = "https://gateway.example/vertex-ai/v1/projects/-/locations/global/publishers/google/models/" + veo
-	gateway := map[string]any{"kind": "new_api"}
+	gateway := map[string]any{"kind": "ai_gateway"}
 	gatewayAuth := map[string]any{"authHeader": "Bearer sk-gateway"}
 
 	downstream := map[string]any{

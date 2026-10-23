@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 
 import {
-  DEFAULT_MARKETPLACE_INDEX_URL,
-  GITHUB_MARKETPLACE_INDEX_URL,
-} from '../lib/marketplace'
-import {
   changelogLocale,
   fetchPluginChangelog,
   parsePluginChangelog,
@@ -73,34 +69,42 @@ describe('changelog path and language resolution', () => {
   test('resolves the registered sidecar under raw and third-party repository prefixes', () => {
     expect(resolvePluginChangelogUrl(indexUrl, plugin, '1.2.0')).toBe(sourceUrl)
     expect(
-      resolvePluginChangelogUrl(GITHUB_MARKETPLACE_INDEX_URL, plugin, '1.2.0')
+      resolvePluginChangelogUrl(
+        'https://raw.githubusercontent.com/example/plugins/main/index.json',
+        plugin,
+        '1.2.0'
+      )
     ).toBe(
-      'https://raw.githubusercontent.com/QuantumNous/new-api-plugins/main/plugins/tasks/demo/1.2.0/CHANGELOG.md'
+      'https://raw.githubusercontent.com/example/plugins/main/plugins/tasks/demo/1.2.0/CHANGELOG.md'
     )
     expect(resolvePluginChangelogUrl(indexUrl, plugin, '9.0.0')).toBeNull()
   })
 
-  test('the official proxy index resolves only its registered key/version to the official repository', () => {
-    const proxyPlugin = {
+  test('resolves API-hosted plugin sidecars on their configured origin', () => {
+    const apiPlugin = {
       ...plugin,
       versions: [{ version: '1.2.0', path: 'demo/1.2.0/plugin.js' }],
     }
     expect(
       resolvePluginChangelogUrl(
-        DEFAULT_MARKETPLACE_INDEX_URL,
-        proxyPlugin,
+        'https://plugins.example/api/v1/plugins/index.json',
+        apiPlugin,
         '1.2.0'
       )
-    ).toBe(
-      'https://raw.githubusercontent.com/QuantumNous/new-api-plugins/main/plugins/tasks/demo/1.2.0/CHANGELOG.md'
-    )
+    ).toBe('https://plugins.example/api/v1/plugins/demo/1.2.0/CHANGELOG.md')
+  })
+
+  test('keeps an upstream project index changelog on that index’s origin', () => {
     expect(
       resolvePluginChangelogUrl(
-        DEFAULT_MARKETPLACE_INDEX_URL,
-        { ...proxyPlugin, key: 'other' },
+        'https://www.newapi.ai/api/v1/plugins/index.json',
+        {
+          ...plugin,
+          versions: [{ version: '1.2.0', path: 'demo/1.2.0/plugin.js' }],
+        },
         '1.2.0'
       )
-    ).toBeNull()
+    ).toBe('https://www.newapi.ai/api/v1/plugins/demo/1.2.0/CHANGELOG.md')
   })
 
   test.each([

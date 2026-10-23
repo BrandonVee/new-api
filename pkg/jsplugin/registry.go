@@ -115,7 +115,7 @@ type Meta struct {
 // meta.upstreams, which is what makes it bindable to a type-60 channel.
 const (
 	UpstreamKindVendor    = "vendor"
-	UpstreamKindAiGateway = "new_api"
+	UpstreamKindAiGateway = "ai_gateway"
 )
 
 // SupportsUpstream reports whether the driver handles channels of the given

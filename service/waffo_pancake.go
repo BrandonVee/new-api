@@ -155,11 +155,9 @@ func optionalString(s string) *string {
 	return &v
 }
 
-// WaffoPancakeBuyerIdentityFromUserID renders the canonical buyer identity
-// for checkout. Webhook handlers compare against the value rendered here to
-// reject identity mismatches, so both call sites must use this function.
+// WaffoPancakeBuyerIdentityFromUserID renders the canonical buyer identity for new checkouts.
 func WaffoPancakeBuyerIdentityFromUserID(userID int) string {
-	return fmt.Sprintf("new-api-user-%d", userID)
+	return fmt.Sprintf("ai-gateway-user-%d", userID)
 }
 
 // VerifyConfiguredWaffoPancakeWebhook verifies the signature header. The SDK
@@ -216,7 +214,8 @@ func ResolveWaffoPancakeTradeNo(event *WaffoPancakeWebhookEvent) (string, error)
 	}
 	expectedIdentity := WaffoPancakeBuyerIdentityFromUserID(topUp.UserId)
 	actualIdentity := strings.TrimSpace(event.Data.MerchantProvidedBuyerIdentity)
-	if actualIdentity != expectedIdentity {
+	// Checkouts created before the rename can still send their signed callbacks.
+	if actualIdentity != expectedIdentity && actualIdentity != fmt.Sprintf("new-api-user-%d", topUp.UserId) {
 		return "", fmt.Errorf(
 			"waffo pancake buyer identity mismatch for tradeNo=%s: expected=%q actual=%q",
 			tradeNo,
@@ -243,7 +242,8 @@ func ResolveWaffoPancakeSubscriptionTradeNo(event *WaffoPancakeWebhookEvent) (st
 	}
 	expectedIdentity := WaffoPancakeBuyerIdentityFromUserID(order.UserId)
 	actualIdentity := strings.TrimSpace(event.Data.MerchantProvidedBuyerIdentity)
-	if actualIdentity != expectedIdentity {
+	// Checkouts created before the rename can still send their signed callbacks.
+	if actualIdentity != expectedIdentity && actualIdentity != fmt.Sprintf("new-api-user-%d", order.UserId) {
 		return "", fmt.Errorf(
 			"waffo pancake buyer identity mismatch for subscription tradeNo=%s: expected=%q actual=%q",
 			tradeNo,

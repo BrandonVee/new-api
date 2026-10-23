@@ -308,7 +308,7 @@ export const meta = {
   channelTypes: [54, 45], // VolcEngine-type channels serve Ark video models with the same wire format
   models: Object.keys(VIDEO_MODELS).concat(Object.keys(IMAGE_MODELS)),
   fetchMode: "per_task",
-  upstreams: ["vendor", "new_api"],
+  upstreams: ["vendor", "ai_gateway"],
   requiredCapabilities: ["duration-auto@1"],
   usageSchema: seedanceUsageSchema(DEFAULT_VIDEO_PROFILE),
   usageExamples: seedanceUsageExamples(DEFAULT_VIDEO_PROFILE),
@@ -336,7 +336,7 @@ function trimmed(value) {
 // Another Ai-gateway gateway serves the Ark wire format only on this plugin's
 // prefixed native routes; Ark itself serves the unprefixed paths.
 function apiRoot(ctx) {
-  return ctx.baseUrl + (ctx.upstream && ctx.upstream.kind === "new_api" ? "/doubao" : "");
+  return ctx.baseUrl + (ctx.upstream && ctx.upstream.kind === "ai_gateway" ? "/doubao" : "");
 }
 
 function objectValue(value, name) {

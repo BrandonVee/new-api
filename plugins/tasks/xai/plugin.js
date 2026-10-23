@@ -85,7 +85,7 @@ export const meta = {
   allowedHosts: ["vidgen.x.ai"],
   models: Object.keys(VIDEO_MODELS),
   fetchMode: "per_task",
-  upstreams: ["vendor", "new_api"],
+  upstreams: ["vendor", "ai_gateway"],
   // Fallback for a channel alias that resolves to more than one model: the
   // union of every model's fields and resolutions.
   usageSchema: Object.assign({}, GROK_IMAGINE_VIDEO_USAGE_SCHEMA, {
@@ -140,7 +140,7 @@ function plainObject(value) {
 // Another Ai-gateway gateway serves the xAI wire format only on this plugin's
 // prefixed native routes.
 function apiRoot(ctx) {
-  return ctx.baseUrl + (ctx.upstream && ctx.upstream.kind === "new_api" ? "/xai" : "");
+  return ctx.baseUrl + (ctx.upstream && ctx.upstream.kind === "ai_gateway" ? "/xai" : "");
 }
 
 function videoModel(identity) {
@@ -304,7 +304,7 @@ function generationSource(req) {
   const source = Object.assign(
     {},
     plainObject(req.metadata) || {},
-    req.size === undefined || req.size === null || req.size === "" ? {} : sizeOptions(req.size),
+    req.size === undefined || req.size === null || req.size === "" ? {} : sizeOptions(req.size)
   );
   for (const key of Object.keys(req)) {
     if (req[key] !== undefined && req[key] !== null && req[key] !== "") source[key] = req[key];

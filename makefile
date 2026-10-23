@@ -6,7 +6,9 @@ DEV_POSTGRES_SERVICE = postgres
 DEV_API_SERVICE = ai-gateway
 DEV_POSTGRES_DB = ai-gateway
 DEV_POSTGRES_USER = root
-DEV_SQLITE_PATH ?= one-api.db
+# reset-setup follows backend discovery unless a database path is explicitly supplied.
+DEV_SQLITE_PATH_EXPLICIT := $(if $(filter undefined,$(origin DEV_SQLITE_PATH)),false,true)
+DEV_SQLITE_PATH ?= ai-gateway.db
 
 .PHONY: all build-web build-all-web start-api dev dev-api dev-api-rebuild dev-web reset-setup test
 
@@ -61,15 +63,36 @@ reset-setup:
 			-c "DELETE FROM options WHERE key IN ('SelfUseModeEnabled', 'DemoSiteEnabled');"; \
 		echo "Restarting docker dev api so setup status is recalculated..."; \
 		docker compose -f $(DEV_COMPOSE_FILE) restart $(DEV_API_SERVICE); \
-	elif db_path="$${SQLITE_PATH:-$(DEV_SQLITE_PATH)}"; db_path="$${db_path%%\?*}"; [ -f "$$db_path" ]; then \
+	else \
 		db_path="$${SQLITE_PATH:-$(DEV_SQLITE_PATH)}"; \
+		if [ -z "$${SQLITE_PATH:-}" ] && [ "$(DEV_SQLITE_PATH_EXPLICIT)" = false ]; then \
+			found_db=; \
+			for candidate in ai-gateway.db one-api.db new-api.db; do \
+				for suffix in '' -wal -shm -journal; do \
+					file="$$candidate$$suffix"; \
+					if [ -L "$$file" ] || { [ -e "$$file" ] && [ ! -f "$$file" ]; }; then \
+						echo "SQLite file $$file is not a regular file. Set SQLITE_PATH explicitly."; exit 1; \
+					fi; \
+					if [ -n "$$suffix" ] && [ -e "$$file" ] && [ ! -f "$$candidate" ]; then \
+						echo "SQLite sidecars exist without $$candidate. Recover the database or set SQLITE_PATH explicitly."; exit 1; \
+					fi; \
+				done; \
+				if [ -f "$$candidate" ]; then \
+					if [ -n "$$found_db" ]; then \
+						echo "Multiple SQLite databases found. Set SQLITE_PATH explicitly."; exit 1; \
+					fi; \
+					found_db="$$candidate"; \
+				fi; \
+			done; \
+			if [ -n "$$found_db" ]; then db_path="$$found_db"; fi; \
+		fi; \
 		db_path="$${db_path%%\?*}"; \
+		if [ ! -f "$$db_path" ]; then \
+			echo "No running docker dev PostgreSQL or local SQLite database found."; \
+			echo "Start the dev stack with 'make dev-api', or set SQLITE_PATH/DEV_SQLITE_PATH to your local SQLite database."; exit 1; \
+		fi; \
 		echo "Detected local SQLite database: $$db_path"; \
 		sqlite3 "$$db_path" \
-			"DELETE FROM setups; DELETE FROM users WHERE role = 100; DELETE FROM options WHERE key IN ('SelfUseModeEnabled', 'DemoSiteEnabled');"; \
+			"DELETE FROM setups; DELETE FROM users WHERE role = 100; DELETE FROM options WHERE key IN ('SelfUseModeEnabled', 'DemoSiteEnabled');" || exit $$?; \
 		echo "SQLite setup state reset. Restart the local api process before testing the setup wizard."; \
-	else \
-		echo "No running docker dev PostgreSQL or local SQLite database found."; \
-		echo "Start the dev stack with 'make dev-api', or set SQLITE_PATH/DEV_SQLITE_PATH to your local SQLite database."; \
-		exit 1; \
 	fi

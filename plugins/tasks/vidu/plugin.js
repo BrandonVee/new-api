@@ -12,7 +12,7 @@ export const meta = {
   channelTypes: [52],
   models: ["viduq2", "viduq1", "vidu2.0", "vidu1.5"],
   fetchMode: "per_task",
-  upstreams: ["vendor", "new_api"],
+  upstreams: ["vendor", "ai_gateway"],
   usageSchema: {
     // estimated/actual Vidu credits
     credits: {
@@ -82,7 +82,7 @@ function plainObject(value) {
 // serves the Vidu wire format on the prefixed native routes and takes its own
 // token as a Bearer header.
 function viaGateway(ctx) {
-  return Boolean(ctx.upstream && ctx.upstream.kind === "new_api");
+  return Boolean(ctx.upstream && ctx.upstream.kind === "ai_gateway");
 }
 
 function apiRoot(ctx) {

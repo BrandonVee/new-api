@@ -217,6 +217,7 @@ describe('access tokens card', () => {
     expect(screen.getByText('+1')).toBeVisible()
     expect(screen.queryByText(/retired/)).not.toBeInTheDocument()
     expect(screen.getAllByText('Never used')).toHaveLength(2)
+    expect(screen.getAllByText('…Ab12')).toHaveLength(2)
     expect(
       screen.getByRole('button', { name: 'Create access token' })
     ).toBeEnabled()

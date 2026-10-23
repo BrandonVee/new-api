@@ -49,13 +49,13 @@ export function readTaskExtendPluginKeys(
   return [...new Set(single ? [single, ...keys] : keys)]
 }
 
-// A Ai-gateway channel proxies another gateway, which serves a plugin's wire
-// format only on the plugin's own native routes. Only drivers that declare
-// they address such a gateway can be bound there; the server rejects the rest.
+// An Ai-gateway channel proxies another gateway, which serves a plugin's wire
+// format only on the plugin's own native routes. Only drivers declaring the
+// ai_gateway upstream kind can be bound there; the server rejects the rest.
 export function supportsAiGatewayUpstream(
   plugin: Pick<TaskPluginOption, 'upstreams'>
 ): boolean {
-  return plugin.upstreams?.includes('new_api') ?? false
+  return plugin.upstreams?.includes('ai_gateway') ?? false
 }
 
 export function getChannelPluginExtensions(

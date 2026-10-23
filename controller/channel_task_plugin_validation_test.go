@@ -71,7 +71,7 @@ export function parseTaskResult() { return {}; }
 func TestValidateAiGatewayChannelTaskPluginExtensions(t *testing.T) {
 	// gateway-ext-vendor never declares ai_gateway, so it can only run against
 	// its vendor and must be refused on a Ai-gateway channel.
-	for key, upstreams := range map[string]string{"gateway-ext-a": `upstreams: ["vendor", "new_api"],`, "gateway-ext-b": `upstreams: ["new_api"],`, "gateway-ext-vendor": ""} {
+	for key, upstreams := range map[string]string{"gateway-ext-a": `upstreams: ["vendor", "ai_gateway"],`, "gateway-ext-b": `upstreams: ["ai_gateway"],`, "gateway-ext-vendor": ""} {
 		source := `
 export const meta = {apiVersion: 1, key: "` + key + `", name: "Gateway", version: "1.0.0", author: {name: "Test"}, models: ["doc-` + key + `"], fetchMode: "per_task", ` + upstreams + `};
 export function buildSubmitRequest() { return {}; }
