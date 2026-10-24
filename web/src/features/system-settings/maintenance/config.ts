@@ -38,7 +38,6 @@ export const HEADER_NAV_DEFAULT: HeaderNavModulesConfig = {
 export const SIDEBAR_MODULES_DEFAULT: SidebarModulesAdminConfig = {
   chat: {
     enabled: true,
-    playground: true,
     chat: true,
   },
   console: {
@@ -188,7 +187,12 @@ export function parseSidebarModulesAdmin(
 
       Object.entries(raw as Record<string, unknown>).forEach(
         ([moduleKey, moduleValue]) => {
-          if (moduleKey === 'enabled') return
+          if (
+            moduleKey === 'enabled' ||
+            (sectionKey === 'chat' && moduleKey === 'playground')
+          ) {
+            return
+          }
           sectionConfig[moduleKey] = toBoolean(
             moduleValue,
             defaultSection[moduleKey] ?? true

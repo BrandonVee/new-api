@@ -13,7 +13,7 @@ describe('legacy frontend route migration', () => {
       '/console/subscription': '/subscriptions',
       '/console/channel': '/channels',
       '/console/token': '/keys',
-      '/console/playground': '/playground',
+      '/console/playground': '/dashboard',
       '/console/redemption': '/redemption-codes',
       '/console/user': '/users',
       '/console/personal': '/profile',
@@ -34,6 +34,15 @@ describe('legacy frontend route migration', () => {
     )
     expect(resolveLegacyRoute('/console/topup?source=email#orders')).toBe(
       '/wallet?source=email#orders'
+    )
+  })
+
+  test('redirects retired Playground bookmarks to the dashboard with search and hash intact', () => {
+    expect(resolveLegacyRoute('/playground?model=old#chat')).toBe(
+      '/dashboard?model=old#chat'
+    )
+    expect(resolveLegacyRoute('/console/playground/?model=old#chat')).toBe(
+      '/dashboard?model=old#chat'
     )
   })
 

@@ -89,6 +89,24 @@ async function renderOverview() {
 }
 
 describe('overview setup guide', () => {
+  it('opens usage logs when a user wants to verify their first request', async () => {
+    useAuthStore.getState().auth.setUser({
+      id: 1,
+      username: 'dashboard-user',
+      role: 1,
+      quota: 1000000,
+      request_count: 0,
+    })
+    await renderOverview()
+
+    expect(
+      await screen.findByRole('link', { name: /Send a request/ })
+    ).toHaveAttribute('href', '/usage-logs')
+    expect(
+      screen.queryByRole('link', { name: /Playground/ })
+    ).not.toBeInTheDocument()
+  })
+
   it('shows usage first and only a header entry when setup is complete', async () => {
     await renderOverview()
 

@@ -387,19 +387,6 @@ export const STATIC_I18N_KEYS = [
   'Match models containing this name',
   'Match models ending with this name',
 
-  // Playground parameter controls
-  'Temperature',
-  'Top P',
-  'Frequency Penalty',
-  'Presence Penalty',
-  'Max Tokens',
-  'Seed',
-  'Controls randomness and creativity',
-  'Limits token selection to a probability mass',
-  'Reduces repeated wording',
-  'Encourages new topics',
-  'Caps the response length',
-  'Keeps compatible responses more repeatable',
   'All Status',
   'All Sync Status',
   'Official Sync',
@@ -607,9 +594,6 @@ export const STATIC_I18N_KEYS = [
 
   // Sidebar modules
   'Chat Area',
-  'Playground and chat functions',
-  'Playground',
-  'AI model testing environment',
   'Chat session management',
   'No content to copy',
   'Please wait for the current generation to complete',

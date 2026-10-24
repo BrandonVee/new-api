@@ -15,6 +15,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestRetiredPlaygroundEndpointReturnsNotFound(t *testing.T) {
+	engine := gin.New()
+	SetRelayRouter(engine)
+	SetWebRouter(engine, WebAssets{IndexPage: []byte("dashboard")}, func(c *gin.Context) { c.Next() })
+
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/pg/chat/completions", strings.NewReader(`{"model":"gpt-4o-mini"}`))
+	request.Header.Set("Content-Type", "application/json")
+	engine.ServeHTTP(recorder, request)
+
+	require.Equal(t, http.StatusNotFound, recorder.Code)
+	assert.Contains(t, recorder.Body.String(), "Invalid URL")
+	assert.Contains(t, recorder.Header().Get("Cache-Control"), "no-store")
+}
+
 func TestListModelsSupportsOpenAIAndGeminiAuthentication(t *testing.T) {
 	setupRelayRouterTestDB(t)
 

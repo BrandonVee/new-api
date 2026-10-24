@@ -55,6 +55,37 @@ function sidebarFor(admin?: object, user?: object, canConfigure = true) {
   return result
 }
 
+describe('retired sidebar modules', () => {
+  it.each([
+    undefined,
+    { chat: { enabled: true, playground: true, chat: true } },
+  ])(
+    'does not show Playground with default or legacy configuration (%j)',
+    (config) => {
+      const { result } = sidebarFor(config, config)
+      const items = result.current.flatMap((group) => group.items)
+      expect(items.some((item) => item.title === 'Playground')).toBe(false)
+      expect(
+        items.some((item) => 'type' in item && item.type === 'chat-presets')
+      ).toBe(true)
+    }
+  )
+
+  it('drops the retired Playground switch when loading and saving legacy admin settings', () => {
+    const config = parseSidebarModulesAdmin(
+      JSON.stringify({
+        chat: { enabled: false, playground: true, chat: false, custom: true },
+      })
+    )
+    const saved = parseSidebarModulesAdmin(serializeSidebarModulesAdmin(config))
+    expect(saved.chat).toEqual({ enabled: false, chat: false, custom: true })
+    expect(parseSidebarModulesAdmin('').chat).toEqual({
+      enabled: true,
+      chat: true,
+    })
+  })
+})
+
 describe('security sidebar visibility', () => {
   it('old configurations show Security & Access immediately after Profile and keep API Keys', () => {
     const { result } = sidebarFor(
