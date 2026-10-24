@@ -263,6 +263,7 @@ Read [AGENTS.md](./AGENTS.md) before contributing. Run checks appropriate to you
 | Resource | Link |
 | --- | --- |
 | Project documentation | [README](./README.md) · [Documentation directory](./docs/) · [Deployment](#deployment) |
+| Standalone Chinese handbook | [Documentation site source and local preview](./docs-site/README.md) |
 | API specifications | [Management API](./docs/openapi/api.json) · [Relay API](./docs/openapi/relay.json) |
 | Bugs and feature requests | [GitHub Issues](https://github.com/BrandonVee/new-api/issues) |
 | Security reports | Follow the [security policy](./.github/SECURITY.md) for private reporting |

@@ -1,0 +1,17 @@
+{
+  "name": "ai-gateway-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev --host 127.0.0.1",
+    "sync": "node scripts/sync-reference.mjs",
+    "build": "bun run sync && vitepress build",
+    "preview": "vitepress preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "~5.9.3",
+    "vitepress": "1.6.4"
+  }
+}

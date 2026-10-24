@@ -4,6 +4,8 @@
 
 # Ai-gateway
 
+[独立中文文档站：源码、预览与部署说明](./docs-site/README.md)
+
 **连接模型、应用与 Agent 的 AI 网关**
 
 <p align="center">
