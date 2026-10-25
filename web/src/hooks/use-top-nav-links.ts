@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useStatus } from '@/hooks/use-status'
-import { resolveDocsLink } from '@/lib/constants'
+import { KAIMING_ENERGY_WEBSITE_URL, resolveDocsLink } from '@/lib/constants'
 import { parseHeaderNavModulesFromStatus } from '@/lib/nav-modules'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -43,16 +43,17 @@ export function useTopNavLinks(): TopNavLink[] {
 
   const isAuthed = !!auth?.user
 
-  const links: TopNavLink[] = []
+  const links: TopNavLink[] = [
+    {
+      title: t('Official website'),
+      href: KAIMING_ENERGY_WEBSITE_URL,
+      external: true,
+    },
+  ]
 
   // Home
   if (modules?.home !== false) {
-    links.push({ title: t('Home'), href: '/' })
-  }
-
-  // Console -> /dashboard (new console path)
-  if (modules?.console !== false) {
-    links.push({ title: t('Console'), href: '/dashboard' })
+    links.push({ title: t('TOKEN Home'), href: '/' })
   }
 
   // Pricing
@@ -81,6 +82,11 @@ export function useTopNavLinks(): TopNavLink[] {
   // About
   if (modules?.about !== false) {
     links.push({ title: t('About'), href: '/about' })
+  }
+
+  // Console -> /dashboard (new console path)
+  if (modules?.console !== false) {
+    links.push({ title: t('Console'), href: '/dashboard' })
   }
 
   return links

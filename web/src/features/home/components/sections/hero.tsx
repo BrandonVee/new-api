@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { useStatus } from '@/hooks/use-status'
-import { resolveDocsLink } from '@/lib/constants'
+import { KAIMING_ENERGY_WEBSITE_URL, resolveDocsLink } from '@/lib/constants'
 
 import { GatewayVisual } from '../gateway-visual'
 
@@ -90,6 +90,22 @@ export function Hero(props: HeroProps) {
                 aria-hidden='true'
               />
               {t('Docs')}
+            </Button>
+          </div>
+          <div className='mt-2'>
+            <Button
+              size='lg'
+              variant='outline'
+              className='gateway-action border-primary text-primary hover:text-primary'
+              render={
+                <a
+                  href={KAIMING_ENERGY_WEBSITE_URL}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                />
+              }
+            >
+              {t('Visit Kaiming Energy')}
             </Button>
           </div>
           <div className='gateway-apps mt-8'>

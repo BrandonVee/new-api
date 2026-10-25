@@ -209,14 +209,14 @@ describe('home mobile navigation', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(menu).toHaveAttribute('inert')
     expect(
-      within(menu).queryByRole('link', { name: 'Home' })
+      within(menu).queryByRole('link', { name: 'TOKEN Home' })
     ).not.toBeInTheDocument()
 
     await user.click(toggle)
 
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
     expect(menu).not.toHaveAttribute('inert')
-    expect(within(menu).getByRole('link', { name: 'Home' })).toBeVisible()
+    expect(within(menu).getByRole('link', { name: 'TOKEN Home' })).toBeVisible()
 
     await user.click(toggle)
 

@@ -117,7 +117,17 @@ export function Home() {
     <div className='gateway-home'>
       <PublicLayout
         showMainContainer={false}
-        headerProps={{ className: 'gateway-home-header' }}
+        headerProps={{
+          className: 'gateway-home-header',
+          showSiteName: false,
+          logo: (
+            <img
+              src='/kaiming-energy-mark.svg'
+              alt=''
+              className='size-full object-contain dark:brightness-0 dark:invert'
+            />
+          ),
+        }}
       >
         <main>
           <Hero isAuthenticated={isAuthenticated} />
