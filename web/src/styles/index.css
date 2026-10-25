@@ -30,6 +30,10 @@
 
 /* Shiki dual themes: token colors follow dark theme (pre background stays `bg-background` on the block) */
 @layer components {
+  .dark img[src='/kaiming-energy-mark.svg'] {
+    filter: brightness(0) invert(1);
+  }
+
   .shiki span {
     color: var(--shiki-light) !important;
     font-style: var(--shiki-light-font-style) !important;

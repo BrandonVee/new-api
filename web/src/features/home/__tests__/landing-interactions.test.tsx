@@ -9,11 +9,16 @@ import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import i18n from 'i18next'
 import type { ReactNode } from 'react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { PublicHeader } from '@/components/layout/components/public-header'
+import { DirectionProvider } from '@/context/direction-provider'
+import { ThemeProvider } from '@/context/theme-provider'
 import zh from '@/i18n/locales/zh.json'
+import { api } from '@/lib/api'
+import { useSystemConfigStore } from '@/stores/system-config-store'
 
+import { Home } from '..'
 import { HomeFAQ } from '../components/sections/faq'
 import { HowItWorks } from '../components/sections/how-it-works'
 import { ModelShowcase } from '../components/sections/model-showcase'
@@ -226,4 +231,78 @@ describe('home mobile navigation', () => {
     view.unmount()
     client.clear()
   })
+})
+
+describe('home branding', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    useSystemConfigStore.setState(useSystemConfigStore.getInitialState(), true)
+  })
+  afterEach(() => {
+    vi.restoreAllMocks()
+    useSystemConfigStore.setState(useSystemConfigStore.getInitialState(), true)
+    localStorage.clear()
+  })
+
+  it.each([
+    { configuredLogo: '', expectedLogo: '/kaiming-energy-mark.svg' },
+    {
+      configuredLogo: 'https://cdn.example.com/site-brand.svg',
+      expectedLogo: 'https://cdn.example.com/site-brand.svg',
+    },
+  ])(
+    'shows the configured site logo $expectedLogo on the homepage and follows later changes',
+    async ({ configuredLogo, expectedLogo }) => {
+      const client = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false, staleTime: Infinity, gcTime: 0 },
+        },
+      })
+      client.setQueryData(['status'], {
+        system_name: 'Example Site',
+        logo: configuredLogo,
+      })
+      client.setQueryData(['notice'], { success: true, data: '' })
+      useSystemConfigStore
+        .getState()
+        .setConfig({ systemName: 'Example Site', logo: configuredLogo })
+      useSystemConfigStore.getState().setLoading(false)
+      useSystemConfigStore.getState().setLoadedLogoUrl(expectedLogo)
+      vi.spyOn(api, 'get').mockResolvedValue({
+        data: { success: true, data: '' },
+      })
+      const view = await renderLandingSection(
+        <QueryClientProvider client={client}>
+          <DirectionProvider>
+            <ThemeProvider>
+              <Home />
+            </ThemeProvider>
+          </DirectionProvider>
+        </QueryClientProvider>
+      )
+      await screen.findByRole('button', { name: 'Visit Kaiming Energy' })
+      const header = within(screen.getByRole('banner'))
+      expect(header.getByRole('img', { name: 'logo' })).toHaveAttribute(
+        'src',
+        expectedLogo
+      )
+      expect(header.getByText('Example Site')).toBeVisible()
+      act(() =>
+        useSystemConfigStore
+          .getState()
+          .setConfig({ logo: 'https://cdn.example.com/replacement.svg' })
+      )
+      expect(header.getByRole('img', { name: 'logo' })).toHaveAttribute(
+        'src',
+        'https://cdn.example.com/replacement.svg'
+      )
+      act(() => useSystemConfigStore.getState().setConfig({ logo: '' }))
+      expect(header.getByRole('img', { name: 'logo' })).toHaveAttribute(
+        'src',
+        '/kaiming-energy-mark.svg'
+      )
+      view.unmount()
+      client.clear()
+    }
+  )
 })

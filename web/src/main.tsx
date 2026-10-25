@@ -65,7 +65,7 @@ if (!rootElement) {
     // Cache-first
     const cached = readCachedStatus()
     if (cached?.system_name) apply(cached.system_name as string)
-    if (cached?.logo) applyFaviconToDom(resolveSystemLogo(cached.logo))
+    applyFaviconToDom(resolveSystemLogo(cached?.logo))
 
     // Background refresh through the shared cache. This primes ['status']
     // before React mounts, so the root guard and every status consumer reuse
@@ -75,7 +75,7 @@ if (!rootElement) {
       .ensureQueryData(statusQueryOptions)
       .then((s) => {
         if (s?.system_name) apply(s.system_name as string)
-        if (s?.logo) applyFaviconToDom(resolveSystemLogo(s.logo))
+        applyFaviconToDom(resolveSystemLogo(s?.logo))
       })
       .catch(() => {
         /* empty */

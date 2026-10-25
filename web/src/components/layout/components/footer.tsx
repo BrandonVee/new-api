@@ -211,7 +211,10 @@ export function Footer(props: FooterProps) {
               <img
                 src={displayLogo}
                 alt={displayName}
-                className='size-7 rounded-lg object-contain'
+                className={cn(
+                  'size-7 rounded-lg object-contain',
+                  displayLogo === DEFAULT_LOGO && 'rounded-none'
+                )}
               />
               <span className='text-sm font-semibold tracking-tight'>
                 {displayName}

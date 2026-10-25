@@ -64,7 +64,7 @@ export default defineConfig(({ envMode }) => {
     },
     html: {
       template: './index.html',
-      favicon: './public/ai-gateway-favicon.ico',
+      favicon: './public/kaiming-energy-mark.svg',
     },
     server: {
       host: '0.0.0.0',

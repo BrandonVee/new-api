@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSystemConfig } from '@/hooks/use-system-config'
+import { DEFAULT_LOGO } from '@/lib/constants'
+import { cn } from '@/lib/utils'
 
 type AuthLayoutProps = {
   children: React.ReactNode
@@ -25,7 +27,10 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             <img
               src={logo}
               alt={t('Logo')}
-              className='h-8 w-8 rounded-full object-cover'
+              className={cn(
+                'h-8 w-8 rounded-full object-cover',
+                logo === DEFAULT_LOGO && 'rounded-none object-contain'
+              )}
             />
           )}
         </div>

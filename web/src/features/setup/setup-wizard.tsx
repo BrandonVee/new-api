@@ -19,6 +19,7 @@ import {
 import { Form } from '@/components/ui/form'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSystemConfig } from '@/hooks/use-system-config'
+import { DEFAULT_LOGO } from '@/lib/constants'
 import { handleServerError } from '@/lib/handle-server-error'
 import { accountPasswordSchema } from '@/lib/password-policy'
 import { requireServerSuccess } from '@/lib/server-error-message'
@@ -278,7 +279,11 @@ export function SetupWizard() {
               <img
                 src={logo}
                 alt={t('System logo')}
-                className='h-12 w-12 rounded-full object-cover shadow-sm'
+                className={cn(
+                  'h-12 w-12 rounded-full object-cover shadow-sm',
+                  logo === DEFAULT_LOGO &&
+                    'rounded-none object-contain shadow-none'
+                )}
               />
             )}
           </div>

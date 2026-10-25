@@ -78,11 +78,11 @@ afterEach(() => {
 
 describe('site branding', () => {
   test.each([
-    { configuredLogo: '', displayLogo: '/ai-gateway-logo.png' },
-    { configuredLogo: '/logo.png', displayLogo: '/ai-gateway-logo.png' },
+    { configuredLogo: '', displayLogo: '/kaiming-energy-mark.svg' },
+    { configuredLogo: '/logo.png', displayLogo: '/kaiming-energy-mark.svg' },
     {
       configuredLogo: '/ai-gateway-logo.png',
-      displayLogo: '/ai-gateway-logo.png',
+      displayLogo: '/kaiming-energy-mark.svg',
     },
     {
       configuredLogo: 'https://cdn.example.com/custom-brand.svg',

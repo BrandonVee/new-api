@@ -128,7 +128,7 @@ describe('Lobe icons', () => {
   it('renders the gateway brand logo at the requested size', () => {
     render(getLobeIcon('AiGateway', 28))
     const logo = screen.getByRole('presentation', { hidden: true })
-    expect(logo).toHaveAttribute('src', '/ai-gateway-logo.png')
+    expect(logo).toHaveAttribute('src', '/kaiming-energy-mark.svg')
     expect(logo).toHaveAttribute('width', '28')
     expect(logo).toHaveAttribute('height', '28')
   })

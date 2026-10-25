@@ -1,3 +1,4 @@
+import { DEFAULT_LOGO } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
 interface HeaderLogoProps {
@@ -26,7 +27,8 @@ export function HeaderLogo({
       className={cn(
         'h-6 w-6 rounded-full transition-opacity duration-200',
         !loading && logoLoaded ? 'opacity-100' : 'opacity-0',
-        className
+        className,
+        src === DEFAULT_LOGO && 'rounded-none object-contain'
       )}
     />
   )

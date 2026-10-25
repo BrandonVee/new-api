@@ -7,8 +7,10 @@ import { RichContent } from '@/components/rich-content'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSystemConfig } from '@/hooks/use-system-config'
+import { DEFAULT_LOGO } from '@/lib/constants'
 import { isHttpUrl, isLikelyHtml } from '@/lib/content-format'
 import { requireServerSuccess } from '@/lib/server-error-message'
+import { cn } from '@/lib/utils'
 
 import { getAboutContent } from './api'
 
@@ -23,7 +25,10 @@ function DefaultAboutContent() {
           <img
             src={logo}
             alt=''
-            className='size-20 rounded-2xl object-contain'
+            className={cn(
+              'size-20 rounded-2xl object-contain',
+              logo === DEFAULT_LOGO && 'rounded-none'
+            )}
           />
         </div>
         <div className='space-y-2'>
