@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, renderHook, waitFor } from '@testing-library/react'
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
+import { useUpdateOption } from '@/features/system-settings/hooks/use-update-option'
 import { useStatus } from '@/hooks/use-status'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { api } from '@/lib/api'
@@ -77,6 +78,45 @@ afterEach(() => {
 })
 
 describe('site branding', () => {
+  test.each([
+    {
+      savedLogo: 'https://cdn.example.com/new-brand.svg',
+      expectedLogo: 'https://cdn.example.com/new-brand.svg',
+    },
+    { savedLogo: '', expectedLogo: '/kaiming-energy-mark.svg' },
+  ])(
+    'refreshes site branding immediately after saving logo $savedLogo',
+    async ({ savedLogo, expectedLogo }) => {
+      const queryClient = createQueryClient()
+      queryClient.setQueryData(STATUS_QUERY_KEY, {
+        logo: '/previous-brand.svg',
+      })
+      useSystemConfigStore.getState().setConfig({ logo: '/previous-brand.svg' })
+      apiClient.get = async (url) => {
+        statusRequests.push(url)
+        return { data: { success: true, data: { logo: savedLogo } } }
+      }
+      vi.spyOn(api, 'put').mockResolvedValue({ data: { success: true } })
+      const hook = renderHook(
+        () => {
+          useStatus()
+          return { branding: useSystemConfig(), update: useUpdateOption() }
+        },
+        { wrapper: wrapper(queryClient) }
+      )
+      await act(() =>
+        hook.result.current.update.mutateAsync({
+          key: 'Logo',
+          value: savedLogo,
+        })
+      )
+      await waitFor(() =>
+        expect(hook.result.current.branding.logo).toBe(expectedLogo)
+      )
+      expect(statusRequests).toEqual(['/api/status'])
+    }
+  )
+
   test.each([
     { configuredLogo: '', displayLogo: '/kaiming-energy-mark.svg' },
     { configuredLogo: '/logo.png', displayLogo: '/kaiming-energy-mark.svg' },
