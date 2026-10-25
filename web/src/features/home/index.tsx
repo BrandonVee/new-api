@@ -119,7 +119,6 @@ export function Home() {
         showMainContainer={false}
         headerProps={{
           className: 'gateway-home-header',
-          showSiteName: false,
           logo: (
             <img
               src='/kaiming-energy-mark.svg'
