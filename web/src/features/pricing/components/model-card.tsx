@@ -25,6 +25,7 @@ import { taskPriceLabel, taskUsageUnitLabel } from '../lib/task-price-display'
 import type { PricingModel, PriceType, TokenUnit } from '../types'
 import { ModelBillingModeBadge } from './model-billing-mode-badge'
 import { ModelPerfBadge, type ModelPerfBadgeData } from './model-perf-badge'
+import { PriceComparison } from './price-comparison'
 
 export interface ModelCardProps {
   model: PricingModel
@@ -56,7 +57,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   const currency = useSystemConfigStore((state) => state.config.currency)
   const dynamicPriceOptions = useMemo(
     () => ({
-      now: billingTime === undefined ? undefined : new Date(billingTime),
+      now: new Date(billingTime ?? Date.now()),
       tokenUnit,
       showRechargePrice,
       priceRate,
@@ -76,8 +77,20 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       usdExchangeRate,
     ]
   )
-  const dynamicSummary = useMemo(
-    () => getDynamicPricingSummary(props.model, dynamicPriceOptions),
+  const { dynamicSummary, originalSummary } = useMemo(
+    () => {
+      const summary = getDynamicPricingSummary(props.model, dynamicPriceOptions)
+      return {
+        dynamicSummary: summary,
+        originalSummary:
+          summary && dynamicPriceOptions.groupRatioMultiplier !== 1
+            ? getDynamicPricingSummary(props.model, {
+                ...dynamicPriceOptions,
+                groupRatioMultiplier: 1,
+              })
+            : summary,
+      }
+    },
     // Currency is read indirectly by the price formatter.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.model, dynamicPriceOptions, currency]
@@ -119,6 +132,9 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           ]
             .flat()
             .map((entry) => {
+              const originalEntry = originalSummary?.entries.find(
+                (original) => original.key === entry.key
+              )
               const unitLabelKey = getDynamicPriceUnitLabelKey(entry)
               const unitLabel = taskUsageUnitLabel(
                 entry,
@@ -148,13 +164,14 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
                       {label}
                     </span>
                   )}
-                  <span className='flex flex-wrap items-baseline gap-x-1 font-mono text-sm font-semibold tabular-nums'>
-                    <span>{entry.formattedRange ?? entry.formatted}</span>
-                    <span className='text-muted-foreground text-xs font-normal whitespace-nowrap'>
-                      {' '}
-                      / {unitLabel}
-                    </span>
-                  </span>
+                  <PriceComparison
+                    price={entry.formattedRange ?? entry.formatted}
+                    originalPrice={
+                      originalEntry?.formattedRange ?? originalEntry?.formatted
+                    }
+                    unit={unitLabel}
+                    className='font-semibold'
+                  />
                 </div>
               )
             })}
@@ -211,8 +228,8 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     priceSummary = prices.map((price) => (
       <div key={price.type} className='flex min-w-0 flex-col gap-1'>
         <span className='text-muted-foreground text-xs'>{price.label}</span>
-        <span className='font-mono text-sm font-semibold tabular-nums'>
-          {formatPrice(
+        <PriceComparison
+          price={formatPrice(
             props.model,
             price.type,
             tokenUnit,
@@ -221,29 +238,45 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             usdExchangeRate,
             props.selectedGroup
           )}
-          <span className='text-muted-foreground text-xs font-normal'>
-            {' '}
-            / {tokenUnitLabel}
-          </span>
-        </span>
+          originalPrice={formatPrice(
+            props.model,
+            price.type,
+            tokenUnit,
+            showRechargePrice,
+            priceRate,
+            usdExchangeRate,
+            props.selectedGroup,
+            true,
+            1
+          )}
+          unit={tokenUnitLabel}
+          className='font-semibold'
+        />
       </div>
     ))
   } else {
     priceSummary = (
       <div className='col-span-full flex min-w-0 flex-col gap-1'>
-        <span className='font-mono text-sm font-semibold tabular-nums'>
-          {formatRequestPrice(
+        <PriceComparison
+          price={formatRequestPrice(
             props.model,
             showRechargePrice,
             priceRate,
             usdExchangeRate,
             props.selectedGroup
           )}
-          <span className='text-muted-foreground text-xs font-normal'>
-            {' '}
-            / {t('request')}
-          </span>
-        </span>
+          originalPrice={formatRequestPrice(
+            props.model,
+            showRechargePrice,
+            priceRate,
+            usdExchangeRate,
+            props.selectedGroup,
+            true,
+            1
+          )}
+          unit={t('request')}
+          className='font-semibold'
+        />
       </div>
     )
   }

@@ -16,6 +16,7 @@ import { isTokenBasedModel } from '../lib/model-helpers'
 import { formatPrice, formatRequestPrice } from '../lib/price'
 import { taskUsageUnitLabel } from '../lib/task-price-display'
 import type { PricingModel, TokenUnit } from '../types'
+import { PriceComparison } from './price-comparison'
 
 export type ModelPriceCellOptions = {
   tokenUnit?: TokenUnit
@@ -38,20 +39,30 @@ export function ModelPriceCell(props: {
   const tokenUnit = options.tokenUnit ?? DEFAULT_TOKEN_UNIT
   const tokenUnitLabel = tokenUnit === 'K' ? '1K' : '1M'
   const billingTime = useBillingTime(props.model.billing_expr)
-  const dynamic = useMemo(
-    () =>
-      getDynamicPricingSummary(props.model, {
+  const { dynamic, originalDynamic } = useMemo(
+    () => {
+      const priceOptions = {
         priceRate: options.priceRate,
         usdExchangeRate: options.usdExchangeRate,
         showRechargePrice: options.showRechargePrice,
-        now: billingTime === undefined ? undefined : new Date(billingTime),
+        now: new Date(billingTime ?? Date.now()),
         tokenUnit,
         showCurrencySymbol: false,
         groupRatioMultiplier: getDynamicDisplayGroupRatio(
           props.model,
           options.selectedGroup
         ),
-      }),
+      }
+      const dynamic = getDynamicPricingSummary(props.model, priceOptions)
+      const originalDynamic =
+        dynamic && priceOptions.groupRatioMultiplier !== 1
+          ? getDynamicPricingSummary(props.model, {
+              ...priceOptions,
+              groupRatioMultiplier: 1,
+            })
+          : dynamic
+      return { dynamic, originalDynamic }
+    },
     // Currency is read indirectly by the price formatter.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -65,7 +76,11 @@ export function ModelPriceCell(props: {
       currency,
     ]
   )
-  let metrics: Array<{ label: string; value: string }>
+  let metrics: Array<{
+    label: string
+    value: string
+    originalValue?: string
+  }>
   const providerCaption = dynamic?.providerCount
     ? t('{{count}} providers', { count: dynamic.providerCount })
     : ''
@@ -115,12 +130,18 @@ export function ModelPriceCell(props: {
         if (hasRequestPrice && entry.unit === 'token') {
           suffix = `/${t('{{unit}} tokens', { unit: tokenUnitLabel })}`
         }
+        const originalEntry = originalDynamic?.entries.find(
+          (original) => original.key === entry.key
+        )
         return {
           label:
             entry.labelKind === 'schema'
               ? entry.shortLabel
               : t(entry.shortLabel),
           value: `${entry.formattedRange ?? entry.formatted}${suffix}`,
+          originalValue: originalEntry
+            ? `${originalEntry.formattedRange ?? originalEntry.formatted}${suffix}`
+            : undefined,
         }
       })
     if (metrics.length === 0) {
@@ -183,6 +204,17 @@ export function ModelPriceCell(props: {
             options.selectedGroup,
             false
           ),
+          originalValue: formatPrice(
+            props.model,
+            'input',
+            tokenUnit,
+            options.showRechargePrice,
+            options.priceRate,
+            options.usdExchangeRate,
+            undefined,
+            false,
+            1
+          ),
         },
         {
           label: t('Output'),
@@ -195,6 +227,17 @@ export function ModelPriceCell(props: {
             options.usdExchangeRate,
             options.selectedGroup,
             false
+          ),
+          originalValue: formatPrice(
+            props.model,
+            'output',
+            tokenUnit,
+            options.showRechargePrice,
+            options.priceRate,
+            options.usdExchangeRate,
+            undefined,
+            false,
+            1
           ),
         },
       ]
@@ -209,6 +252,15 @@ export function ModelPriceCell(props: {
             options.usdExchangeRate,
             options.selectedGroup,
             false
+          ),
+          originalValue: formatRequestPrice(
+            props.model,
+            options.showRechargePrice,
+            options.priceRate,
+            options.usdExchangeRate,
+            undefined,
+            false,
+            1
           ),
         },
       ]
@@ -231,12 +283,10 @@ export function ModelPriceCell(props: {
             >
               {metric.label}
             </span>
-            <span
-              className='min-w-0 font-mono text-sm break-words whitespace-normal tabular-nums'
-              title={metric.value}
-            >
-              {metric.value}
-            </span>
+            <PriceComparison
+              price={metric.value}
+              originalPrice={metric.originalValue}
+            />
           </span>
         ))}
       </span>

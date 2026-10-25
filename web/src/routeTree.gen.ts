@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as LegalNoticesRouteImport } from './routes/legal-notices'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as UsageGuidelinesRouteImport } from './routes/usage-guidelines'
 import { Route as UserAgreementRouteImport } from './routes/user-agreement'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as authOauthRouteImport } from './routes/(auth)/oauth'
@@ -100,6 +101,11 @@ const LegalNoticesRoute = LegalNoticesRouteImport.update({
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsageGuidelinesRoute = UsageGuidelinesRouteImport.update({
+  id: '/usage-guidelines',
+  path: '/usage-guidelines',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UserAgreementRoute = UserAgreementRouteImport.update({
@@ -432,6 +438,7 @@ export interface FileRoutesByFullPath {
   '/docs': typeof DocsRoute
   '/legal-notices': typeof LegalNoticesRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/usage-guidelines': typeof UsageGuidelinesRoute
   '/user-agreement': typeof UserAgreementRoute
   '/system-settings': typeof AuthenticatedSystemSettingsRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
@@ -496,6 +503,7 @@ export interface FileRoutesByTo {
   '/docs': typeof DocsRoute
   '/legal-notices': typeof LegalNoticesRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/usage-guidelines': typeof UsageGuidelinesRoute
   '/user-agreement': typeof UserAgreementRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/oauth': typeof authOauthRoute
@@ -562,6 +570,7 @@ export interface FileRoutesById {
   '/docs': typeof DocsRoute
   '/legal-notices': typeof LegalNoticesRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/usage-guidelines': typeof UsageGuidelinesRoute
   '/user-agreement': typeof UserAgreementRoute
   '/_authenticated/system-settings': typeof AuthenticatedSystemSettingsRouteRouteWithChildren
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
@@ -628,6 +637,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/legal-notices'
     | '/privacy-policy'
+    | '/usage-guidelines'
     | '/user-agreement'
     | '/system-settings'
     | '/forgot-password'
@@ -692,6 +702,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/legal-notices'
     | '/privacy-policy'
+    | '/usage-guidelines'
     | '/user-agreement'
     | '/forgot-password'
     | '/oauth'
@@ -757,6 +768,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/legal-notices'
     | '/privacy-policy'
+    | '/usage-guidelines'
     | '/user-agreement'
     | '/_authenticated/system-settings'
     | '/(auth)/forgot-password'
@@ -824,6 +836,7 @@ export interface RootRouteChildren {
   DocsRoute: typeof DocsRoute
   LegalNoticesRoute: typeof LegalNoticesRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  UsageGuidelinesRoute: typeof UsageGuidelinesRoute
   UserAgreementRoute: typeof UserAgreementRoute
   errors401Route: typeof errors401Route
   errors403Route: typeof errors403Route
@@ -880,6 +893,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
       preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/usage-guidelines': {
+      id: '/usage-guidelines'
+      path: '/usage-guidelines'
+      fullPath: '/usage-guidelines'
+      preLoaderRoute: typeof UsageGuidelinesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/user-agreement': {
@@ -1440,6 +1460,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocsRoute: DocsRoute,
   LegalNoticesRoute: LegalNoticesRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
+  UsageGuidelinesRoute: UsageGuidelinesRoute,
   UserAgreementRoute: UserAgreementRoute,
   errors401Route: errors401Route,
   errors403Route: errors403Route,

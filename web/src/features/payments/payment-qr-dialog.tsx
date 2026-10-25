@@ -68,6 +68,7 @@ function PaymentQRContent(props: Props & { checkout: OfficialCheckout }) {
   const failed =
     query.data?.status === 'failed' || query.data?.status === 'expired'
   const locale = toIntlLocale(i18n.resolvedLanguage || i18n.language)
+  const checkoutType = props.checkout.checkout_type ?? 'qr'
   // This is a CNY quote, independent of the console's display currency. The
   // shared money formatter supplies locale/precision without converting it.
   const amount = formatLocalCurrencyAmount(Number(props.checkout.amount), {
@@ -104,9 +105,15 @@ function PaymentQRContent(props: Props & { checkout: OfficialCheckout }) {
           ? t('WeChat Pay (Official)')
           : t('Alipay (Official)')
       }
-      description={t(
-        'Scan with the payment app. This page updates after payment confirmation.'
-      )}
+      description={
+        checkoutType === 'qr'
+          ? t(
+              'Scan with the payment app. This page updates after payment confirmation.'
+            )
+          : t(
+              'Complete payment in Alipay, then return here to check the result.'
+            )
+      }
       contentClassName='max-sm:w-[calc(100vw-1.5rem)] sm:max-w-md'
       footer={
         <Button variant='outline' onClick={props.onClose}>
@@ -130,22 +137,49 @@ function PaymentQRContent(props: Props & { checkout: OfficialCheckout }) {
       {!paid && (expired || failed) && (
         <Alert>
           <AlertDescription>
-            {t(
-              'Payment code expired. Close this dialog and create a new order.'
-            )}
+            {checkoutType === 'qr'
+              ? t(
+                  'Payment code expired. Close this dialog and create a new order.'
+                )
+              : t(
+                  'Payment order expired. Close this dialog and create a new order.'
+                )}
           </AlertDescription>
         </Alert>
       )}
       {!paid && !expired && !failed && (
         <>
-          <div className='rounded-xl bg-white p-4'>
-            <QRCodeSVG
-              value={props.checkout.qr_code}
-              size={208}
-              marginSize={2}
-              title={t('Payment QR code')}
-            />
-          </div>
+          {checkoutType === 'qr' && (
+            <div className='rounded-xl bg-white p-4'>
+              <QRCodeSVG
+                value={props.checkout.qr_code}
+                size={208}
+                marginSize={2}
+                title={t('Payment QR code')}
+              />
+            </div>
+          )}
+          {checkoutType === 'redirect' && props.checkout.pay_url && (
+            <Button
+              role='link'
+              render={
+                <a
+                  href={props.checkout.pay_url}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                />
+              }
+            >
+              {t('Continue to Alipay')}
+            </Button>
+          )}
+          {checkoutType === 'app' && (
+            <Alert>
+              <AlertDescription>
+                {t('Complete this payment in the app that created the order.')}
+              </AlertDescription>
+            </Alert>
+          )}
           <p
             role='status'
             className='text-muted-foreground flex items-center gap-2 text-sm'

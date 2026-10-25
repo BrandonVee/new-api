@@ -10,6 +10,13 @@ export const Route = createFileRoute(
   '/_authenticated/system-settings/billing/$section'
 )({
   beforeLoad: ({ params }) => {
+    if (params.section === 'official-payment') {
+      throw redirect({
+        to: '/system-settings/billing/$section',
+        params: { section: 'payment' },
+        replace: true,
+      })
+    }
     const validSections = BILLING_SECTION_IDS as unknown as string[]
     if (!validSections.includes(params.section)) {
       throw redirect({

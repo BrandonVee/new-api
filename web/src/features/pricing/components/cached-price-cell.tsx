@@ -14,6 +14,7 @@ import { isTokenBasedModel } from '../lib/model-helpers'
 import { formatPrice, stripTrailingZeros } from '../lib/price'
 import type { PricingModel } from '../types'
 import type { ModelPriceCellOptions } from './model-price-cell'
+import { PriceComparison } from './price-comparison'
 
 export function CachedPriceCell(props: {
   model: PricingModel
@@ -33,16 +34,26 @@ export function CachedPriceCell(props: {
   const model = props.model
   const currency = useSystemConfigStore((state) => state.config.currency)
   const billingTime = useBillingTime(model.billing_expr)
-  const dynamicSummary = useMemo(
-    () =>
-      getDynamicPricingSummary(model, {
-        now: billingTime === undefined ? undefined : new Date(billingTime),
+  const { dynamicSummary, originalSummary } = useMemo(
+    () => {
+      const priceOptions = {
+        now: new Date(billingTime ?? Date.now()),
         tokenUnit,
         showRechargePrice,
         priceRate,
         usdExchangeRate,
         groupRatioMultiplier: getDynamicDisplayGroupRatio(model, selectedGroup),
-      }),
+      }
+      const dynamicSummary = getDynamicPricingSummary(model, priceOptions)
+      const originalSummary =
+        dynamicSummary && priceOptions.groupRatioMultiplier !== 1
+          ? getDynamicPricingSummary(model, {
+              ...priceOptions,
+              groupRatioMultiplier: 1,
+            })
+          : dynamicSummary
+      return { dynamicSummary, originalSummary }
+    },
     // Currency is read indirectly by the price formatter.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -76,23 +87,34 @@ export function CachedPriceCell(props: {
 
     return (
       <div className='max-w-full min-w-0'>
-        {cacheEntries.map((entry) => (
-          <div
-            key={entry.field}
-            className='flex flex-wrap items-baseline gap-x-1'
-          >
-            {(cacheEntries.length > 1 || entry.field === 'imageCachePrice') && (
-              <span className='text-muted-foreground text-xs'>
-                {entry.field === 'imageCachePrice'
-                  ? t('Image Cache')
-                  : t('Cache Read')}
-              </span>
-            )}
-            <span className='font-mono text-sm tabular-nums'>
-              {stripTrailingZeros(entry.formatted)}
-            </span>
-          </div>
-        ))}
+        {cacheEntries.map((entry) => {
+          const originalEntry = originalSummary?.entries.find(
+            (original) => original.key === entry.key
+          )
+          return (
+            <div
+              key={entry.field}
+              className='flex flex-wrap items-baseline gap-x-1'
+            >
+              {(cacheEntries.length > 1 ||
+                entry.field === 'imageCachePrice') && (
+                <span className='text-muted-foreground text-xs'>
+                  {entry.field === 'imageCachePrice'
+                    ? t('Image Cache')
+                    : t('Cache Read')}
+                </span>
+              )}
+              <PriceComparison
+                price={stripTrailingZeros(entry.formatted)}
+                originalPrice={
+                  originalEntry
+                    ? stripTrailingZeros(originalEntry.formatted)
+                    : undefined
+                }
+              />
+            </div>
+          )
+        })}
         <div className='text-muted-foreground/50 text-[10px]'>
           / {tokenUnitLabel}
         </div>
@@ -121,10 +143,26 @@ export function CachedPriceCell(props: {
       selectedGroup
     )
   )
+  const originalCachedPrice = stripTrailingZeros(
+    formatPrice(
+      model,
+      'cache',
+      tokenUnit,
+      showRechargePrice,
+      priceRate,
+      usdExchangeRate,
+      undefined,
+      true,
+      1
+    )
+  )
 
   return (
     <div className='max-w-full min-w-0'>
-      <span className='font-mono text-sm tabular-nums'>{cachedPrice}</span>
+      <PriceComparison
+        price={cachedPrice}
+        originalPrice={originalCachedPrice}
+      />
       <div className='text-muted-foreground/50 text-[10px]'>
         / {tokenUnitLabel}
       </div>

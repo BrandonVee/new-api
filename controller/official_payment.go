@@ -39,6 +39,9 @@ func UpdateOfficialPaymentSettings(c *gin.Context) {
 	officialPaymentSettingsMutex.Lock()
 	defer officialPaymentSettingsMutex.Unlock()
 	previous := operation_setting.GetOfficialPaymentSettings()
+	if settings.AlipayProducts == nil {
+		settings.AlipayProducts = previous.AlipayProducts
+	}
 	// Empty secret fields mean retain; the API never sends usable secrets back.
 	if strings.TrimSpace(settings.WeChatPrivateKey) == "" {
 		settings.WeChatPrivateKey = previous.WeChatPrivateKey
@@ -57,7 +60,7 @@ func UpdateOfficialPaymentSettings(c *gin.Context) {
 	settings.AlipayAppID = strings.TrimSpace(settings.AlipayAppID)
 	settings.AlipaySellerID = strings.TrimSpace(settings.AlipaySellerID)
 	if err := service.ValidateOfficialPaymentSettings(settings); err != nil {
-		common.ApiErrorT(c, "Official payment configuration is invalid. Check the HTTPS callback URL, merchant identifiers and PEM keys.")
+		common.ApiErrorT(c, "Official payment configuration is invalid. Check the HTTPS callback URL, merchant identifiers, payment products and PEM keys.")
 		return
 	}
 	raw, err := common.Marshal(settings)
@@ -74,10 +77,14 @@ func UpdateOfficialPaymentSettings(c *gin.Context) {
 // Wallet top-ups use the same unit price, group ratio and preset discounts as
 // the existing CNY checkout, but an independent official merchant connection.
 func RequestOfficialPayment(c *gin.Context) {
+	c.Header("Cache-Control", "no-store")
 	if !requirePaymentCompliance(c) {
 		return
 	}
-	var req EpayRequest
+	var req struct {
+		EpayRequest
+		AlipayProduct string `json:"alipay_product"`
+	}
 	if c.ShouldBindJSON(&req) != nil {
 		common.ApiErrorT(c, "Invalid parameters")
 		return
@@ -85,6 +92,15 @@ func RequestOfficialPayment(c *gin.Context) {
 	settings := operation_setting.GetOfficialPaymentSettings()
 	if !service.OfficialPaymentEnabled(settings, req.PaymentMethod) {
 		common.ApiErrorT(c, "Official payment method is unavailable")
+		return
+	}
+	if req.PaymentMethod == service.OfficialAlipay {
+		if _, err := service.ResolveAlipayProduct(settings, req.AlipayProduct, c.Request.UserAgent()); err != nil {
+			common.ApiErrorT(c, "Official payment method is unavailable")
+			return
+		}
+	} else if req.AlipayProduct != "" {
+		common.ApiErrorT(c, "Invalid parameters")
 		return
 	}
 	userID := c.GetInt("id")
@@ -104,7 +120,7 @@ func RequestOfficialPayment(c *gin.Context) {
 		common.ApiErrorT(c, "Failed to create order")
 		return
 	}
-	checkout, err := service.CreateOfficialPayment(c.Request.Context(), settings, req.PaymentMethod, tradeNo, "Wallet top-up", cents)
+	checkout, err := service.CreateOfficialPayment(c.Request.Context(), settings, req.PaymentMethod, tradeNo, "Wallet top-up", cents, service.OfficialPaymentCheckoutOptions{AlipayProduct: req.AlipayProduct, UserAgent: c.Request.UserAgent()})
 	if err != nil {
 		// A timeout is ambiguous: retain pending orders so a later signed payment
 		// notification can still settle an order created by the provider.
@@ -176,10 +192,14 @@ func RequestOfficialPaymentAmount(c *gin.Context) {
 }
 
 func SubscriptionRequestOfficialPayment(c *gin.Context) {
+	c.Header("Cache-Control", "no-store")
 	if !requirePaymentCompliance(c) {
 		return
 	}
-	var req SubscriptionEpayPayRequest
+	var req struct {
+		SubscriptionEpayPayRequest
+		AlipayProduct string `json:"alipay_product"`
+	}
 	if c.ShouldBindJSON(&req) != nil || req.PlanId <= 0 {
 		common.ApiErrorT(c, "Invalid parameters")
 		return
@@ -187,6 +207,15 @@ func SubscriptionRequestOfficialPayment(c *gin.Context) {
 	settings := operation_setting.GetOfficialPaymentSettings()
 	if !service.OfficialPaymentEnabled(settings, req.PaymentMethod) {
 		common.ApiErrorT(c, "Official payment method is unavailable")
+		return
+	}
+	if req.PaymentMethod == service.OfficialAlipay {
+		if _, err := service.ResolveAlipayProduct(settings, req.AlipayProduct, c.Request.UserAgent()); err != nil {
+			common.ApiErrorT(c, "Official payment method is unavailable")
+			return
+		}
+	} else if req.AlipayProduct != "" {
+		common.ApiErrorT(c, "Invalid parameters")
 		return
 	}
 	plan, err := model.GetSubscriptionPlanById(req.PlanId)
@@ -239,7 +268,7 @@ func SubscriptionRequestOfficialPayment(c *gin.Context) {
 		common.ApiErrorT(c, "Failed to create order")
 		return
 	}
-	checkout, err := service.CreateOfficialPayment(c.Request.Context(), settings, req.PaymentMethod, tradeNo, "Subscription purchase", cents)
+	checkout, err := service.CreateOfficialPayment(c.Request.Context(), settings, req.PaymentMethod, tradeNo, "Subscription purchase", cents, service.OfficialPaymentCheckoutOptions{AlipayProduct: req.AlipayProduct, UserAgent: c.Request.UserAgent()})
 	if err != nil {
 		logger.LogWarn(c.Request.Context(), common.LogText("Official subscription checkout failed provider=%s trade_no=%s reason=%s", req.PaymentMethod, tradeNo, err.Error()))
 		common.ApiErrorT(c, "Official payment request failed. Check merchant settings and payment product activation.")

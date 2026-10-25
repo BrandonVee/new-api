@@ -39,7 +39,7 @@ it.each([
     demoSiteEnabled: false,
   },
 ])(
-  'shows Brandon and a dedicated legal notice link without upstream promotion in the $presentation footer',
+  'shows usage guidelines without maintainer attribution or upstream promotion in the $presentation footer',
   async (fixture) => {
     const queryClient = new QueryClient()
     clients.push(queryClient)
@@ -64,11 +64,14 @@ it.each([
     render(<RouterProvider router={router} />)
 
     const footer = within(screen.getByRole('contentinfo'))
-    expect(footer.getByText('Maintained by Brandon')).toBeVisible()
+    expect(footer.queryByText(/Brandon|Maintained by/)).not.toBeInTheDocument()
+    expect(
+      footer.queryByRole('link', { name: 'Legal Notices' })
+    ).not.toBeInTheDocument()
     expect(
       footer
-        .getAllByRole('link', { name: 'Legal Notices' })
-        .every((link) => link.getAttribute('href') === '/legal-notices')
+        .getAllByRole('link', { name: 'Usage Guidelines' })
+        .every((link) => link.getAttribute('href') === '/usage-guidelines')
     ).toBe(true)
     expect(
       footer.queryByRole('link', { name: 'New API' })

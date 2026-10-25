@@ -38,7 +38,7 @@ func TestOfficialMerchantSettingsRequireBoundSingleUseProof(t *testing.T) {
 		common.OptionMap = previousOptions
 		common.OptionMapRWMutex.Unlock()
 	})
-	const body = `{"callback_url":"https://gateway.example.com","alipay_app_id":"verified-app"}`
+	const body = `{"callback_url":"https://gateway.example.com","alipay_app_id":"verified-app","alipay_products":["page","wap","app"]}`
 	digest := sha256.Sum256([]byte(body))
 	context, err := common.Marshal(service.PaymentMerchantContext{SettingsDigest: hex.EncodeToString(digest[:])})
 	require.NoError(t, err)
@@ -60,7 +60,7 @@ func TestOfficialMerchantSettingsRequireBoundSingleUseProof(t *testing.T) {
 
 	proof, err := service.VerifySecurityInput(identity, service.VerificationInput{Method: "password", Password: "enrollment-password", Scope: operation.Scope, Context: operation.Context})
 	require.NoError(t, err)
-	mismatch := request(strings.ReplaceAll(body, "verified-app", "unapproved-app"), proof.ProofToken)
+	mismatch := request(strings.ReplaceAll(body, `"page"`, `"face_to_face"`), proof.ProofToken)
 	assert.Equal(t, http.StatusForbidden, mismatch.Code)
 	assert.Contains(t, mismatch.Body.String(), "SECURITY_PROOF_CONTEXT_MISMATCH")
 	assert.Empty(t, operation_setting.GetOfficialPaymentSettings().AlipayAppID)
@@ -69,6 +69,7 @@ func TestOfficialMerchantSettingsRequireBoundSingleUseProof(t *testing.T) {
 	assert.Equal(t, http.StatusOK, saved.Code)
 	assert.Contains(t, saved.Body.String(), `"success":true`)
 	assert.Equal(t, "verified-app", operation_setting.GetOfficialPaymentSettings().AlipayAppID)
+	assert.Equal(t, []string{"page", "wap", "app"}, operation_setting.GetOfficialPaymentSettings().AlipayProducts)
 	replayed := request(body, proof.ProofToken)
 	assert.Equal(t, http.StatusForbidden, replayed.Code)
 	assert.Contains(t, replayed.Body.String(), "SECURITY_PROOF_CONSUMED")
@@ -179,6 +180,7 @@ func TestOfficialPaymentSettingsAndOwnedOrderStatus(t *testing.T) {
 		assert.Equal(t, stored.AlipayPrivateKey, updated.AlipayPrivateKey)
 		assert.Equal(t, "https://new.example.com", updated.CallbackURL)
 		assert.NotContains(t, recorder.Body.String(), stored.AlipayPrivateKey)
+		assert.Equal(t, []string{"face_to_face"}, updated.AlipayProducts)
 	})
 	t.Run("general options cannot bypass merchant validation", func(t *testing.T) {
 		recorder := httptest.NewRecorder()
@@ -191,6 +193,15 @@ func TestOfficialPaymentSettingsAndOwnedOrderStatus(t *testing.T) {
 		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPut, "/settings", strings.NewReader(`{"callback_url":"http://localhost","alipay_enabled":true,"alipay_app_id":"bad-app"}`)))
 		assert.Contains(t, recorder.Body.String(), `"success":false`)
 		assert.Equal(t, "new-app", operation_setting.GetOfficialPaymentSettings().AlipayAppID)
+	})
+	t.Run("invalid products do not replace merchant settings", func(t *testing.T) {
+		for _, products := range []string{`["unknown"]`, `["page","page"]`} {
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodPut, "/settings", strings.NewReader(`{"callback_url":"https://gateway.example.com","alipay_products":`+products+`}`))
+			router.ServeHTTP(recorder, request)
+			assert.Contains(t, recorder.Body.String(), `"success":false`)
+			assert.Equal(t, "new-app", operation_setting.GetOfficialPaymentSettings().AlipayAppID)
+		}
 	})
 	t.Run("status query only exposes the authenticated user's orders", func(t *testing.T) {
 		require.NoError(t, db.Create(&model.TopUp{UserId: 42, TradeNo: "GWowned", Status: common.TopUpStatusPending, PaymentProvider: model.PaymentProviderAlipayOfficial}).Error)

@@ -7,7 +7,6 @@ import { RichContent } from '@/components/rich-content'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSystemConfig } from '@/hooks/use-system-config'
-import { PROJECT_MAINTAINER } from '@/lib/constants'
 import { isHttpUrl, isLikelyHtml } from '@/lib/content-format'
 import { requireServerSuccess } from '@/lib/server-error-message'
 
@@ -41,15 +40,10 @@ function DefaultAboutContent() {
           </p>
         </div>
         <div className='space-y-4 text-sm'>
-          <p className='font-medium'>
-            {t('Maintained by {{name}}', {
-              name: PROJECT_MAINTAINER,
-            })}
-          </p>
           <div className='flex flex-wrap items-center justify-center gap-3'>
             <Button render={<Link to='/' />}>{t('Back to Home')}</Button>
-            <Button variant='outline' render={<Link to='/legal-notices' />}>
-              {t('Legal Notices')}
+            <Button variant='outline' render={<Link to='/usage-guidelines' />}>
+              {t('Usage Guidelines')}
             </Button>
           </div>
         </div>

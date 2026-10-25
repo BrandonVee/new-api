@@ -12,16 +12,55 @@ export interface OfficialCheckout {
   amount: string
   currency: 'CNY'
   expires_at: number
+  checkout_type?: 'qr' | 'redirect' | 'app'
+  pay_url?: string
+  order_string?: string
 }
 
-const checkoutSchema = z.object({
-  trade_no: z.string().min(1),
-  method: z.enum(['wechat_official', 'alipay_official']),
-  qr_code: z.string().min(1),
-  amount: z.string().regex(/^\d+\.\d{2}$/),
-  currency: z.literal('CNY'),
-  expires_at: z.number().int().positive(),
-})
+const checkoutSchema = z
+  .object({
+    trade_no: z.string().min(1),
+    method: z.enum(['wechat_official', 'alipay_official']),
+    qr_code: z.string().default(''),
+    checkout_type: z.enum(['qr', 'redirect', 'app']).default('qr'),
+    pay_url: z.string().optional(),
+    order_string: z.string().optional(),
+    amount: z.string().regex(/^\d+\.\d{2}$/),
+    currency: z.literal('CNY'),
+    expires_at: z.number().int().positive(),
+  })
+  .superRefine((checkout, ctx) => {
+    let valid = false
+    if (checkout.checkout_type === 'qr') {
+      valid =
+        checkout.method === 'wechat_official'
+          ? checkout.qr_code.startsWith('weixin://wxpay/bizpayurl?')
+          : checkout.qr_code.startsWith('https://qr.alipay.com/')
+    } else if (
+      checkout.method === 'alipay_official' &&
+      checkout.checkout_type === 'redirect'
+    ) {
+      try {
+        const url = new URL(checkout.pay_url ?? '')
+        valid =
+          url.origin === 'https://openapi.alipay.com' &&
+          url.pathname === '/gateway.do' &&
+          !url.username &&
+          !url.password &&
+          !url.hash
+      } catch {
+        valid = false
+      }
+    } else if (
+      checkout.method === 'alipay_official' &&
+      checkout.checkout_type === 'app'
+    ) {
+      valid = Boolean(checkout.order_string)
+    }
+    if (!valid) {
+      ctx.addIssue({ code: 'custom', message: 'Invalid payment checkout' })
+    }
+  })
 
 export function isOfficialPayment(
   method: string
@@ -30,10 +69,10 @@ export function isOfficialPayment(
 }
 
 export async function createOfficialCheckout(
-  request: { payment_method: OfficialPaymentMethod } & (
-    | { amount: number }
-    | { plan_id: number }
-  )
+  request: {
+    payment_method: OfficialPaymentMethod
+    alipay_product?: 'face_to_face' | 'page' | 'wap' | 'app'
+  } & ({ amount: number } | { plan_id: number })
 ): Promise<OfficialCheckout> {
   const path =
     'plan_id' in request

@@ -1,6 +1,8 @@
 // Static translation keys that don't get picked up by the t('...') regex.
 // These cover dynamic labels (e.g. constants, configs) that are passed into t at runtime.
 export const STATIC_I18N_KEYS = [
+  'Select at least one Alipay product.',
+  'Official payment configuration is invalid. Check the HTTPS callback URL, merchant identifiers, payment products and PEM keys.',
   'Official Payments',
   'WeChat App ID',
   'WeChat Merchant ID',

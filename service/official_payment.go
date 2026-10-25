@@ -31,8 +31,12 @@ import (
 )
 
 const (
-	OfficialWeChat = model.PaymentProviderWeChatOfficial
-	OfficialAlipay = model.PaymentProviderAlipayOfficial
+	OfficialWeChat   = model.PaymentProviderWeChatOfficial
+	OfficialAlipay   = model.PaymentProviderAlipayOfficial
+	AlipayFaceToFace = "face_to_face"
+	AlipayPage       = "page"
+	AlipayWap        = "wap"
+	AlipayApp        = "app"
 )
 
 var officialPaymentHTTPClient = &http.Client{
@@ -66,12 +70,46 @@ func (transaction wechatOfficialTransaction) receipt(settings operation_setting.
 }
 
 type OfficialPaymentCheckout struct {
-	TradeNo   string `json:"trade_no"`
-	Method    string `json:"method"`
-	QRCode    string `json:"qr_code"`
-	Amount    string `json:"amount"`
-	Currency  string `json:"currency"`
-	ExpiresAt int64  `json:"expires_at"`
+	TradeNo      string `json:"trade_no"`
+	Method       string `json:"method"`
+	QRCode       string `json:"qr_code"`
+	Amount       string `json:"amount"`
+	Currency     string `json:"currency"`
+	ExpiresAt    int64  `json:"expires_at"`
+	CheckoutType string `json:"checkout_type"`
+	PayURL       string `json:"pay_url,omitempty"`
+	OrderString  string `json:"order_string,omitempty"`
+}
+
+type OfficialPaymentCheckoutOptions struct {
+	AlipayProduct string
+	UserAgent     string
+}
+
+// ResolveAlipayProduct selects only merchant-enabled products. Native SDK
+// checkout must be requested explicitly; browsers never receive an SDK order.
+func ResolveAlipayProduct(settings operation_setting.OfficialPaymentSettings, requested, userAgent string) (string, error) {
+	products := settings.AlipayProducts
+	if products == nil {
+		products = []string{AlipayFaceToFace}
+	}
+	if requested != "" && requested != "auto" {
+		if slices.Contains(products, requested) && slices.Contains([]string{AlipayFaceToFace, AlipayPage, AlipayWap, AlipayApp}, requested) {
+			return requested, nil
+		}
+		return "", errors.New("Alipay product is unavailable")
+	}
+	preferences := []string{AlipayPage, AlipayFaceToFace, AlipayWap}
+	agent := strings.ToLower(userAgent)
+	if strings.Contains(agent, "mobile") || strings.Contains(agent, "android") || strings.Contains(agent, "iphone") || strings.Contains(agent, "ipad") {
+		preferences = []string{AlipayWap, AlipayFaceToFace, AlipayPage}
+	}
+	for _, product := range preferences {
+		if slices.Contains(products, product) {
+			return product, nil
+		}
+	}
+	return "", errors.New("no Alipay web payment product is enabled")
 }
 
 func IsOfficialPaymentMethod(method string) bool {
@@ -119,6 +157,17 @@ func ParsePaymentPublicKey(value string) (*rsa.PublicKey, error) {
 }
 
 func ValidateOfficialPaymentSettings(settings operation_setting.OfficialPaymentSettings) error {
+	if len(settings.AlipayProducts) > 4 {
+		return errors.New("invalid Alipay products")
+	}
+	for i, product := range settings.AlipayProducts {
+		if !slices.Contains([]string{AlipayFaceToFace, AlipayPage, AlipayWap, AlipayApp}, product) || slices.Contains(settings.AlipayProducts[:i], product) {
+			return errors.New("invalid Alipay products")
+		}
+	}
+	if settings.AlipayEnabled && settings.AlipayProducts != nil && len(settings.AlipayProducts) == 0 {
+		return errors.New("enable at least one Alipay product")
+	}
 	if settings.CallbackURL != "" || settings.WeChatEnabled || settings.AlipayEnabled {
 		u, err := url.Parse(settings.CallbackURL)
 		if err != nil || u.Scheme != "https" || u.Hostname() == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
@@ -177,7 +226,7 @@ func NewOfficialPaymentTradeNo(subscription bool) (string, error) {
 	return prefix + base64.RawURLEncoding.EncodeToString(random[:]), nil
 }
 
-func CreateOfficialPayment(ctx context.Context, settings operation_setting.OfficialPaymentSettings, method, tradeNo, description string, cents int64) (*OfficialPaymentCheckout, error) {
+func CreateOfficialPayment(ctx context.Context, settings operation_setting.OfficialPaymentSettings, method, tradeNo, description string, cents int64, options OfficialPaymentCheckoutOptions) (*OfficialPaymentCheckout, error) {
 	if !OfficialPaymentEnabled(settings, method) || cents <= 0 || cents > 100_000_000 {
 		return nil, errors.New("official payment method unavailable")
 	}
@@ -186,17 +235,50 @@ func CreateOfficialPayment(ctx context.Context, settings operation_setting.Offic
 	}
 	expires := time.Now().Add(15 * time.Minute)
 	amount := decimal.NewFromInt(cents).Shift(-2).StringFixed(2)
-	var qrCode string
-	var err error
+	checkout := &OfficialPaymentCheckout{TradeNo: tradeNo, Method: method, Amount: amount, Currency: "CNY", ExpiresAt: expires.Unix(), CheckoutType: "qr"}
 	if method == OfficialWeChat {
-		qrCode, err = createWeChatNative(ctx, settings, tradeNo, description, cents, expires)
-	} else {
-		qrCode, err = createAlipayPrecreate(ctx, settings, tradeNo, description, amount)
+		if options.AlipayProduct != "" {
+			return nil, errors.New("Alipay product cannot be used with WeChat Pay")
+		}
+		qrCode, err := createWeChatNative(ctx, settings, tradeNo, description, cents, expires)
+		if err != nil {
+			return nil, err
+		}
+		checkout.QRCode = qrCode
+		return checkout, nil
 	}
+	product, err := ResolveAlipayProduct(settings, options.AlipayProduct, options.UserAgent)
 	if err != nil {
 		return nil, err
 	}
-	return &OfficialPaymentCheckout{TradeNo: tradeNo, Method: method, QRCode: qrCode, Amount: amount, Currency: "CNY", ExpiresAt: expires.Unix()}, nil
+	if product == AlipayFaceToFace {
+		qrCode, err := createAlipayPrecreate(ctx, settings, tradeNo, description, amount)
+		if err != nil {
+			return nil, err
+		}
+		checkout.QRCode = qrCode
+		return checkout, nil
+	}
+	payload := map[string]string{"out_trade_no": tradeNo, "seller_id": settings.AlipaySellerID, "total_amount": amount, "subject": description, "timeout_express": "15m"}
+	apiMethod, productCode := "alipay.trade.page.pay", "FAST_INSTANT_TRADE_PAY"
+	switch product {
+	case AlipayWap:
+		apiMethod, productCode = "alipay.trade.wap.pay", "QUICK_WAP_WAY"
+	case AlipayApp:
+		apiMethod, productCode = "alipay.trade.app.pay", "QUICK_MSECURITY_PAY"
+	}
+	payload["product_code"] = productCode
+	values, err := alipaySignedParameters(settings, apiMethod, payload)
+	if err != nil {
+		return nil, err
+	}
+	if product == AlipayApp {
+		checkout.CheckoutType, checkout.OrderString = "app", values.Encode()
+	} else {
+		checkout.CheckoutType = "redirect"
+		checkout.PayURL = "https://openapi.alipay.com/gateway.do?" + values.Encode()
+	}
+	return checkout, nil
 }
 
 func createWeChatNative(ctx context.Context, settings operation_setting.OfficialPaymentSettings, tradeNo, description string, cents int64, expires time.Time) (string, error) {
@@ -351,7 +433,7 @@ func createAlipayPrecreate(ctx context.Context, settings operation_setting.Offic
 	return result.QRCode, nil
 }
 
-func alipayOfficialRequest(ctx context.Context, settings operation_setting.OfficialPaymentSettings, method string, payload any) (json.RawMessage, error) {
+func alipaySignedParameters(settings operation_setting.OfficialPaymentSettings, method string, payload map[string]string) (url.Values, error) {
 	biz, err := common.Marshal(payload)
 	if err != nil {
 		return nil, err
@@ -361,8 +443,15 @@ func alipayOfficialRequest(ctx context.Context, settings operation_setting.Offic
 		"charset": {"utf-8"}, "sign_type": {"RSA2"}, "timestamp": {time.Now().In(time.FixedZone("CST", 8*3600)).Format("2006-01-02 15:04:05")},
 		"version": {"1.0"}, "biz_content": {string(biz)},
 	}
-	if method == "alipay.trade.precreate" {
+	if method == "alipay.trade.precreate" || method == "alipay.trade.page.pay" || method == "alipay.trade.wap.pay" || method == "alipay.trade.app.pay" {
 		values.Set("notify_url", strings.TrimRight(settings.CallbackURL, "/")+"/api/payment/official/alipay/notify")
+	}
+	if method == "alipay.trade.page.pay" || method == "alipay.trade.wap.pay" {
+		returnPath := "/wallet"
+		if strings.HasPrefix(payload["out_trade_no"], "GS") {
+			returnPath = "/subscriptions"
+		}
+		values.Set("return_url", strings.TrimRight(settings.CallbackURL, "/")+returnPath)
 	}
 	key, err := ParsePaymentPrivateKey(settings.AlipayPrivateKey)
 	if err != nil {
@@ -373,6 +462,14 @@ func alipayOfficialRequest(ctx context.Context, settings operation_setting.Offic
 		return nil, err
 	}
 	values.Set("sign", signature)
+	return values, nil
+}
+
+func alipayOfficialRequest(ctx context.Context, settings operation_setting.OfficialPaymentSettings, method string, payload map[string]string) (json.RawMessage, error) {
+	values, err := alipaySignedParameters(settings, method, payload)
+	if err != nil {
+		return nil, err
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://openapi.alipay.com/gateway.do", strings.NewReader(values.Encode()))
 	if err != nil {
 		return nil, err

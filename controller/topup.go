@@ -98,12 +98,14 @@ func GetTopUpInfo(c *gin.Context) {
 	}
 
 	officialSettings := operation_setting.GetOfficialPaymentSettings()
-	enableOfficial := complianceConfirmed && (officialSettings.WeChatEnabled || officialSettings.AlipayEnabled)
+	_, alipayWebErr := service.ResolveAlipayProduct(officialSettings, "", c.Request.UserAgent())
+	alipayWebEnabled := officialSettings.AlipayEnabled && alipayWebErr == nil
+	enableOfficial := complianceConfirmed && (officialSettings.WeChatEnabled || alipayWebEnabled)
 	if complianceConfirmed {
 		if officialSettings.WeChatEnabled {
 			payMethods = append(payMethods, map[string]string{"name": "WeChat Pay (Official)", "type": service.OfficialWeChat, "color": "#07C160", "min_topup": strconv.Itoa(operation_setting.MinTopUp)})
 		}
-		if officialSettings.AlipayEnabled {
+		if alipayWebEnabled {
 			payMethods = append(payMethods, map[string]string{"name": "Alipay (Official)", "type": service.OfficialAlipay, "color": "#1677FF", "min_topup": strconv.Itoa(operation_setting.MinTopUp)})
 		}
 	}

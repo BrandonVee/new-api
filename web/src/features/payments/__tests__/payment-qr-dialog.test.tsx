@@ -171,3 +171,82 @@ test('checkout rejects business failures and incomplete QR responses', async () 
   ).rejects.toThrow()
   expect(post).toHaveBeenCalledTimes(2)
 })
+
+test('website checkout opens the official cashier without treating the redirect as payment', async () => {
+  vi.spyOn(api, 'get').mockResolvedValue({
+    data: { success: true, data: { status: 'pending' } },
+  })
+  const { onPaid } = renderCheckout({
+    method: 'alipay_official',
+    checkout_type: 'redirect',
+    qr_code: '',
+    pay_url:
+      'https://openapi.alipay.com/gateway.do?method=alipay.trade.wap.pay&sign=test',
+  })
+  const link = await screen.findByRole('link', { name: 'Continue to Alipay' })
+  expect(link).toHaveAttribute(
+    'href',
+    'https://openapi.alipay.com/gateway.do?method=alipay.trade.wap.pay&sign=test'
+  )
+  expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  expect(screen.queryByTitle('Payment QR code')).not.toBeInTheDocument()
+  expect(onPaid).not.toHaveBeenCalled()
+  expect(
+    screen.getByRole('button', { name: 'Check payment status' })
+  ).toBeVisible()
+})
+
+test.each([
+  'https://evil.example/gateway.do',
+  'javascript:alert(1)',
+  'https://openapi.alipay.com.evil.example/gateway.do',
+  'https://openapi.alipay.com/other',
+  'https://attacker@openapi.alipay.com/gateway.do',
+])('checkout rejects an untrusted cashier URL %s', async (pay_url) => {
+  vi.spyOn(api, 'post').mockResolvedValue({
+    data: {
+      success: true,
+      data: {
+        ...checkout,
+        method: 'alipay_official',
+        checkout_type: 'redirect',
+        qr_code: '',
+        pay_url,
+        expires_at: 9999999999,
+      },
+    },
+  })
+  await expect(
+    createOfficialCheckout({ amount: 10, payment_method: 'alipay_official' })
+  ).rejects.toThrow()
+})
+
+test('native checkout returns the SDK order without a QR code or browser link', async () => {
+  const post = vi.spyOn(api, 'post').mockResolvedValue({
+    data: {
+      success: true,
+      data: {
+        ...checkout,
+        method: 'alipay_official',
+        checkout_type: 'app',
+        qr_code: '',
+        order_string: 'app_id=test&method=alipay.trade.app.pay&sign=test',
+        expires_at: 9999999999,
+      },
+    },
+  })
+  const result = await createOfficialCheckout({
+    plan_id: 3,
+    payment_method: 'alipay_official',
+    alipay_product: 'app',
+  })
+  expect(result.checkout_type).toBe('app')
+  expect(result.order_string).toBe(
+    'app_id=test&method=alipay.trade.app.pay&sign=test'
+  )
+  expect(post).toHaveBeenCalledWith('/api/subscription/official/pay', {
+    plan_id: 3,
+    payment_method: 'alipay_official',
+    alipay_product: 'app',
+  })
+})

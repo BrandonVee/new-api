@@ -7,7 +7,6 @@ import { useSystemConfig } from '@/hooks/use-system-config'
 import {
   DEFAULT_LOGO,
   DEFAULT_SYSTEM_NAME,
-  PROJECT_MAINTAINER,
   resolveDocsLink,
 } from '@/lib/constants'
 import { cn } from '@/lib/utils'
@@ -103,30 +102,18 @@ function LegalLinks(props: { leadingSeparator?: boolean }) {
   )
 }
 
-// inline=true returns just the inner span for composition in a parent flex
-// row. inline=false wraps in a centered/right-aligned div (default).
-function ProjectAttribution(props: { inline?: boolean }) {
+function UsageGuidelinesLink(props: { inline?: boolean }) {
   const { t } = useTranslation()
-  const content = (
-    <span className='flex flex-col gap-1'>
-      <span className='text-foreground/70 font-medium'>
-        {t('Maintained by {{name}}', { name: PROJECT_MAINTAINER })}
-      </span>
-      <Link
-        to='/legal-notices'
-        className='text-muted-foreground/70 hover:text-foreground transition-colors'
-      >
-        {t('Legal Notices')}
-      </Link>
-    </span>
-  )
-  if (props.inline) {
-    return content
-  }
   return (
-    <div className='text-muted-foreground/45 text-center text-xs sm:text-right'>
-      {content}
-    </div>
+    <Link
+      to='/usage-guidelines'
+      className={cn(
+        'text-muted-foreground/70 hover:text-foreground text-xs transition-colors',
+        !props.inline && 'text-center sm:text-right'
+      )}
+    >
+      {t('Usage Guidelines')}
+    </Link>
   )
 }
 
@@ -177,8 +164,8 @@ export function Footer(props: FooterProps) {
             href: '/dashboard',
           },
           {
-            text: t('Legal Notices'),
-            href: '/legal-notices',
+            text: t('Usage Guidelines'),
+            href: '/usage-guidelines',
           },
         ],
       },
@@ -204,7 +191,7 @@ export function Footer(props: FooterProps) {
             />
             <div className='border-border/60 text-muted-foreground/45 flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t pt-4 text-xs sm:w-auto sm:justify-end sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5'>
               <LegalLinks />
-              <ProjectAttribution inline />
+              <UsageGuidelinesLink inline />
             </div>
           </div>
         </div>
@@ -256,8 +243,8 @@ export function Footer(props: FooterProps) {
           )}
         </div>
 
-        {/* Copyright + optional legal links inline on the left, project
-            attribution on the right; wraps on narrow screens. */}
+        {/* Copyright + optional legal links inline on the left, usage guidelines
+            link on the right; wraps on narrow screens. */}
         <div className='border-border/30 mt-12 flex flex-col items-center justify-between gap-x-3 gap-y-2 border-t pt-6 sm:flex-row'>
           <div className='text-muted-foreground/40 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs sm:justify-start'>
             <span>
@@ -266,7 +253,7 @@ export function Footer(props: FooterProps) {
             </span>
             <LegalLinks leadingSeparator />
           </div>
-          <ProjectAttribution />
+          <UsageGuidelinesLink />
         </div>
       </div>
     </footer>

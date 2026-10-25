@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-
-import { LegalNotices } from '@/features/legal/notices'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/legal-notices')({
-  component: LegalNotices,
+  beforeLoad: () => {
+    throw redirect({ to: '/usage-guidelines', replace: true })
+  },
 })

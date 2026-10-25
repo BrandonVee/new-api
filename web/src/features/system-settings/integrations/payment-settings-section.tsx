@@ -45,6 +45,7 @@ import { safeNumberFieldProps } from '../utils/numeric-field'
 import { AmountDiscountVisualEditor } from './amount-discount-visual-editor'
 import { AmountOptionsVisualEditor } from './amount-options-visual-editor'
 import { CreemProductsVisualEditor } from './creem-products-visual-editor'
+import { OfficialPaymentSettings } from './official-payment-settings'
 import { PaymentMethodsVisualEditor } from './payment-methods-visual-editor'
 import {
   formatJsonForEditor,
@@ -222,6 +223,7 @@ export function PaymentSettingsSection({
     [initialFormValues]
   )
 
+  const [activeTab, setActiveTab] = React.useState('general')
   const [payMethodsVisualMode, setPayMethodsVisualMode] = React.useState(true)
   const [amountOptionsVisualMode, setAmountOptionsVisualMode] =
     React.useState(true)
@@ -848,32 +850,62 @@ export function PaymentSettingsSection({
         onConfirm={() => confirmComplianceMutation.mutate()}
       />
 
-      <Form {...form}>
-        <SettingsForm
-          onSubmit={form.handleSubmit(onSubmit)}
-          className={cn(
-            'gap-y-8',
-            !complianceConfirmed && 'pointer-events-none opacity-40'
-          )}
-          data-no-autosubmit='true'
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(String(value))}
+        className='min-w-0'
+      >
+        <div className='min-w-0 overflow-x-auto pb-1'>
+          <TabsList
+            aria-label={t('Payment Gateway')}
+            className='w-full min-w-max'
+          >
+            <TabsTrigger value='general' className='px-3'>
+              {t('General')}
+            </TabsTrigger>
+            <TabsTrigger value='official' className='px-3'>
+              {t('WeChat Pay')} / {t('Alipay')}
+            </TabsTrigger>
+            <TabsTrigger value='epay' className='px-3'>
+              Epay
+            </TabsTrigger>
+            <TabsTrigger value='stripe' className='px-3'>
+              {t('Stripe')}
+            </TabsTrigger>
+            <TabsTrigger value='creem' className='px-3'>
+              Creem
+            </TabsTrigger>
+            <TabsTrigger value='waffo-pancake' className='px-3'>
+              Waffo Pancake
+            </TabsTrigger>
+            <TabsTrigger value='waffo' className='px-3'>
+              Waffo
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent
+          value='official'
+          keepMounted
+          className={paymentTabContentClassName}
         >
-          <SettingsPageFormActions
-            onSave={form.handleSubmit(onSubmit)}
-            isSaving={updateOption.isPending || isSubmitting}
-            saveLabel='Save all settings'
-          />
-          <Tabs defaultValue='general' className='min-w-0'>
-            <div className='overflow-x-auto pb-1'>
-              <TabsList className='grid min-w-[44rem] grid-cols-6'>
-                <TabsTrigger value='general'>{t('General')}</TabsTrigger>
-                <TabsTrigger value='epay'>Epay</TabsTrigger>
-                <TabsTrigger value='stripe'>{t('Stripe')}</TabsTrigger>
-                <TabsTrigger value='creem'>Creem</TabsTrigger>
-                <TabsTrigger value='waffo-pancake'>Waffo Pancake</TabsTrigger>
-                <TabsTrigger value='waffo'>Waffo</TabsTrigger>
-              </TabsList>
-            </div>
-
+          <OfficialPaymentSettings active={activeTab === 'official'} />
+        </TabsContent>
+        <Form {...form}>
+          <SettingsForm
+            onSubmit={form.handleSubmit(onSubmit)}
+            className={cn(
+              'gap-y-8',
+              activeTab === 'official' && 'hidden',
+              !complianceConfirmed && 'pointer-events-none opacity-40'
+            )}
+            data-no-autosubmit='true'
+          >
+            {activeTab !== 'official' && (
+              <SettingsPageFormActions
+                onSave={form.handleSubmit(onSubmit)}
+                isSaving={updateOption.isPending || isSubmitting}
+              />
+            )}
             <TabsContent value='general' className={paymentTabContentClassName}>
               <div className='space-y-4'>
                 <div>
@@ -1613,9 +1645,9 @@ export function PaymentSettingsSection({
                 onPayMethodsChange={setWaffoPayMethods}
               />
             </TabsContent>
-          </Tabs>
-        </SettingsForm>
-      </Form>
+          </SettingsForm>
+        </Form>
+      </Tabs>
     </SettingsSection>
   )
 }

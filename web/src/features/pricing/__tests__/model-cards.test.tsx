@@ -20,6 +20,10 @@ import {
 import { CachedPriceCell } from '../components/cached-price-cell'
 import { ModelCard } from '../components/model-card'
 import { ModelCardGrid } from '../components/model-card-grid'
+import {
+  ModelPriceCell,
+  type ModelPriceCellOptions,
+} from '../components/model-price-cell'
 import type { PricingModel } from '../types'
 
 function pricingModel(overrides: Partial<PricingModel> = {}): PricingModel {
@@ -33,6 +37,26 @@ function pricingModel(overrides: Partial<PricingModel> = {}): PricingModel {
     group_ratio: { default: 1, premium: 3 },
     ...overrides,
   }
+}
+
+function PricingViews(props: {
+  model: PricingModel
+  options?: ModelPriceCellOptions
+}) {
+  const options = props.options ?? {}
+  return (
+    <>
+      <section aria-label='Model card'>
+        <ModelCard model={props.model} onClick={() => {}} {...options} />
+      </section>
+      <section aria-label='Model price cell'>
+        <ModelPriceCell model={props.model} options={options} />
+      </section>
+      <section aria-label='Cache price cell'>
+        <CachedPriceCell model={props.model} options={options} />
+      </section>
+    </>
+  )
 }
 
 let queryClient: QueryClient
@@ -70,6 +94,66 @@ afterEach(() => {
 })
 
 describe('model cards', () => {
+  it('crosses out the base price for a discounted group, removes it at base rate, and restores it for the lowest available price', () => {
+    const model = pricingModel({
+      group_ratio: { default: 1, premium: 0.5 },
+      cache_ratio: 0.25,
+    })
+    const { rerender } = render(
+      <PricingViews model={model} options={{ selectedGroup: 'premium' }} />
+    )
+    for (const [region, original, current] of [
+      ['Model card', '$2', '$1'],
+      ['Model price cell', '2', '1'],
+      ['Cache price cell', '$0.5', '$0.25'],
+    ]) {
+      const view = within(screen.getByRole('region', { name: region }))
+      const basePrice = view.getByLabelText(`Original price: ${original}`)
+      expect(basePrice.tagName).toBe('S')
+      expect(basePrice).toHaveTextContent(original)
+      const groupPrice = view.getByTitle(`Group price: ${current}`)
+      expect(groupPrice).toHaveTextContent(current)
+      expect(groupPrice.closest('s')).toBeNull()
+    }
+
+    rerender(
+      <PricingViews model={model} options={{ selectedGroup: 'default' }} />
+    )
+    expect(screen.queryByLabelText(/^Original price:/)).not.toBeInTheDocument()
+
+    rerender(<PricingViews model={model} options={{ selectedGroup: 'all' }} />)
+    const card = within(screen.getByRole('region', { name: 'Model card' }))
+    expect(card.getByLabelText('Original price: $2')).toBeVisible()
+    expect(card.getByTitle('Group price: $1')).toBeVisible()
+  })
+
+  it('retains real base prices for a free group without duplicating an already-free cache price', () => {
+    render(
+      <PricingViews
+        model={pricingModel({
+          group_ratio: { default: 1, premium: 0 },
+          cache_ratio: 0,
+        })}
+        options={{ selectedGroup: 'premium' }}
+      />
+    )
+    for (const [region, symbol] of [
+      ['Model card', '$'],
+      ['Model price cell', ''],
+    ]) {
+      const view = within(screen.getByRole('region', { name: region }))
+      expect(view.getByLabelText(`Original price: ${symbol}2`)).toBeVisible()
+      expect(view.getByLabelText(`Original price: ${symbol}6`)).toBeVisible()
+      expect(view.getAllByTitle(`Group price: ${symbol}0`)).toHaveLength(2)
+      expect(view.queryByLabelText(`Original price: ${symbol}0`)).toBeNull()
+    }
+    const cache = within(
+      screen.getByRole('region', { name: 'Cache price cell' })
+    )
+    expect(cache.getByText('$0')).toBeVisible()
+    expect(cache.queryByLabelText(/^Original price:/)).not.toBeInTheDocument()
+  })
+
   it('shows separate generic and image cache prices including a free image cache', () => {
     render(
       <CachedPriceCell
@@ -106,20 +190,46 @@ describe('model cards', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-09-07T08:59:59+08:00'))
     const model = pricingModel({
+      group_ratio: { default: 1, premium: 0.5 },
       billing_mode: 'tiered_expr',
       billing_expr:
-        'hour("Asia/Shanghai") >= 9 && hour("Asia/Shanghai") < 12 ? tier("peak", p * 3 + c * 9) : tier("off_peak", p * 1.5 + c * 4.5)',
+        'hour("Asia/Shanghai") >= 9 && hour("Asia/Shanghai") < 12 ? tier("peak", p * 3 + c * 9 + cr * 0.5) : tier("off_peak", p * 1.5 + c * 4.5 + cr * 0.25)',
     })
-    render(<ModelCard model={model} onClick={vi.fn()} tokenUnit='M' />)
-    expect(screen.getByText('Current period price')).toBeVisible()
-    expect(screen.getByText('$1.5')).toBeVisible()
+    render(
+      <PricingViews
+        model={model}
+        options={{ tokenUnit: 'M', selectedGroup: 'premium' }}
+      />
+    )
+    expect(screen.getAllByText(/Current period price/)).toHaveLength(2)
+    for (const [region, original, current] of [
+      ['Model card', '$1.5', '$0.75'],
+      ['Model price cell', '1.5', '0.75'],
+      ['Cache price cell', '$0.25', '$0.125'],
+    ]) {
+      const view = within(screen.getByRole('region', { name: region }))
+      expect(view.getByLabelText(`Original price: ${original}`)).toBeVisible()
+      expect(view.getByTitle(`Group price: ${current}`)).toBeVisible()
+    }
     act(() => vi.advanceTimersByTime(1000))
-    expect(screen.getByText('$3')).toBeVisible()
+    for (const [region, original, current] of [
+      ['Model card', '$3', '$1.5'],
+      ['Model price cell', '3', '1.5'],
+      ['Cache price cell', '$0.5', '$0.25'],
+    ]) {
+      const view = within(screen.getByRole('region', { name: region }))
+      expect(view.getByLabelText(`Original price: ${original}`)).toBeVisible()
+      expect(view.getByTitle(`Group price: ${current}`)).toBeVisible()
+    }
     act(() => {
       vi.setSystemTime(new Date('2026-09-07T12:00:00+08:00'))
       fireEvent(document, new Event('visibilitychange'))
     })
-    expect(screen.getByText('$1.5')).toBeVisible()
+    expect(
+      within(screen.getByRole('region', { name: 'Model card' })).getByLabelText(
+        'Original price: $1.5'
+      )
+    ).toBeVisible()
   })
 
   it('copies the complete long model name without opening details', async () => {
@@ -342,6 +452,9 @@ describe('model cards', () => {
     expect(screen.getByText('Cached').parentElement).toHaveTextContent(
       /\$0\s*\/\s*1M/
     )
+    expect(screen.getByLabelText('Original price: $1')).toBeVisible()
+    expect(screen.getByLabelText('Original price: $3')).toBeVisible()
+    expect(screen.queryByLabelText('Original price: $0')).toBeNull()
     rerender(<ModelCard {...props} tokenUnit='K' />)
     expect(screen.getByText('Input').parentElement).toHaveTextContent(
       /\$0.003\s*\/\s*1K/
@@ -352,6 +465,9 @@ describe('model cards', () => {
     expect(screen.getByText('Cached').parentElement).toHaveTextContent(
       /\$0\s*\/\s*1K/
     )
+    expect(screen.getByLabelText('Original price: $0.001')).toBeVisible()
+    expect(screen.getByLabelText('Original price: $0.003')).toBeVisible()
+    expect(screen.queryByLabelText('Original price: $0')).toBeNull()
   })
 
   it('shows a per-request price with the selected group and recharge multiplier without a token unit', () => {
@@ -367,6 +483,7 @@ describe('model cards', () => {
       />
     )
     expect(screen.getByText(/\$0.6/)).toHaveTextContent(/\$0.6\s*\/\s*request/)
+    expect(screen.getByLabelText('Original price: $0.2')).toBeVisible()
     expect(screen.queryByText(/1K|1M/)).not.toBeInTheDocument()
     expect(screen.getAllByText('Per Request')).toHaveLength(1)
     expect(screen.queryByText('Per-request')).not.toBeInTheDocument()
@@ -393,6 +510,8 @@ describe('model cards', () => {
     expect(screen.getByText('Output').parentElement).toHaveTextContent(
       /\$0.0225\s*\/\s*1K/
     )
+    expect(screen.getByLabelText('Original price: $0.0015')).toBeVisible()
+    expect(screen.getByLabelText('Original price: $0.0075')).toBeVisible()
   })
 
   it('shows the cache read price of an expression model after its input and output prices', () => {
@@ -457,26 +576,76 @@ describe('model cards', () => {
     )
   })
 
-  it('keeps task price ranges in their actual usage unit instead of the selected token unit', () => {
-    render(
-      <ModelCard
-        model={pricingModel({
-          billing_mode: 'tiered_expr',
-          billing_expr:
-            'u("mode") == "pro" ? tier("pro", u("seconds") * 0.8) : tier("std", u("seconds") * 0.4)',
-          billing_usage_schema: {
-            seconds: { type: 'number', unit: 'second' },
-            mode: { enum: ['std', 'pro'] },
+  it.each<{ source: string; pricing: Partial<PricingModel> }>([
+    {
+      source: 'task tiers',
+      pricing: {
+        billing_mode: 'tiered_expr',
+        billing_expr:
+          'u("mode") == "pro" ? tier("pro", u("seconds") * 0.8) : tier("std", u("seconds") * 0.4)',
+        billing_usage_schema: {
+          seconds: { type: 'number', unit: 'second' },
+          mode: { enum: ['std', 'pro'] },
+        },
+      },
+    },
+    {
+      source: 'multiple providers',
+      pricing: {
+        billing_plugin_variants: [
+          {
+            plugin_key: 'alpha',
+            plugin_name: 'Alpha',
+            billing_mode: 'tiered_expr',
+            billing_expr: 'tier("base", u("seconds") * 0.4)',
+            billing_usage_schema: {
+              seconds: { type: 'number', unit: 'second' },
+            },
           },
-        })}
-        onClick={vi.fn()}
-        tokenUnit='K'
-      />
-    )
-    expect(screen.getByText(/0.4.*0.8/)).toHaveTextContent(/0.4 – \$0.8/)
-    expect(screen.getByText(/^\/\s*s$/)).toBeVisible()
-    expect(screen.queryByText(/1K|1M/)).not.toBeInTheDocument()
-  })
+          {
+            plugin_key: 'beta',
+            plugin_name: 'Beta',
+            billing_mode: 'tiered_expr',
+            billing_expr: 'tier("base", u("seconds") * 0.8)',
+            billing_usage_schema: {
+              seconds: { type: 'number', unit: 'second' },
+            },
+          },
+        ],
+      },
+    },
+  ])(
+    'shows base and group ranges from $source in the actual usage unit in cards and table cells',
+    ({ pricing }) => {
+      render(
+        <PricingViews
+          model={pricingModel({
+            group_ratio: { default: 1, premium: 0.5 },
+            ...pricing,
+          })}
+          options={{ tokenUnit: 'K', selectedGroup: 'premium' }}
+        />
+      )
+      const card = within(screen.getByRole('region', { name: 'Model card' }))
+      expect(card.getByLabelText('Original price: $0.4 – $0.8')).toBeVisible()
+      expect(card.getByTitle('Group price: $0.2 – $0.4')).toHaveTextContent(
+        '$0.2 – $0.4 / s'
+      )
+      const cell = within(
+        screen.getByRole('region', { name: 'Model price cell' })
+      )
+      expect(
+        cell.getByLabelText(/^Original price: 0.4 – 0.8/)
+      ).toHaveTextContent('0.4 – 0.8/s')
+      expect(cell.getByTitle(/^Group price: 0.2 – 0.4/)).toHaveTextContent(
+        '0.2 – 0.4/s'
+      )
+      expect(
+        screen.getByRole('region', { name: 'Cache price cell' })
+      ).toHaveTextContent('—')
+      expect(screen.queryByText(/1K|1M/)).not.toBeInTheDocument()
+    }
+  )
 
   it('hides a task usage price left at zero while another usage price is set', () => {
     render(

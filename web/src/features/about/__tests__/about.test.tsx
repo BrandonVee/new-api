@@ -13,8 +13,9 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 
 import { DirectionProvider } from '@/context/direction-provider'
 import { ThemeProvider } from '@/context/theme-provider'
-import { LegalNotices } from '@/features/legal/notices'
+import { UsageGuidelines } from '@/features/legal/usage-guidelines'
 import { api } from '@/lib/api'
+import { Route as LegalNoticesRoute } from '@/routes/legal-notices'
 import { useAuthStore } from '@/stores/auth-store'
 import { useSystemConfigStore } from '@/stores/system-config-store'
 
@@ -46,21 +47,26 @@ afterEach(() => {
   document.documentElement.classList.remove('light', 'dark')
 })
 
-async function renderAbout() {
+async function renderAbout(initialEntry = '/about') {
   const root = createRootRoute({ component: Outlet })
   const about = createRoute({
     getParentRoute: () => root,
     path: '/about',
     component: About,
   })
+  const guidelines = createRoute({
+    getParentRoute: () => root,
+    path: '/usage-guidelines',
+    component: UsageGuidelines,
+  })
   const notices = createRoute({
     getParentRoute: () => root,
     path: '/legal-notices',
-    component: LegalNotices,
+    beforeLoad: LegalNoticesRoute.options.beforeLoad as () => void,
   })
   const router = createRouter({
-    routeTree: root.addChildren([about, notices]),
-    history: createMemoryHistory({ initialEntries: ['/about'] }),
+    routeTree: root.addChildren([about, guidelines, notices]),
+    history: createMemoryHistory({ initialEntries: [initialEntry] }),
   })
   await router.load()
   render(
@@ -72,18 +78,40 @@ async function renderAbout() {
       </DirectionProvider>
     </QueryClientProvider>
   )
+  return router
 }
 
-test('the about and legal pages present Ai-gateway and link to local license documents', async () => {
+test('about links to usage guidelines without exposing maintainer details or license notices', async () => {
   const user = userEvent.setup()
   await renderAbout()
 
   expect(
     await screen.findByRole('heading', { name: 'Ai-gateway' })
   ).toBeVisible()
-  expect(screen.getByText('Maintained by Brandon')).toBeVisible()
+  expect(screen.queryByText(/Brandon|Maintained by/)).not.toBeInTheDocument()
   expect(
-    screen.queryByText('New API Project Repository:')
+    screen.queryByRole('button', { name: 'Legal Notices' })
+  ).not.toBeInTheDocument()
+
+  await user.click(screen.getByRole('button', { name: 'Usage Guidelines' }))
+
+  expect(
+    await screen.findByRole('heading', { name: 'Usage Guidelines' })
+  ).toBeVisible()
+  for (const heading of [
+    'Authorized use',
+    'Protect your account and API keys',
+    'Respect service limits',
+    'Protect privacy and respect others’ rights',
+    'Use AI outputs responsibly',
+  ]) {
+    expect(screen.getByRole('heading', { name: heading })).toBeVisible()
+  }
+  expect(
+    screen.queryByText(/Brandon|Maintained by|AGPL|NOTICE|Third-Party Licenses/)
+  ).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('link', { name: 'AGPL v3.0 License' })
   ).not.toBeInTheDocument()
   expect(
     screen
@@ -95,37 +123,17 @@ test('the about and legal pages present Ai-gateway and link to local license doc
           )
       )
   ).toBe(true)
+})
 
-  await user.click(screen.getByRole('button', { name: 'Legal Notices' }))
-
+test('the former legal notice address redirects to usage guidelines', async () => {
+  const router = await renderAbout('/legal-notices')
   expect(
-    await screen.findByRole('heading', { name: 'Legal Notices' })
+    await screen.findByRole('heading', { name: 'Usage Guidelines' })
   ).toBeVisible()
+  expect(router.state.location.pathname).toBe('/usage-guidelines')
   expect(
-    screen.getByRole('heading', { name: 'Ai-gateway', level: 2 })
-  ).toBeVisible()
-  expect(screen.getByText('Maintained by Brandon')).toBeVisible()
-  expect(
-    screen.queryByRole('heading', { name: 'New API' })
+    screen.queryByRole('heading', { name: 'Legal Notices' })
   ).not.toBeInTheDocument()
-  expect(screen.queryByText(/QuantumNous/)).not.toBeInTheDocument()
-  expect(
-    screen
-      .getAllByRole('link')
-      .every(
-        (link) =>
-          !/github\.com\/(QuantumNous|songquanpeng)/i.test(
-            link.getAttribute('href') ?? ''
-          )
-      )
-  ).toBe(true)
-  expect(
-    screen.getByRole('link', { name: 'AGPL v3.0 License' })
-  ).toHaveAttribute('href', '/LICENSE.txt')
-  expect(screen.getByRole('link', { name: 'NOTICE' })).toHaveAttribute(
-    'href',
-    '/NOTICE.txt'
-  )
 })
 
 test('administrator-supplied about content remains available', async () => {

@@ -174,7 +174,7 @@ func TestOfficialPaymentCheckout_VerifiesBothGatewayResponses(t *testing.T) {
 					}
 					return &http.Response{StatusCode: 200, Header: header, Body: io.NopCloser(strings.NewReader(body))}, nil
 				})}
-				checkout, err := CreateOfficialPayment(context.Background(), settings, method, "GWtest123", "Wallet top-up", 1234)
+				checkout, err := CreateOfficialPayment(context.Background(), settings, method, "GWtest123", "Wallet top-up", 1234, OfficialPaymentCheckoutOptions{})
 				if tamper {
 					require.Error(t, err)
 					assert.Nil(t, checkout)
@@ -335,4 +335,102 @@ func TestOfficialPaymentQuery_OnlyAcceptsTheRequestedSignedOrder(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestOfficialPaymentCheckout_AlipayProducts(t *testing.T) {
+	settings, merchant, _ := officialPaymentFixture(t)
+	settings.AlipayProducts = []string{AlipayFaceToFace, AlipayPage, AlipayWap, AlipayApp}
+	previous := officialPaymentHTTPClient
+	t.Cleanup(func() { officialPaymentHTTPClient = previous })
+	officialPaymentHTTPClient = &http.Client{Transport: officialPaymentTransport(func(*http.Request) (*http.Response, error) {
+		t.Fatal("page and app checkout must sign locally without sending the order to the server API")
+		return nil, nil
+	})}
+	for _, tc := range []struct {
+		name, product, agent, method, code, kind, tradeNo, returnPath string
+	}{
+		{name: "desktop auto", agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", method: "alipay.trade.page.pay", code: "FAST_INSTANT_TRADE_PAY", kind: "redirect", tradeNo: "GWweborder", returnPath: "/wallet"},
+		{name: "mobile auto", agent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0) Mobile", method: "alipay.trade.wap.pay", code: "QUICK_WAP_WAY", kind: "redirect", tradeNo: "GSmobileorder", returnPath: "/subscriptions"},
+		{name: "explicit desktop", product: AlipayPage, agent: "Android Mobile", method: "alipay.trade.page.pay", code: "FAST_INSTANT_TRADE_PAY", kind: "redirect", tradeNo: "GWdesktoporder", returnPath: "/wallet"},
+		{name: "explicit mobile", product: AlipayWap, method: "alipay.trade.wap.pay", code: "QUICK_WAP_WAY", kind: "redirect", tradeNo: "GWwaporder", returnPath: "/wallet"},
+		{name: "native app", product: AlipayApp, method: "alipay.trade.app.pay", code: "QUICK_MSECURITY_PAY", kind: "app", tradeNo: "GSapporder"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			checkout, err := CreateOfficialPayment(context.Background(), settings, OfficialAlipay, tc.tradeNo, "Subscription & wallet + 中文", 1234, OfficialPaymentCheckoutOptions{AlipayProduct: tc.product, UserAgent: tc.agent})
+			require.NoError(t, err)
+			assert.Equal(t, tc.kind, checkout.CheckoutType)
+			assert.Equal(t, "12.34", checkout.Amount)
+			assert.Empty(t, checkout.QRCode)
+			assert.InDelta(t, time.Now().Add(15*time.Minute).Unix(), checkout.ExpiresAt, 2)
+			encoded := checkout.OrderString
+			if tc.kind == "redirect" {
+				u, err := url.Parse(checkout.PayURL)
+				require.NoError(t, err)
+				assert.Equal(t, "https", u.Scheme)
+				assert.Equal(t, "openapi.alipay.com", u.Host)
+				assert.Equal(t, "/gateway.do", u.Path)
+				encoded = u.RawQuery
+				assert.Empty(t, checkout.OrderString)
+			} else {
+				assert.Empty(t, checkout.PayURL)
+			}
+			values, err := url.ParseQuery(encoded)
+			require.NoError(t, err)
+			assert.Equal(t, tc.method, values.Get("method"))
+			assert.Equal(t, settings.AlipayAppID, values.Get("app_id"))
+			assert.Equal(t, "RSA2", values.Get("sign_type"))
+			assert.Equal(t, settings.CallbackURL+"/api/payment/official/alipay/notify", values.Get("notify_url"))
+			if tc.returnPath == "" {
+				assert.Empty(t, values.Get("return_url"))
+			} else {
+				assert.Equal(t, settings.CallbackURL+tc.returnPath, values.Get("return_url"))
+			}
+			require.NoError(t, paymentRSAVerify(&merchant.PublicKey, alipaySigningContent(values, false), values.Get("sign")))
+			var payload map[string]string
+			require.NoError(t, common.UnmarshalJsonStr(values.Get("biz_content"), &payload))
+			assert.Equal(t, map[string]string{"out_trade_no": tc.tradeNo, "seller_id": settings.AlipaySellerID, "total_amount": "12.34", "subject": "Subscription & wallet + 中文", "timeout_express": "15m", "product_code": tc.code}, payload)
+			values.Set("biz_content", strings.ReplaceAll(values.Get("biz_content"), "12.34", "0.01"))
+			assert.Error(t, paymentRSAVerify(&merchant.PublicKey, alipaySigningContent(values, false), values.Get("sign")))
+		})
+	}
+}
+
+func TestOfficialPaymentCheckout_AlipayProductSelection(t *testing.T) {
+	for _, tc := range []struct {
+		name                       string
+		products                   []string
+		requested, agent, expected string
+		invalid                    bool
+	}{
+		{name: "legacy configuration", expected: AlipayFaceToFace},
+		{name: "empty products", products: []string{}, invalid: true},
+		{name: "desktop QR fallback", products: []string{AlipayWap, AlipayFaceToFace}, expected: AlipayFaceToFace},
+		{name: "mobile QR fallback", products: []string{AlipayPage, AlipayFaceToFace}, agent: "Android", expected: AlipayFaceToFace},
+		{name: "mobile only on desktop", products: []string{AlipayWap}, expected: AlipayWap},
+		{name: "desktop only on mobile", products: []string{AlipayPage}, agent: "iPad", expected: AlipayPage},
+		{name: "app not selected for browsers", products: []string{AlipayApp}, invalid: true},
+		{name: "native app explicitly selected", products: []string{AlipayApp}, requested: AlipayApp, expected: AlipayApp},
+		{name: "disabled product", products: []string{AlipayFaceToFace}, requested: AlipayPage, invalid: true},
+		{name: "unknown product", products: []string{AlipayFaceToFace}, requested: "unknown", invalid: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			product, err := ResolveAlipayProduct(operation_setting.OfficialPaymentSettings{AlipayProducts: tc.products}, tc.requested, tc.agent)
+			if tc.invalid {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, product)
+		})
+	}
+}
+
+func TestOfficialPaymentSettings_RejectsInvalidAlipayProducts(t *testing.T) {
+	settings, _, _ := officialPaymentFixture(t)
+	for _, products := range [][]string{{}, {"unknown"}, {AlipayPage, AlipayPage}, {AlipayPage, AlipayWap, AlipayApp, AlipayFaceToFace, "extra"}} {
+		settings.AlipayProducts = products
+		assert.Error(t, ValidateOfficialPaymentSettings(settings))
+	}
+	settings.AlipayProducts = []string{AlipayApp}
+	assert.NoError(t, ValidateOfficialPaymentSettings(settings))
 }

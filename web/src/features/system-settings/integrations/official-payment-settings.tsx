@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -10,7 +9,7 @@ import { CopyButton } from '@/components/copy-button'
 import { ErrorState } from '@/components/error-state'
 import { PasswordInput } from '@/components/password-input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -40,22 +39,31 @@ import {
 import { SettingsPageFormActions } from '../components/settings-page-context'
 import { SettingsSection } from '../components/settings-section'
 
-const schema = z.object({
-  callback_url: z.string().trim(),
-  wechat_enabled: z.boolean(),
-  wechat_app_id: z.string().trim(),
-  wechat_mch_id: z.string().trim(),
-  wechat_serial_no: z.string().trim(),
-  wechat_private_key: z.string(),
-  wechat_api_v3_key: z.string(),
-  wechat_public_key_id: z.string().trim(),
-  wechat_public_key: z.string(),
-  alipay_enabled: z.boolean(),
-  alipay_app_id: z.string().trim(),
-  alipay_seller_id: z.string().trim(),
-  alipay_private_key: z.string(),
-  alipay_public_key: z.string(),
-})
+const schema = z
+  .object({
+    callback_url: z.string().trim(),
+    wechat_enabled: z.boolean(),
+    wechat_app_id: z.string().trim(),
+    wechat_mch_id: z.string().trim(),
+    wechat_serial_no: z.string().trim(),
+    wechat_private_key: z.string(),
+    wechat_api_v3_key: z.string(),
+    wechat_public_key_id: z.string().trim(),
+    wechat_public_key: z.string(),
+    alipay_enabled: z.boolean(),
+    alipay_app_id: z.string().trim(),
+    alipay_seller_id: z.string().trim(),
+    alipay_private_key: z.string(),
+    alipay_public_key: z.string(),
+    alipay_products: z.array(z.enum(['face_to_face', 'page', 'wap', 'app'])),
+  })
+  .refine(
+    (values) => !values.alipay_enabled || values.alipay_products.length > 0,
+    {
+      path: ['alipay_products'],
+      message: 'Select at least one Alipay product.',
+    }
+  )
 
 type Values = z.infer<typeof schema>
 interface ConfigResponse {
@@ -81,7 +89,7 @@ async function fetchSettings(): Promise<ConfigResponse> {
   return parsed.data
 }
 
-export function OfficialPaymentSettings() {
+export function OfficialPaymentSettings(props: { active?: boolean }) {
   const { t } = useTranslation()
   const query = useQuery({
     queryKey: configQueryKey,
@@ -97,7 +105,13 @@ export function OfficialPaymentSettings() {
       />
     )
   }
-  return <OfficialPaymentForm key={query.dataUpdatedAt} initial={query.data} />
+  return (
+    <OfficialPaymentForm
+      key={query.dataUpdatedAt}
+      initial={query.data}
+      active={props.active ?? true}
+    />
+  )
 }
 
 const wechatFields = [
@@ -134,7 +148,10 @@ const alipayFields = [
   },
 ] as const
 
-function OfficialPaymentForm(props: { initial: ConfigResponse }) {
+function OfficialPaymentForm(props: {
+  initial: ConfigResponse
+  active: boolean
+}) {
   const { t } = useTranslation()
   const client = useQueryClient()
   const verification = useSecureVerification()
@@ -204,37 +221,18 @@ function OfficialPaymentForm(props: { initial: ConfigResponse }) {
           <SettingsForm
             onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
           >
-            {!props.initial.compliance_confirmed && (
-              <Alert>
-                <AlertDescription>
-                  {t(
-                    'Payment, redemption, subscription, and invitation reward features are disabled. The administrator must confirm compliance terms before enabling them.'
-                  )}
-                </AlertDescription>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  render={
-                    <Link
-                      to='/system-settings/billing/$section'
-                      params={{ section: 'payment' }}
-                    />
-                  }
-                >
-                  {t('Payment Gateway')}
-                </Button>
-              </Alert>
+            {props.active && (
+              <SettingsPageFormActions
+                onSave={form.handleSubmit((values) => mutation.mutate(values))}
+                onReset={() => form.reset()}
+                isSaving={mutation.isPending}
+                isSaveDisabled={!form.formState.isDirty || mutation.isPending}
+              />
             )}
-            <SettingsPageFormActions
-              onSave={form.handleSubmit((values) => mutation.mutate(values))}
-              onReset={() => form.reset()}
-              isSaving={mutation.isPending}
-              isSaveDisabled={!form.formState.isDirty || mutation.isPending}
-            />
             <Alert>
               <AlertDescription>
                 {t(
-                  'Connect directly to WeChat Native Pay and Alipay face-to-face payments. A public HTTPS callback URL and approved merchant payment products are required.'
+                  'Connect directly to WeChat Native Pay and Alipay. A public HTTPS callback URL and activated merchant payment products are required.'
                 )}
               </AlertDescription>
             </Alert>
@@ -272,6 +270,71 @@ function OfficialPaymentForm(props: { initial: ConfigResponse }) {
                   }
                   label={group.title}
                 />
+                {group.provider === 'alipay' && (
+                  <FormField
+                    control={form.control}
+                    name='alipay_products'
+                    render={({ field }) => (
+                      <FormItem>
+                        <fieldset className='space-y-3'>
+                          <legend className='text-sm font-medium'>
+                            {t('Enabled Alipay products')}
+                          </legend>
+                          <div className='grid gap-3 sm:grid-cols-2'>
+                            {[
+                              {
+                                value: 'face_to_face' as const,
+                                label: t('Alipay face-to-face payment'),
+                              },
+                              {
+                                value: 'page' as const,
+                                label: t('Alipay desktop website payment'),
+                              },
+                              {
+                                value: 'wap' as const,
+                                label: t('Alipay mobile website payment'),
+                              },
+                              {
+                                value: 'app' as const,
+                                label: t('Alipay app payment'),
+                              },
+                            ].map((product) => (
+                              <label
+                                key={product.value}
+                                className='flex items-center gap-2 text-sm'
+                              >
+                                <Checkbox
+                                  checked={field.value.includes(product.value)}
+                                  onCheckedChange={(checked) =>
+                                    field.onChange(
+                                      checked
+                                        ? [...field.value, product.value]
+                                        : field.value.filter(
+                                            (value) => value !== product.value
+                                          )
+                                    )
+                                  }
+                                />
+                                {product.label}
+                              </label>
+                            ))}
+                          </div>
+                          <p className='text-muted-foreground text-xs'>
+                            {t(
+                              'Enable only activated products. Browsers automatically prefer desktop or mobile website payments, with QR payment as a fallback.'
+                            )}
+                          </p>
+                          <p className='text-muted-foreground text-xs'>
+                            {t(
+                              'APP payments return signed orders for the native Alipay SDK. Enable a website or QR product for browser checkout.'
+                            )}
+                          </p>
+                        </fieldset>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <div className='grid gap-4 lg:grid-cols-2'>
                   {group.fields.map((definition) => (
                     <FormField

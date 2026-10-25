@@ -46,7 +46,10 @@ test.each(['wechat_official', 'alipay_official'])(
       amount: 10,
       payment_method: method,
     })
-    expect(result.current.officialCheckout).toEqual(checkout)
+    expect(result.current.officialCheckout).toEqual({
+      ...checkout,
+      checkout_type: 'qr',
+    })
   }
 )
 
