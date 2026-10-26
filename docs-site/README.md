@@ -1,4 +1,4 @@
-# Ai-gateway 独立文档站
+# 开明能源 Token 中转站独立文档站
 
 中文使用手册，使用 VitePress 1.6.4 静态生成。它有独立的依赖、导航和构建产物，不接入 `web/` 的 React 路由，不需要启动 Go 后端或连接数据库。
 
@@ -36,7 +36,7 @@ DOCS_BASE=/manual/ bun run preview
 
 ## 内容维护
 
-- 手写教程在 `guide/`、`deploy/`、`console/`、`api/`、`integrations/`、`operations/`、`reference/`。
+- 手写教程在 `user/`、`admin/`、`guide/`、`deploy/`、`console/`、`api/`、`integrations/`、`operations/`、`reference/`。
 - 导航在 `.vitepress/config.mts`；主题仅扩展默认主题和 CSS，没有自建搜索、复制按钮或抽屉组件。
 - `scripts/sync-reference.mjs` 维护接口索引、下载规格和完整环境变量示例。不要直接修改生成文件。
 - 搜索、移动导航、暗色模式和代码复制复用 VitePress 默认组件。已检查 `web/src/components/copy-button.tsx`、`ui/markdown.tsx` 等候选：它们依赖 React 和控制台运行环境，不能直接用于独立 Vue 静态文档站；因此采用文档框架已有能力，未复制业务组件实现。
@@ -46,11 +46,19 @@ DOCS_BASE=/manual/ bun run preview
 
 网关部署命令与 API 示例按仓库核对，本站构建检查不等于在真实服务商、数据库集群或面板上执行了这些操作。
 
-## 本轮验证（2026-10-25）
+## 本轮调整（2026-10-26）
+
+- 按附件建设开明能源使用指南，新增功能概述、10 篇用户指南、7 篇管理专题及技术文档目录；合并钱包／配额／订阅，复用原有渠道、用户、日志、设置和监控页面。
+- 采用 VitePress 原生导航、搜索、主题、复制与提示组件；未引入 React 控制台组件或额外 UI 依赖。文本品牌不冒用上游 Logo，保留项目版权与许可署名。
+- 新增三张可缩放操作流程图。未提供线上实例和可用账户，图示不作为真实控制台截图，业务流程未在开明能源线上实例验证。
+- 本地运行仍可使用 `npx --yes bun run dev`；生产构建使用 `npx --yes bun run build`。
+
+### 验证结果
 
 - `npx --yes bun run typecheck`、`npx --yes bun run build`：通过。
-- `DOCS_BASE=/manual/ npx --yes bun run build`：通过；子目录首页、深层文档、标志与 OpenAPI JSON 均返回 HTTP 200，下载链接包含正确前缀。
-- 使用项目已有 oxlint 检查配置与同步脚本，使用项目 oxfmt 配置检查 6 个源码/配置文件：通过；`git diff --check` 通过。
-- 构建的 39 个 HTML（38 个内容页面及 404）共 2,284 个站内链接、资源和锚点引用：未发现断链。
-- 浏览器检查 1440px 桌面与 390px 手机布局；正文无页面级横向溢出。中文搜索、主题切换、代码复制、手机导航跳转与关闭均验证通过，未记录到浏览器错误。
-- 未运行真实上游模型调用、面板安装、数据库升级或多节点部署；这些教程依据仓库编写，需在实际部署环境再次验证。
+- `web/node_modules/.bin/oxlint docs-site/.vitepress/config.mts docs-site/scripts/sync-reference.mjs`：通过。
+- `web/node_modules/.bin/oxfmt --check docs-site/.vitepress/config.mts docs-site/.vitepress/theme/custom.css docs-site/scripts/sync-reference.mjs`、`git diff --check`：通过。
+- 检查 58 个构建 HTML 的 3,085 处本地链接、资源和锚点：无断链。
+- 浏览器验证桌面 1440px 和手机 390px 视口，检查首页、注册登录正文、概述与任务流程图；手机首页和正文无页面级横向溢出。
+- 中文搜索“兑换码”可命中新增管理指南；手机文档目录可打开、跳转并关闭；浅色与深色主题可切换；检查时未记录到浏览器错误。
+- 修复手机首页标题与固定导航重叠，重新检查后间距正常；流程图文字在手机可读。

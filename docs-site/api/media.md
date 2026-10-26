@@ -36,7 +36,7 @@ curl --fail-with-body "$AI_GATEWAY_URL/v1/audio/transcriptions" \
 curl --fail --show-error "$AI_GATEWAY_URL/v1/audio/speech" \
   -H "Authorization: Bearer $AI_GATEWAY_KEY" \
   -H 'Content-Type: application/json' \
-  -d '{"model":"your-tts-model","input":"欢迎使用 Ai-gateway","voice":"your-supported-voice"}' \
+  -d '{"model":"your-tts-model","input":"欢迎使用 开明能源 Token 中转站","voice":"your-supported-voice"}' \
   -o speech.mp3
 ```
 

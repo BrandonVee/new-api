@@ -12,7 +12,7 @@
 
 ## 当前仓库的默认组合
 
-仓库根目录 `docker-compose.yml` 默认是 **Ai-gateway + PostgreSQL + Redis**。MySQL 和 ClickHouse 日志库是注释示例，需要你显式切换。不要直接套用上游教程中的默认数据库组合或公共镜像名。
+仓库根目录 `docker-compose.yml` 默认是 **开明能源 Token 中转站 + PostgreSQL + Redis**。MySQL 和 ClickHouse 日志库是注释示例，需要你显式切换。不要直接套用上游教程中的默认数据库组合或公共镜像名。
 
 主数据库支持 SQLite、MySQL 和 PostgreSQL；ClickHouse 只用于单独的日志库，不能替代主库。
 

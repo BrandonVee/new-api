@@ -1,0 +1,10 @@
+{
+  "docs_site_root": "/opt/1panel/www/sites/docs.kaimingenergy.com/index",
+  "docs_status_url": "https://docs.kaimingenergy.com/",
+  "gateway_compose_file": "/opt/ai-gateway/compose.yml",
+  "gateway_project": "ai-gateway",
+  "gateway_service": "ai-gateway",
+  "gateway_container": "ai-gateway-ai-gateway-1",
+  "gateway_status_url": "http://127.0.0.1:3000/api/status",
+  "release_root": "/opt/kaiming-cicd/releases"
+}

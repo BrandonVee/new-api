@@ -1,13 +1,11 @@
 :root {
-  --vp-c-brand-1: #6347c8;
-  --vp-c-brand-2: #7051e9;
-  --vp-c-brand-3: #7051e9;
-  --vp-c-brand-soft: #eeebfd;
+  --vp-c-brand-1: #17647a;
+  --vp-c-brand-2: #21768a;
+  --vp-c-brand-3: #21768a;
+  --vp-c-brand-soft: #e8f2f5;
   --vp-font-family-base:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
-    'Microsoft YaHei', sans-serif;
-  --vp-font-family-mono:
-    'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --vp-font-family-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --vp-home-hero-name-color: var(--vp-c-text-1);
   --vp-home-hero-image-background-image: none;
   --vp-home-hero-image-filter: none;
@@ -15,13 +13,13 @@
 }
 
 .dark {
-  --vp-c-brand-1: #c4b5ff;
-  --vp-c-brand-2: #b3a2ff;
-  --vp-c-brand-3: #7051e9;
-  --vp-c-brand-soft: #30284d;
-  --vp-c-bg: #101320;
-  --vp-c-bg-alt: #161a2b;
-  --vp-c-bg-soft: #1d2238;
+  --vp-c-brand-1: #8bd0de;
+  --vp-c-brand-2: #a6dce6;
+  --vp-c-brand-3: #21768a;
+  --vp-c-brand-soft: #193943;
+  --vp-c-bg: #111b20;
+  --vp-c-bg-alt: #16232a;
+  --vp-c-bg-soft: #1d2e36;
 }
 
 .VPHome .VPHero .name {
@@ -78,5 +76,43 @@
   }
   .VPHome .VPHero .tagline {
     font-size: 16px;
+  }
+}
+
+/* A reading-first manual, extending VitePress rather than replacing controls. */
+.VPNavBarTitle .title {
+  font-weight: 650;
+}
+.VPHome .VPHero .name {
+  font-size: clamp(28px, 4vw, 44px);
+}
+.VPHome .VPHero .text {
+  font-size: clamp(30px, 4vw, 48px);
+}
+.VPHome .VPHero .tagline {
+  max-width: 720px;
+}
+.VPHome .VPHero {
+  padding-top: calc(var(--vp-nav-height) + 48px);
+}
+.vp-doc img {
+  border-radius: 12px;
+}
+.vp-doc h1 {
+  letter-spacing: 0;
+}
+.vp-doc h2 {
+  padding-top: 24px;
+}
+.vp-doc table {
+  display: block;
+  overflow-x: auto;
+}
+@media (max-width: 639px) {
+  .VPHome .VPHero {
+    padding-top: calc(var(--vp-nav-height) + 32px);
+  }
+  .VPNavBarTitle .title {
+    font-size: 15px;
   }
 }

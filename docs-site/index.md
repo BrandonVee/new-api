@@ -1,51 +1,51 @@
 ---
 layout: home
-title: 使用手册
+title: 使用指南
 hero:
-  name: Ai-gateway
-  text: 从第一条请求，到自己的 AI 网关
-  tagline: 一份面向实际部署与日常使用的手册。连接模型服务、管理访问权限，让应用通过统一入口调用 AI。
+  name: 开明能源
+  text: Token 中转站使用指南
+  tagline: 从创建 API 密钥到管理模型服务，按角色查找操作方法，让每一次调用有据可查。
   actions:
     - theme: brand
-      text: 开始部署
-      link: /guide/quickstart
+      text: 用户使用指南
+      link: /user/auth
     - theme: alt
-      text: 查看 API 接入
-      link: /api/
+      text: 管理员操作指南
+      link: /console/channels
 features:
-  - title: 部署自己的实例
-    details: 从 Docker 单容器开始，逐步配置数据库、HTTPS 和多节点。
-    link: /deploy/
-    linkText: 选择部署方式
-  - title: 配好模型与访问
-    details: 理解渠道、分组、模型映射和令牌，把上游能力交给需要的应用。
+  - title: 开始使用
+    details: 登录账户、了解控制台，完成首次模型调用。
+    link: /guide/overview
+    linkText: 查看功能概述
+  - title: 管好访问与用量
+    details: 配置 API 密钥，查询日志、额度和订阅权益。
+    link: /user/keys
+    linkText: 创建 API 密钥
+  - title: 维护模型服务
+    details: 配置渠道、用户、模型与分组，定位服务异常。
     link: /console/channels
-    linkText: 接入第一个渠道
-  - title: 调通应用与 API
-    details: 查找 Chat、Responses、原生协议和多媒体请求示例。
-    link: /api/
-    linkText: 选择接入协议
+    linkText: 接入模型渠道
 ---
 
-## 先跑通一条完整链路
+## 第一次使用，从这里开始
 
-| 步骤 | 你要完成的事 | 验证方式 |
+![从登录到账户调用的四步操作流程](/images/first-request.svg)
+
+| 你要完成的事 | 阅读位置 | 完成标志 |
 | --- | --- | --- |
-| 1. 启动实例 | 构建镜像、保存数据并完成初始化 | 控制台可以打开 |
-| 2. 接入上游 | 添加渠道、模型和可用分组 | 渠道测试通过 |
-| 3. 分配访问 | 配置价格与用户额度，创建网关令牌 | 令牌能读取模型列表 |
-| 4. 发出请求 | 将应用的 API 地址指向网关 | 返回内容，并能找到对应日志 |
+| 登录并保护账户 | [注册与登录](/user/auth) · [个人资料与安全](/user/profile) | 可以进入控制台并检查登录设备 |
+| 让应用调用模型 | [API 密钥](/user/keys) · [使用 API](/user/playground) | 请求成功，能找到对应使用日志 |
+| 查询费用与权益 | [钱包与订阅](/user/wallet) · [日志与任务](/user/logs) | 能核对余额、权益和单次调用记录 |
+| 为团队开放服务 | [渠道管理](/console/channels) · [用户管理](/console/users) | 普通用户能用授权模型完成调用 |
 
-不熟悉这些名词？先阅读 [渠道、模型与令牌的关系](/guide/concepts)。已经部署过？直接进入 [故障排查](/operations/troubleshooting) 或 [升级与备份](/operations/upgrade)。
+## 按角色阅读
 
-## 按你现在的任务阅读
+**普通用户**：从左侧用户指南了解日常操作。无需了解上游密钥或部署细节，也无需管理员权限。
 
-- **部署维护者**：[Docker Compose](/deploy/compose) → [反向代理](/deploy/proxy) → [监控](/operations/monitoring)。
-- **控制台管理员**：[渠道配置](/console/channels) → [模型路由](/console/routing) → [用户与权限](/console/users)。
-- **应用开发者**：[API 概览](/api/) → [请求示例](/api/chat) → [应用集成](/integrations/code)。
+**管理员**：从渠道和用户配置开始，继续阅读兑换码、订阅计划、模型及分组管理。系统级设置由 Root 或具备对应授权的人员维护。
 
-## 关于这份手册
+**部署维护者与开发者**：原有 [部署与技术文档](/reference/technical) 保留，包括 API 示例、Docker 部署、监控和故障排查。
 
-本文档对应当前 Ai-gateway 源码，涵盖 React 控制台、独立 RelayKit / TokenKit 模块及任务插件体系。部署后的功能取决于实际版本、渠道和上游权限，协议兼容并不意味着每个模型都支持所有能力。
-
-操作前请准备你有权使用的上游服务凭据。外站教程的适用场景、镜像名和菜单位置不能直接替代本项目配置；本站针对这些差异重新编写。查看 [来源与维护说明](/reference/maintenance)。
+::: info 适用范围
+本指南依据当前项目整理。功能入口受平台配置、部署版本及账户权限影响；未显示某项功能时，请联系平台管理员确认。图示用于说明操作关系，不代表线上页面截图。
+:::
