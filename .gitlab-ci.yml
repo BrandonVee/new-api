@@ -205,6 +205,9 @@ deploy:gateway:
   needs:
     - job: gateway:build
       artifacts: true
+    - job: verify:deployment
+      artifacts: false
+      optional: true
   resource_group: production-gateway
   environment:
     name: production/gateway
@@ -227,6 +230,9 @@ deploy:docs:
   needs:
     - job: docs:build
       artifacts: true
+    - job: verify:deployment
+      artifacts: false
+      optional: true
   resource_group: production-docs
   environment:
     name: production/docs
