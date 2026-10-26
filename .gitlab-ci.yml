@@ -19,6 +19,7 @@ variables:
     value: all
     options: [all, docs, gateway]
     description: "手动流水线构建范围；生产发布在构建通过后单独点击执行。"
+  GIT_CLEAN_FLAGS: "-ffdx -e .cache/"
   GOWORK: "off"
   GOMAXPROCS: "2"
   GOFLAGS: "-p=2"
@@ -125,6 +126,7 @@ gateway:frontend:
     - node --version && bun --version
   rules: *gateway_rules
   cache:
+    when: always
     key:
       prefix: bun-1.4.0-web-arm64
       files: [web/bun.lock]
@@ -151,6 +153,7 @@ gateway:build:
     GOMODCACHE: "$CI_PROJECT_DIR/.cache/go-mod"
     GOEXPERIMENT: greenteagc
   cache:
+    when: always
     key:
       prefix: go-1.26.1-arm64
       files: [go.sum, tokenkit/go.sum]
@@ -176,6 +179,7 @@ docs:build:
     - node --version && bun --version
   rules: *docs_rules
   cache:
+    when: always
     key:
       prefix: bun-1.4.0-docs-arm64
       files: [docs-site/bun.lock]

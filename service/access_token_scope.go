@@ -235,6 +235,7 @@ var accessTokenVerificationScopes = map[string]string{
 	VerificationScopeAccountBind:           "account_security:write",
 	VerificationScopeAccountUnbind:         "account_security:write",
 	VerificationScopeAccountDelete:         "account_security:write",
+	VerificationScopePaymentMerchantUpdate: "",
 	VerificationScopeAccessTokenGenerate:   "",
 	VerificationScopeAccessTokenUpdate:     "",
 	VerificationScopeAccessTokenRevoke:     "",

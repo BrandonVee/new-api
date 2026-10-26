@@ -105,6 +105,12 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	"GET /api/user/oauth/bindings":                 accessTokenScopeRule("account_security:read"),
 	"DELETE /api/user/oauth/bindings/:provider_id": accessTokenScopeRule("account_security:write"),
 
+	// Official payment wallet operations.
+	"POST /api/user/official/pay":                    accessTokenScopeRule("wallet:write"),
+	"POST /api/user/official/amount":                 accessTokenScopeRule("wallet:read"),
+	"GET /api/user/official/orders/:trade_no":        accessTokenScopeRule("wallet:read"),
+	"POST /api/user/official/orders/:trade_no/check": accessTokenScopeRule("wallet:write"),
+
 	// router/api-router.go: /api/user (admin)
 	"GET /api/user/":                                   accessTokenScopeRule("user:read"),
 	"GET /api/user/topup":                              accessTokenScopeRule("billing:read"),
@@ -129,6 +135,7 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	"POST /api/subscription/balance/pay":                             accessTokenScopeRule("wallet:write"),
 	"POST /api/subscription/epay/pay":                                accessTokenScopeRule("wallet:write"),
 	"POST /api/subscription/stripe/pay":                              accessTokenScopeRule("wallet:write"),
+	"POST /api/subscription/official/pay":                            accessTokenScopeRule("wallet:write"),
 	"POST /api/subscription/creem/pay":                               accessTokenScopeRule("wallet:write"),
 	"POST /api/subscription/waffo-pancake/pay":                       accessTokenScopeRule("wallet:write"),
 	"GET /api/subscription/admin/plans":                              accessTokenScopeRule("billing:read"),
@@ -153,6 +160,8 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	"PATCH /api/option/model_pricing":                            accessTokenScopeRule("option:write"),
 	"POST /api/option/model_pricing/convert":                     accessTokenScopeRule("option:read"),
 	"POST /api/option/model_pricing/preview":                     accessTokenScopeRule("option:read"),
+	"GET /api/option/official_payment":                           accessTokenScopeRule("option:read"),
+	"PUT /api/option/official_payment":                           accessTokenSessionRule,
 	"POST /api/option/payment_compliance":                        accessTokenSessionRule,
 	"GET /api/option/channel_affinity_cache":                     accessTokenScopeRule("option:read"),
 	"DELETE /api/option/channel_affinity_cache":                  accessTokenScopeRule("option:write"),

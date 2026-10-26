@@ -56,6 +56,8 @@ var accessTokenExemptRoutes = []string{
 	"POST /api/user/auth/logout",
 
 	// Payment callbacks.
+	"POST /api/payment/official/wechat/notify",
+	"POST /api/payment/official/alipay/notify",
 	"POST /api/stripe/webhook",
 	"POST /api/creem/webhook",
 	"POST /api/waffo/webhook",
@@ -199,4 +201,30 @@ func TestAccessTokenVerificationScopesAreAllListed(t *testing.T) {
 		_, listed := service.AccessTokenVerificationScope(scope)
 		assert.True(t, listed, "verification scope %s has no access token rule", scope)
 	}
+}
+
+func TestOfficialPaymentAccessTokenRules(t *testing.T) {
+	for _, tc := range []struct {
+		route string
+		kind  string
+		scope string
+	}{
+		{"POST /api/user/official/pay", "scope", "wallet:write"},
+		{"POST /api/user/official/amount", "scope", "wallet:read"},
+		{"GET /api/user/official/orders/:trade_no", "scope", "wallet:read"},
+		{"POST /api/user/official/orders/:trade_no/check", "scope", "wallet:write"},
+		{"POST /api/subscription/official/pay", "scope", "wallet:write"},
+		{"GET /api/option/official_payment", "scope", "option:read"},
+		{"PUT /api/option/official_payment", "session", ""},
+	} {
+		t.Run(tc.route, func(t *testing.T) {
+			rule, ok := middleware.AccessTokenRouteRule(tc.route)
+			require.True(t, ok)
+			assert.Equal(t, tc.kind, rule.Kind())
+			assert.Equal(t, tc.scope, rule.Scope())
+		})
+	}
+	scope, listed := service.AccessTokenVerificationScope(service.VerificationScopePaymentMerchantUpdate)
+	require.True(t, listed)
+	assert.Empty(t, scope, "merchant changes require a browser session rather than a PAT")
 }

@@ -32,4 +32,6 @@ GitLab 项目变量：`DEPLOY_HOST`、`DEPLOY_PORT`、`DEPLOY_USER`，以及 fil
 
 发布入口的 14 项回归测试覆盖命令白名单、归档路径逃逸、错误版本、镜像标签漂移、发布失败恢复及回滚保护；已在本机和生产服务器 Python 运行通过。专用密钥的 `status` 查询成功，普通 `uname` 命令被拒绝。完整构建和实际发布以对应 GitLab 流水线记录为准。
 
-凭据隔离、最小权限、加密传输和无秘密日志参考 [OWASP Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)、[Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)、[Secrets Management](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html) 及 [ASVS 5.0.0](https://asvs.owasp.org/)。本次未调整应用的用户登录、会话或恢复流程，也未对全站逐项进行 ASVS 认证。密钥撤销时移除服务器 `authorized_keys` 中 `kaiming-gitlab-cicd` 的受限公钥行，并删除 GitLab 的对应 SSH 文件变量；管理员原有登录密钥独立保留。
+凭据隔离、最小权限、加密传输和无秘密日志参考 [OWASP Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)、[Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)、[Secrets Management](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html) 及 [ASVS 5.0.0](https://asvs.owasp.org/)。本次补齐官方支付接口的 PAT 作用域登记，商户敏感设置更新继续仅允许浏览器会话并要求二次验证；没有更改用户密码、会话或恢复机制，也未对全站逐项进行 ASVS 认证。密钥撤销时移除服务器 `authorized_keys` 中 `kaiming-gitlab-cicd` 的受限公钥行，并删除 GitLab 的对应 SSH 文件变量；管理员原有登录密钥独立保留。
+
+回归检查还修复了旧的价格换行断言与代理脱敏测试的外部 DNS 依赖。令牌规则、代理脱敏及相关服务的本地 Go 回归共 853 项通过；生产发布仍以完整流水线的最新结果为门禁。依赖和编译缓存无论任务成败都会保存，源码清理仅排除 `.cache/`，不保留旧编译产物作为发布输入。
