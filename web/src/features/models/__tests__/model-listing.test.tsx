@@ -348,7 +348,9 @@ it('keeps prices and channel explanations readable in the mobile card and detail
   const price = screen.getByRole('button', {
     name: 'View pricing for catalog-only',
   })
-  expect(within(price).getByText('1.25')).toHaveClass('whitespace-normal')
+  expect(within(price).getByText('1.25')).toHaveClass(
+    '[overflow-wrap:anywhere]'
+  )
   expect(within(price).getByText('USD / 1M tokens')).toHaveClass(
     'whitespace-normal'
   )
