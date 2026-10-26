@@ -27,3 +27,9 @@ GitLab 项目变量：`DEPLOY_HOST`、`DEPLOY_PORT`、`DEPLOY_USER`，以及 fil
 首次安装由现有管理员 SSH 完成：将 `server/deploy.py`、`server/config.example.json`、`server/install.sh` 和部署公钥放在临时目录，检查配置后运行 `sudo bash install.sh <公钥文件> ubuntu`。安装脚本不修改 SSH/Sudo 配置、不替换已有公钥；已有服务器配置也不会被覆盖。更改 server 脚本必须由管理员重新安装，发布产物不能更新该受限入口。
 
 服务器状态：使用专用密钥执行 `ssh ubuntu@<服务器> status`。状态文件位于 `/opt/kaiming-cicd/state/`。运行时 Dockerfile 固定在受限入口内；仓库运行时基础镜像或依赖发生变化时，需同步审核并更新该入口。
+
+## 验证与安全依据
+
+发布入口的 14 项回归测试覆盖命令白名单、归档路径逃逸、错误版本、镜像标签漂移、发布失败恢复及回滚保护；已在本机和生产服务器 Python 运行通过。专用密钥的 `status` 查询成功，普通 `uname` 命令被拒绝。完整构建和实际发布以对应 GitLab 流水线记录为准。
+
+凭据隔离、最小权限、加密传输和无秘密日志参考 [OWASP Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)、[Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)、[Secrets Management](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html) 及 [ASVS 5.0.0](https://asvs.owasp.org/)。本次未调整应用的用户登录、会话或恢复流程，也未对全站逐项进行 ASVS 认证。密钥撤销时移除服务器 `authorized_keys` 中 `kaiming-gitlab-cicd` 的受限公钥行，并删除 GitLab 的对应 SSH 文件变量；管理员原有登录密钥独立保留。

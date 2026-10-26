@@ -4,6 +4,8 @@ stages:
   - deploy
 
 workflow:
+  auto_cancel:
+    on_new_commit: interruptible
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
@@ -117,7 +119,10 @@ verify:deployment:
 
 gateway:frontend:
   stage: verify
-  image: oven/bun:1.4.0
+  image: node:24-bookworm-slim
+  before_script:
+    - npm install --global bun@1.4.0
+    - node --version && bun --version
   rules: *gateway_rules
   cache:
     key:
@@ -165,7 +170,10 @@ gateway:build:
 
 docs:build:
   stage: verify
-  image: oven/bun:1.4.0
+  image: node:24-bookworm-slim
+  before_script:
+    - npm install --global bun@1.4.0
+    - node --version && bun --version
   rules: *docs_rules
   cache:
     key:
