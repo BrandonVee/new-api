@@ -117,6 +117,28 @@ function UsageGuidelinesLink(props: { inline?: boolean }) {
   )
 }
 
+function ContactEmailLinks() {
+  const { t } = useTranslation()
+  const email = 'kf@kaimingenergy.com'
+
+  return (
+    <div className='text-muted-foreground flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm sm:justify-start'>
+      <a
+        href={`mailto:${email}`}
+        className='hover:text-foreground break-all transition-colors'
+      >
+        {t('Customer service email')}: {email}
+      </a>
+      <a
+        href={`mailto:${email}`}
+        className='hover:text-foreground break-all transition-colors'
+      >
+        {t('Pricing complaint email')}: {email}
+      </a>
+    </div>
+  )
+}
+
 export function Footer(props: FooterProps) {
   const { t } = useTranslation()
   const { status } = useStatus()
@@ -132,6 +154,51 @@ export function Footer(props: FooterProps) {
   const isDemoSiteMode = Boolean(demoSiteEnabled)
   const currentYear = new Date().getFullYear()
   const docsLink = resolveDocsLink(status?.docs_link)
+
+  const linkedFooterHtml = useMemo(() => {
+    if (!footerHtml) return ''
+
+    // 保留后台页脚内容，为纯文本备案号补充链接，并统一已有备案链接。
+    const document = new DOMParser().parseFromString(footerHtml, 'text/html')
+    const registrationUrl = 'https://beian.miit.gov.cn/#/Integrated/index'
+    const registrationPattern = /([\u4e00-\u9fff]ICP备\d+号(?:-\d+)?)/g
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT
+    )
+    const nodes: Text[] = []
+    while (walker.nextNode()) nodes.push(walker.currentNode as Text)
+
+    for (const node of nodes) {
+      if (node.parentElement?.closest('script, style')) continue
+      const parts = node.data.split(registrationPattern)
+      if (parts.length === 1) continue
+
+      const existingLink = node.parentElement?.closest('a')
+      if (existingLink) {
+        existingLink.href = registrationUrl
+        existingLink.target = '_blank'
+        existingLink.rel = 'noopener noreferrer'
+        continue
+      }
+
+      const fragment = document.createDocumentFragment()
+      parts.forEach((part, index) => {
+        if (index % 2 === 0) {
+          fragment.append(part)
+          return
+        }
+        const link = document.createElement('a')
+        link.href = registrationUrl
+        link.target = '_blank'
+        link.rel = 'noopener noreferrer'
+        link.textContent = part
+        fragment.append(link)
+      })
+      node.replaceWith(fragment)
+    }
+    return document.body.innerHTML
+  }, [footerHtml])
 
   const fallbackColumns = useMemo<FooterColumnProps[]>(
     () => [
@@ -185,10 +252,13 @@ export function Footer(props: FooterProps) {
       >
         <div className='mx-auto w-full max-w-6xl px-6 py-5'>
           <div className='bg-muted/20 border-border/50 flex flex-col items-center justify-between gap-4 rounded-2xl border px-4 py-4 backdrop-blur-sm sm:flex-row sm:px-5'>
-            <div
-              className='custom-footer text-muted-foreground min-w-0 text-center text-sm sm:text-left'
-              dangerouslySetInnerHTML={{ __html: footerHtml }}
-            />
+            <div className='min-w-0 space-y-3'>
+              <div
+                className='custom-footer text-muted-foreground text-center text-sm sm:text-left'
+                dangerouslySetInnerHTML={{ __html: linkedFooterHtml }}
+              />
+              <ContactEmailLinks />
+            </div>
             <div className='border-border/60 text-muted-foreground/45 flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t pt-4 text-xs sm:w-auto sm:justify-end sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5'>
               <LegalLinks />
               <UsageGuidelinesLink inline />
@@ -244,6 +314,10 @@ export function Footer(props: FooterProps) {
               ))}
             </div>
           )}
+        </div>
+
+        <div className='mt-8'>
+          <ContactEmailLinks />
         </div>
 
         {/* Copyright + optional legal links inline on the left, usage guidelines

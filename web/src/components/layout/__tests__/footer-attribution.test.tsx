@@ -35,7 +35,8 @@ it.each([
   { presentation: 'demo', footerHtml: '', demoSiteEnabled: true },
   {
     presentation: 'custom HTML',
-    footerHtml: '<p>Custom footer content</p>',
+    footerHtml:
+      '<p>Custom footer content</p>琼ICP备2026008287号-1 · <a href="https://beian.miit.gov.cn/"><span>琼ICP备2026008287号-2</span></a>',
     demoSiteEnabled: false,
   },
 ])(
@@ -64,6 +65,16 @@ it.each([
     render(<RouterProvider router={router} />)
 
     const footer = within(screen.getByRole('contentinfo'))
+    expect(
+      footer.getByRole('link', {
+        name: 'Customer service email: kf@kaimingenergy.com',
+      })
+    ).toHaveAttribute('href', 'mailto:kf@kaimingenergy.com')
+    expect(
+      footer.getByRole('link', {
+        name: 'Pricing complaint email: kf@kaimingenergy.com',
+      })
+    ).toHaveAttribute('href', 'mailto:kf@kaimingenergy.com')
     expect(footer.queryByText(/Brandon|Maintained by/)).not.toBeInTheDocument()
     expect(
       footer.queryByRole('link', { name: 'Legal Notices' })
@@ -86,6 +97,15 @@ it.each([
     ).toBe(true)
     if (fixture.footerHtml) {
       expect(footer.getByText('Custom footer content')).toBeVisible()
+      for (const name of ['琼ICP备2026008287号-1', '琼ICP备2026008287号-2']) {
+        const registration = footer.getByRole('link', { name })
+        expect(registration).toHaveAttribute(
+          'href',
+          'https://beian.miit.gov.cn/#/Integrated/index'
+        )
+        expect(registration).toHaveAttribute('target', '_blank')
+        expect(registration).toHaveAttribute('rel', 'noopener noreferrer')
+      }
     }
   }
 )
