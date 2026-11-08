@@ -133,7 +133,7 @@ function ContactEmailLinks() {
         href={`mailto:${email}`}
         className='hover:text-foreground break-all transition-colors'
       >
-        {t('Pricing complaint email')}: {email}
+        {t('Complaint email')}: {email}
       </a>
     </div>
   )
