@@ -1,8 +1,12 @@
 package controller
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/hex"
+	"encoding/pem"
 	"maps"
 	"net/http"
 	"net/http/httptest"
@@ -201,6 +205,55 @@ func TestOfficialPaymentSettingsAndOwnedOrderStatus(t *testing.T) {
 			router.ServeHTTP(recorder, request)
 			assert.Contains(t, recorder.Body.String(), `"success":false`)
 			assert.Equal(t, "new-app", operation_setting.GetOfficialPaymentSettings().AlipayAppID)
+		}
+	})
+	t.Run("invalid WeChat settings return the specific translated error without exposing secrets", func(t *testing.T) {
+		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+		privatePEM := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privateKey)}))
+		before := operation_setting.GetOfficialPaymentSettings()
+		for _, tc := range []struct {
+			name   string
+			change func(*operation_setting.OfficialPaymentSettings)
+			key    string
+		}{
+			{name: "callback", change: func(s *operation_setting.OfficialPaymentSettings) { s.CallbackURL = "http://gateway.example.com" }, key: "Enter an HTTPS callback base URL with a hostname and without credentials, query parameters or fragments."},
+			{name: "app ID", change: func(s *operation_setting.OfficialPaymentSettings) { s.WeChatAppID = "" }, key: "WeChat App ID is required."},
+			{name: "merchant ID", change: func(s *operation_setting.OfficialPaymentSettings) { s.WeChatMchID = "" }, key: "WeChat merchant ID is required."},
+			{name: "certificate serial number", change: func(s *operation_setting.OfficialPaymentSettings) { s.WeChatSerialNo = "" }, key: "WeChat merchant certificate serial number is required."},
+			{name: "public key ID", change: func(s *operation_setting.OfficialPaymentSettings) { s.WeChatPublicKeyID = "certificate-serial" }, key: "WeChat Pay public key ID must start with PUB_KEY_ID_."},
+			{name: "API v3 key", change: func(s *operation_setting.OfficialPaymentSettings) { s.WeChatAPIv3Key = "invalid-api-key-sentinel" }, key: "WeChat Pay API v3 key must be exactly 32 bytes."},
+			{name: "private key", change: func(s *operation_setting.OfficialPaymentSettings) {
+				s.WeChatPrivateKey = "invalid-private-key-sentinel"
+			}, key: "WeChat merchant private key must be a valid PEM-encoded RSA private key of at least 2048 bits."},
+			{name: "public key", change: func(s *operation_setting.OfficialPaymentSettings) { s.WeChatPublicKey = "invalid-public-key-sentinel" }, key: "WeChat Pay public key must be a valid PEM-encoded RSA public key or certificate of at least 2048 bits."},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				settings := operation_setting.OfficialPaymentSettings{
+					CallbackURL: "https://gateway.example.com", WeChatEnabled: true,
+					WeChatAppID: "wx-test", WeChatMchID: "1234567890", WeChatSerialNo: "ABC123",
+					WeChatPublicKeyID: "PUB_KEY_ID_TEST", WeChatAPIv3Key: strings.Repeat("k", 32),
+					WeChatPrivateKey: privatePEM,
+				}
+				tc.change(&settings)
+				raw, err := common.Marshal(settings)
+				require.NoError(t, err)
+				recorder := httptest.NewRecorder()
+				router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPut, "/settings", strings.NewReader(string(raw))))
+				assert.Equal(t, http.StatusOK, recorder.Code)
+				var response struct {
+					Success    bool   `json:"success"`
+					Message    string `json:"message"`
+					MessageKey string `json:"message_key"`
+				}
+				require.NoError(t, common.Unmarshal(recorder.Body.Bytes(), &response))
+				assert.False(t, response.Success)
+				assert.Equal(t, tc.key, response.Message)
+				assert.Equal(t, tc.key, response.MessageKey)
+				assert.NotContains(t, recorder.Body.String(), settings.WeChatPrivateKey)
+				assert.NotContains(t, recorder.Body.String(), settings.WeChatAPIv3Key)
+				assert.Equal(t, before, operation_setting.GetOfficialPaymentSettings())
+			})
 		}
 	})
 	t.Run("status query only exposes the authenticated user's orders", func(t *testing.T) {

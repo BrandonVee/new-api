@@ -158,42 +158,54 @@ func ParsePaymentPublicKey(value string) (*rsa.PublicKey, error) {
 
 func ValidateOfficialPaymentSettings(settings operation_setting.OfficialPaymentSettings) error {
 	if len(settings.AlipayProducts) > 4 {
-		return errors.New("invalid Alipay products")
+		return common.NewMessage("Invalid Alipay payment products. Select supported products without duplicates.")
 	}
 	for i, product := range settings.AlipayProducts {
 		if !slices.Contains([]string{AlipayFaceToFace, AlipayPage, AlipayWap, AlipayApp}, product) || slices.Contains(settings.AlipayProducts[:i], product) {
-			return errors.New("invalid Alipay products")
+			return common.NewMessage("Invalid Alipay payment products. Select supported products without duplicates.")
 		}
 	}
 	if settings.AlipayEnabled && settings.AlipayProducts != nil && len(settings.AlipayProducts) == 0 {
-		return errors.New("enable at least one Alipay product")
+		return common.NewMessage("Select at least one Alipay product.")
 	}
 	if settings.CallbackURL != "" || settings.WeChatEnabled || settings.AlipayEnabled {
 		u, err := url.Parse(settings.CallbackURL)
 		if err != nil || u.Scheme != "https" || u.Hostname() == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
-			return errors.New("callback URL must be a public HTTPS base URL without query parameters")
+			return common.NewMessage("Enter an HTTPS callback base URL with a hostname and without credentials, query parameters or fragments.")
 		}
 	}
 	if settings.WeChatEnabled {
-		if settings.WeChatAppID == "" || settings.WeChatMchID == "" || settings.WeChatSerialNo == "" || !strings.HasPrefix(settings.WeChatPublicKeyID, "PUB_KEY_ID_") || len(settings.WeChatAPIv3Key) != 32 {
-			return errors.New("WeChat Pay requires App ID, merchant ID, certificate serial number, public key ID and a 32-byte API v3 key")
+		if settings.WeChatAppID == "" {
+			return common.NewMessage("WeChat App ID is required.")
+		}
+		if settings.WeChatMchID == "" {
+			return common.NewMessage("WeChat merchant ID is required.")
+		}
+		if settings.WeChatSerialNo == "" {
+			return common.NewMessage("WeChat merchant certificate serial number is required.")
+		}
+		if !strings.HasPrefix(settings.WeChatPublicKeyID, "PUB_KEY_ID_") {
+			return common.NewMessage("WeChat Pay public key ID must start with PUB_KEY_ID_.")
+		}
+		if len(settings.WeChatAPIv3Key) != 32 {
+			return common.NewMessage("WeChat Pay API v3 key must be exactly 32 bytes.")
 		}
 		if _, err := ParsePaymentPrivateKey(settings.WeChatPrivateKey); err != nil {
-			return err
+			return common.NewMessage("WeChat merchant private key must be a valid PEM-encoded RSA private key of at least 2048 bits.")
 		}
 		if _, err := ParsePaymentPublicKey(settings.WeChatPublicKey); err != nil {
-			return err
+			return common.NewMessage("WeChat Pay public key must be a valid PEM-encoded RSA public key or certificate of at least 2048 bits.")
 		}
 	}
 	if settings.AlipayEnabled {
 		if settings.AlipayAppID == "" || settings.AlipaySellerID == "" {
-			return errors.New("Alipay requires App ID and seller ID")
+			return common.NewMessage("Alipay App ID and seller ID are required.")
 		}
 		if _, err := ParsePaymentPrivateKey(settings.AlipayPrivateKey); err != nil {
-			return err
+			return common.NewMessage("Alipay application private key must be a valid PEM-encoded RSA private key of at least 2048 bits.")
 		}
 		if _, err := ParsePaymentPublicKey(settings.AlipayPublicKey); err != nil {
-			return err
+			return common.NewMessage("Alipay public key must be a valid PEM-encoded RSA public key or certificate of at least 2048 bits.")
 		}
 	}
 	return nil

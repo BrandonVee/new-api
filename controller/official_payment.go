@@ -60,7 +60,7 @@ func UpdateOfficialPaymentSettings(c *gin.Context) {
 	settings.AlipayAppID = strings.TrimSpace(settings.AlipayAppID)
 	settings.AlipaySellerID = strings.TrimSpace(settings.AlipaySellerID)
 	if err := service.ValidateOfficialPaymentSettings(settings); err != nil {
-		common.ApiErrorT(c, "Official payment configuration is invalid. Check the HTTPS callback URL, merchant identifiers, payment products and PEM keys.")
+		common.ApiError(c, err)
 		return
 	}
 	raw, err := common.Marshal(settings)

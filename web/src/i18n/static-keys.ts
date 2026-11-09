@@ -1,6 +1,18 @@
 // Static translation keys that don't get picked up by the t('...') regex.
 // These cover dynamic labels (e.g. constants, configs) that are passed into t at runtime.
 export const STATIC_I18N_KEYS = [
+  'Invalid Alipay payment products. Select supported products without duplicates.',
+  'Enter an HTTPS callback base URL with a hostname and without credentials, query parameters or fragments.',
+  'WeChat App ID is required.',
+  'WeChat merchant ID is required.',
+  'WeChat merchant certificate serial number is required.',
+  'WeChat Pay public key ID must start with PUB_KEY_ID_.',
+  'WeChat Pay API v3 key must be exactly 32 bytes.',
+  'WeChat merchant private key must be a valid PEM-encoded RSA private key of at least 2048 bits.',
+  'WeChat Pay public key must be a valid PEM-encoded RSA public key or certificate of at least 2048 bits.',
+  'Alipay App ID and seller ID are required.',
+  'Alipay application private key must be a valid PEM-encoded RSA private key of at least 2048 bits.',
+  'Alipay public key must be a valid PEM-encoded RSA public key or certificate of at least 2048 bits.',
   'Select at least one Alipay product.',
   'Official payment configuration is invalid. Check the HTTPS callback URL, merchant identifiers, payment products and PEM keys.',
   'Official Payments',
