@@ -59,6 +59,7 @@ func UpdateOfficialPaymentSettings(c *gin.Context) {
 	settings.WeChatPublicKeyID = strings.TrimSpace(settings.WeChatPublicKeyID)
 	settings.AlipayAppID = strings.TrimSpace(settings.AlipayAppID)
 	settings.AlipaySellerID = strings.TrimSpace(settings.AlipaySellerID)
+	settings = operation_setting.NormalizeOfficialPaymentSettings(settings)
 	if err := service.ValidateOfficialPaymentSettings(settings); err != nil {
 		common.ApiError(c, err)
 		return
