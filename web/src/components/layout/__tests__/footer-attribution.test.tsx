@@ -72,9 +72,9 @@ it.each([
     ).toHaveAttribute('href', 'mailto:kf@kaimingenergy.com')
     expect(
       footer.getByRole('link', {
-        name: 'Complaint email: kf@kaimingenergy.com',
+        name: 'Complaint email: complaint@kaimingenergy.com',
       })
-    ).toHaveAttribute('href', 'mailto:kf@kaimingenergy.com')
+    ).toHaveAttribute('href', 'mailto:complaint@kaimingenergy.com')
     expect(footer.queryByText(/Brandon|Maintained by/)).not.toBeInTheDocument()
     expect(
       footer.queryByRole('link', { name: 'Legal Notices' })

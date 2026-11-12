@@ -119,21 +119,22 @@ function UsageGuidelinesLink(props: { inline?: boolean }) {
 
 function ContactEmailLinks() {
   const { t } = useTranslation()
-  const email = 'kf@kaimingenergy.com'
+  const customerServiceEmail = 'kf@kaimingenergy.com'
+  const complaintEmail = 'complaint@kaimingenergy.com'
 
   return (
     <div className='text-muted-foreground flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm sm:justify-start'>
       <a
-        href={`mailto:${email}`}
+        href={`mailto:${customerServiceEmail}`}
         className='hover:text-foreground break-all transition-colors'
       >
-        {t('Customer service email')}: {email}
+        {t('Customer service email')}: {customerServiceEmail}
       </a>
       <a
-        href={`mailto:${email}`}
+        href={`mailto:${complaintEmail}`}
         className='hover:text-foreground break-all transition-colors'
       >
-        {t('Complaint email')}: {email}
+        {t('Complaint email')}: {complaintEmail}
       </a>
     </div>
   )
